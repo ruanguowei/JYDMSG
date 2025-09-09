@@ -1,0 +1,238 @@
+<!--pages/artwork-delivery/index.wxml-->
+<view class="container">
+  <view class="page-header">
+    <view class="page-title">
+      <text class="title-icon">📤</text>
+      <text>作品运送信息提交</text>
+    </view>
+  </view>
+
+  <form bindsubmit="submitDeliveryInfo">
+    <view class="form-group">
+      <view class="form-item">
+        <view class="form-label required">运送方式</view>
+        <picker bindchange="bindDeliveryMethodChange" value="{{deliveryMethodIndex}}" range="{{deliveryMethods}}">
+          <view class="picker-input">
+            <text wx:if="{{deliveryMethodIndex === -1}}">请选择运送方式</text>
+            <text wx:else>{{deliveryMethods[deliveryMethodIndex]}}</text>
+            <text class="picker-arrow">▼</text>
+          </view>
+        </picker>
+      </view>
+
+      <view class="form-item">
+        <view class="form-label required">快递物流公司</view>
+        <picker bindchange="bindExpressCompanyChange" value="{{expressCompanyIndex}}" range="{{expressCompanies}}">
+          <view class="picker-input">
+            <text wx:if="{{expressCompanyIndex === -1}}">请选择快递物流公司</text>
+            <text wx:else>{{expressCompanies[expressCompanyIndex]}}</text>
+            <text class="picker-arrow">▼</text>
+          </view>
+        </picker>
+      </view>
+
+      <view class="form-item">
+        <view class="form-label required">快递单号</view>
+        <input class="form-input" name="trackingNumber" placeholder="请输入快递单号，自送还输入'自送'" value="{{trackingNumber}}" bindinput="inputTrackingNumber"/>
+      </view>
+
+      <view class="form-item">
+        <view class="form-label required">寄出日期</view>
+        <picker mode="date" bindchange="bindSendDateChange" value="{{sendDate}}">
+          <view class="picker-input date-picker">
+            <text wx:if="{{!sendDate}}">yyyy/mm/日</text>
+            <text wx:else>{{sendDate}}</text>
+            <text class="picker-calendar-icon">📅</text>
+          </view>
+        </picker>
+      </view>
+
+      <view class="form-item">
+        <view class="form-label">预计到达日期</view>
+        <picker mode="date" bindchange="bindEstimatedArrivalChange" value="{{estimatedArrival}}">
+          <view class="picker-input date-picker">
+            <text wx:if="{{!estimatedArrival}}">yyyy/mm/日</text>
+            <text wx:else>{{estimatedArrival}}</text>
+            <text class="picker-calendar-icon">📅</text>
+          </view>
+        </picker>
+      </view>
+
+      <view class="form-item">
+        <view class="form-label required">包裹数量</view>
+        <input class="form-input" type="number" name="packageCount" placeholder="请输入包裹数量" value="{{packageCount}}" bindinput="inputPackageCount"/>
+      </view>
+
+      <view class="form-item">
+        <view class="form-label required">包裹外观照片</view>
+        <view class="image-uploader">
+          <view class="uploader-info">(最多3张)</view>
+          <view class="uploader-files">
+            <view class="uploader-file" wx:for="{{isEditMode && packageImagesDisplay.length > 0 ? packageImagesDisplay : packageImages}}" wx:key="index">
+              <image class="uploader-image" src="{{item}}" mode="aspectFill" bindtap="previewPackageImage" data-index="{{index}}"></image>
+              <view class="uploader-delete" bindtap="deletePackageImage" data-index="{{index}}">×</view>
+            </view>
+            <view class="uploader-add" bindtap="choosePackageImage" wx:if="{{(isEditMode && packageImagesDisplay.length < 3) || (!isEditMode && packageImages.length < 3) || packageImages.length === 0}}">
+              <view class="uploader-add-icon">
+                <icon type="search" size="40" color="#999999"></icon>
+              </view>
+              <text class="uploader-add-text">点击上传包裹外观照片</text>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <view class="form-item">
+        <view class="form-label required">作品包装照片</view>
+        <view class="image-uploader">
+          <view class="uploader-info">(最多5张)</view>
+          <view class="uploader-files">
+            <view class="uploader-file" wx:for="{{isEditMode && artworkImagesDisplay.length > 0 ? artworkImagesDisplay : artworkImages}}" wx:key="index">
+              <image class="uploader-image" src="{{item}}" mode="aspectFill" bindtap="previewArtworkImage" data-index="{{index}}"></image>
+              <view class="uploader-delete" bindtap="deleteArtworkImage" data-index="{{index}}">×</view>
+            </view>
+            <view class="uploader-add" bindtap="chooseArtworkImage" wx:if="{{(isEditMode && artworkImagesDisplay.length < 5) || (!isEditMode && artworkImages.length < 5) || artworkImages.length === 0}}">
+              <view class="uploader-add-icon">
+                <icon type="search" size="40" color="#999999"></icon>
+              </view>
+              <text class="uploader-add-text">点击上传作品包装照片</text>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <view class="form-item">
+        <view class="form-label">运送说明/备注</view>
+        <textarea class="form-textarea" name="remarks" placeholder="请输入有关作品运送的特殊要求或备注信息" value="{{remarks}}" bindinput="inputRemarks"></textarea>
+      </view>
+      
+      <button class="submit-btn" form-type="submit">{{isEditMode ? '提交修改' : '提交运送信息'}}</button>
+    </view>
+  </form>
+
+  <!-- 重要提示区域 -->
+  <view class="notice-section">
+    <view class="notice-header">
+      <text class="notice-icon">ⓘ</text>
+      <text class="notice-title">重要提示</text>
+    </view>
+
+    <view class="notice-item notice-blue">
+      <view class="notice-item-title">作品包装要求</view>
+      <view class="notice-item-content">所有送展作品需使用防震、防潮材料进行分包装，外包装箱需标明"景德镇"字样。</view>
+    </view>
+
+    <view class="notice-item notice-yellow">
+      <view class="notice-item-title">运送时间安排</view>
+      <view class="notice-item-content">作品接收时间：2023年9月1日至9月20日（9:00-17:00）</view>
+    </view>
+
+    <view class="notice-item notice-red">
+      <view class="notice-item-title">注意事项</view>
+      <view class="notice-item-content">
+        <view class="notice-bullet">• 所有送展作品请附上完整的作品信息卡</view>
+        <view class="notice-bullet">• 特殊材质或大型作品需提前与组委会沟通</view>
+        <view class="notice-bullet">• 作品送达后，工作人员将验收并出具收据</view>
+      </view>
+    </view>
+
+    <view class="notice-link" bindtap="navigateToGuide">更多详细说明请查看大陶展专区的"作品运送指南"</view>
+  </view>
+
+  <!-- 成功提示弹窗 -->
+  <view class="modal" wx:if="{{showSuccessModal}}">
+    <view class="modal-mask" bindtap="closeSuccessModal"></view>
+    <view class="modal-content">
+      <view class="modal-icon success">✓</view>
+      <view class="modal-title">提交成功</view>
+      <view class="modal-message">您的作品运送信息已成功提交</view>
+      <button class="modal-button" bindtap="closeSuccessModal">确定</button>
+    </view>
+  </view>
+
+  <!-- 错误提示弹窗 -->
+  <view class="modal" wx:if="{{showErrorModal}}">
+    <view class="modal-mask" bindtap="closeErrorModal"></view>
+    <view class="modal-content">
+      <view class="modal-icon error">!</view>
+      <view class="modal-title">提交失败</view>
+      <view class="modal-message">{{errorMessage}}</view>
+      <button class="modal-button" bindtap="closeErrorModal">确定</button>
+    </view>
+  </view>
+  
+  <!-- 详情弹窗 -->
+  <view class="modal" wx:if="{{showDetailModal}}">
+    <view class="modal-mask" bindtap="closeDetailModal"></view>
+    <view class="modal-content detail-modal">
+      <view class="detail-header">
+        <text class="detail-title">运送详情</text>
+        <text class="close-btn" bindtap="closeDetailModal">×</text>
+      </view>
+      
+      <scroll-view scroll-y="true" class="detail-body">
+        <view class="detail-section">
+          <view class="detail-item">
+            <text class="detail-label">运送方式</text>
+            <text class="detail-value">{{deliveryMethods[deliveryMethodIndex]}}</text>
+          </view>
+          
+          <view class="detail-item" wx:if="{{expressCompanyIndex !== -1}}">
+            <text class="detail-label">快递公司</text>
+            <text class="detail-value">{{expressCompanies[expressCompanyIndex]}}</text>
+          </view>
+          
+          <view class="detail-item" wx:if="{{trackingNumber}}">
+            <text class="detail-label">快递单号</text>
+            <text class="detail-value">{{trackingNumber}}</text>
+          </view>
+          
+          <view class="detail-item">
+            <text class="detail-label">寄出日期</text>
+            <text class="detail-value">{{sendDate}}</text>
+          </view>
+          
+          <view class="detail-item" wx:if="{{estimatedArrival}}">
+            <text class="detail-label">预计到达日期</text>
+            <text class="detail-value">{{estimatedArrival}}</text>
+          </view>
+          
+          <view class="detail-item">
+            <text class="detail-label">包裹数量</text>
+            <text class="detail-value">{{packageCount}}个</text>
+          </view>
+          
+          <view class="detail-item" wx:if="{{remarks}}">
+            <text class="detail-label">备注信息</text>
+            <text class="detail-value">{{remarks}}</text>
+          </view>
+        </view>
+        
+        <!-- 包裹外观照片 -->
+        <view class="detail-section">
+          <view class="detail-section-title">包裹外观照片</view>
+          <view class="detail-images">
+            <view class="detail-image-item" wx:for="{{packageImages}}" wx:key="index">
+              <image src="{{item}}" mode="aspectFill" bindtap="previewPackageImage" data-index="{{index}}"></image>
+            </view>
+          </view>
+        </view>
+        
+        <!-- 作品包装照片 -->
+        <view class="detail-section">
+          <view class="detail-section-title">作品包装照片</view>
+          <view class="detail-images">
+            <view class="detail-image-item" wx:for="{{artworkImages}}" wx:key="index">
+              <image src="{{item}}" mode="aspectFill" bindtap="previewArtworkImage" data-index="{{index}}"></image>
+            </view>
+          </view>
+        </view>
+      </scroll-view>
+      
+      <view class="detail-footer">
+        <button class="detail-btn delete-btn" bindtap="deleteDelivery">删除记录</button>
+        <button class="detail-btn edit-btn" bindtap="startEditDelivery">修改信息</button>
+      </view>
+    </view>
+  </view>
+</view>

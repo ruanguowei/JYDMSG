@@ -1,0 +1,312 @@
+/* pages/appointment/index.wxss */
+.container {
+  padding: 0;
+  background-color: #f6f6f6;
+  min-height: 100vh;
+}
+
+/* 日历样式 */
+.calendar-container, .time-container {
+  background-color: #ffffff;
+  border-radius: 16rpx;
+  padding: 30rpx;
+  margin: 0 20rpx 30rpx 20rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+}
+
+/* 时段选择样式 */
+.time-container .section-title {
+  margin-bottom: 20rpx;
+}
+
+.time-slots {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0 -10rpx;
+}
+
+.time-slot {
+  width: 50%;
+  box-sizing: border-box;
+  padding: 10rpx;
+}
+
+.time-slot view {
+  height: 80rpx;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid #e0e0e0;
+  border-radius: 8rpx;
+  font-size: 28rpx;
+  color: #666;
+}
+
+.time-slot.available view {
+  border-color: #e0e0e0;
+  color: #333;
+}
+
+.time-slot.selected view {
+  background-color: #4a90e2;
+  color: #fff;
+  border-color: #4a90e2;
+}
+
+.time-slot.disabled view {
+  color: #ccc;
+  background-color: #f5f5f5;
+  border-color: #eee;
+}
+
+/* 表单容器样式 */
+.form-container {
+  background-color: #ffffff;
+  border-radius: 0;
+  margin: 0 0 30rpx 0;
+  padding: 30rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  margin-bottom: 30rpx;
+  color: #333;
+}
+
+.form-item {
+  margin-bottom: 30rpx;
+}
+
+/* 标签字体样式 */
+.form-label {
+  font-size: 30rpx;
+  color: #333;
+  margin-bottom: 15rpx;
+  font-weight: 500;
+}
+
+.form-textarea {
+  width: 100%;
+  height: 180rpx;
+  border: 1px solid #e0e0e0;
+  border-radius: 8rpx;
+  padding: 20rpx;
+  font-size: 28rpx;
+  box-sizing: border-box;
+  color: #333;
+}
+
+.form-textarea::placeholder {
+  color: #999;
+}
+
+.form-input {
+  width: 100%;
+  height: 88rpx;
+  border: 1px solid #e0e0e0;
+  border-radius: 8rpx;
+  padding: 0 20rpx;
+  font-size: 32rpx;
+  box-sizing: border-box;
+  color: #333;
+}
+
+/* 参观人数选择器样式 */
+.visitor-picker {
+  width: 100%;
+  background-color: #ffffff;
+  margin-bottom: 30rpx;
+}
+
+.picker-item {
+  height: 88rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20rpx 0 0;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 30rpx;
+  color: #333;
+}
+
+.picker-value {
+  display: flex;
+  align-items: center;
+  color: #666;
+}
+
+.arrow {
+  margin-left: 10rpx;
+  width: 16rpx;
+  height: 16rpx;
+  border-top: 2rpx solid #ccc;
+  border-right: 2rpx solid #ccc;
+  transform: rotate(45deg);
+}
+
+/* 确认预约按钮 */
+.confirm-btn {
+  background-color: #4a90e2;
+  color: #fff;
+  border: none;
+  border-radius: 8rpx;
+  height: 88rpx;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 30rpx;
+  width: 100%;
+  margin-top: 30rpx;
+  text-align: center;
+}
+
+/* 日历样式 */
+.calendar-header {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20rpx;
+}
+
+.month-selector {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 60%;
+}
+
+.prev-month, .next-month {
+  font-size: 24rpx;
+  color: #666;
+  padding: 10rpx;
+}
+
+.current-month {
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.week-header {
+  display: flex;
+  margin-bottom: 10rpx;
+}
+
+.week-day {
+  flex: 1;
+  text-align: center;
+  font-size: 26rpx;
+  color: #999;
+  padding: 10rpx 0;
+}
+
+.calendar-days {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.calendar-day {
+  width: 14.28%;
+  height: 80rpx;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 28rpx;
+  color: #999;
+}
+
+.calendar-day.available {
+  color: #333;
+}
+
+.calendar-day.current {
+  color: #333;
+  font-weight: bold;
+}
+
+.calendar-day.selected {
+  background-color: #4b6bfb;
+  color: #fff;
+  border-radius: 8rpx;
+}
+
+.calendar-day.empty {
+  background: none;
+}
+
+/* 弹窗样式 */
+.modal-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.modal-content {
+  width: 80%;
+  background-color: #fff;
+  border-radius: 16rpx;
+  padding: 40rpx 30rpx;
+  text-align: center;
+}
+
+.success-icon {
+  width: 120rpx;
+  height: 120rpx;
+  line-height: 120rpx;
+  text-align: center;
+  background-color: #4b6bfb;
+  border-radius: 50%;
+  margin: 0 auto 30rpx;
+  color: #fff;
+  font-size: 60rpx;
+}
+
+/* 错误图标样式 */
+.error-icon {
+  width: 120rpx;
+  height: 120rpx;
+  line-height: 120rpx;
+  text-align: center;
+  background-color: #f44336;
+  border-radius: 50%;
+  margin: 0 auto 30rpx;
+  color: #fff;
+  font-size: 60rpx;
+  font-weight: bold;
+}
+
+.modal-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  margin-bottom: 20rpx;
+  color: #333;
+}
+
+.modal-text {
+  font-size: 28rpx;
+  color: #666;
+  margin-bottom: 40rpx;
+}
+
+.modal-btn {
+  background-color: #4b6bfb;
+  color: #fff;
+  border: none;
+  border-radius: 8rpx;
+  height: 88rpx;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 30rpx;
+  width: 100%;
+}

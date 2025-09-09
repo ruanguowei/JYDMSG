@@ -1,0 +1,44 @@
+<!-- 加载状态 -->
+<view wx:if="{{loading}}" class="loading">
+  <view class="loading-spinner"></view>
+</view>
+
+<!-- 展览横幅 -->
+<view class="exhibition-banner">
+  <block wx:if="{{exhibition.bannerImageUrl}}">
+    <image src="{{exhibition.bannerImageUrl}}" mode="aspectFill"></image>
+  </block>
+  <block wx:else>
+    <view class="banner-placeholder">加载中...</view>
+  </block>
+</view>
+
+<!-- 大陶展介绍 -->
+<view class="exhibition-info">
+  <view class="exhibition-title">{{exhibition.title}}</view>
+  <view class="exhibition-desc">{{exhibition.description}}</view>
+</view>
+
+<!-- 功能按钮 -->
+<view class="action-buttons">
+  <view class="action-btn" bindtap="navigateToSubmission">
+    <image class="action-icon" src="/images/icons/报名.png" mode="aspectFit"></image>
+    <text class="action-text">省优推送</text>
+  </view>
+  <view class="action-btn {{!canPersonalRegister ? 'disabled' : ''}}" bindtap="navigateToPersonalRegistration">
+    <image class="action-icon" src="/images/icons/推送.png" mode="aspectFit"></image>
+    <text class="action-text">个人报名</text>
+  </view>
+  <view class="action-btn" bindtap="navigateToQuery">
+    <image class="action-icon" src="/images/icons/查询.png" mode="aspectFit"></image>
+    <text class="action-text">参展查询</text>
+  </view>
+  <view class="action-btn" bindtap="navigateToDelivery">
+    <image class="action-icon" src="/images/icons/运送.png" mode="aspectFit"></image>
+    <text class="action-text">作品运送</text>
+  </view>
+  <view class="action-btn expert-btn" bindtap="navigateToExpertEvaluation">
+    <image class="action-icon" src="/images/icons/usercenter.png" mode="aspectFit"></image>
+    <text class="action-text">专家评选</text>
+  </view>
+</view> 

@@ -1,0 +1,346 @@
+/* pages/pottery-query/index.wxss */
+
+.container {
+  padding: 0;
+  background-color: #f8f8f8;
+  min-height: 100vh;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.page-title {
+  font-size: 36rpx;
+  font-weight: 500;
+  text-align: center;
+  margin: 20rpx 0 40rpx;
+  color: #333;
+}
+
+/* 加载状态 */
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60rpx 0;
+}
+
+.loading-spinner {
+  width: 60rpx;
+  height: 60rpx;
+  border: 6rpx solid #f3f3f3;
+  border-top: 6rpx solid #4b6bfb;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.loading-text {
+  margin-top: 20rpx;
+  font-size: 28rpx;
+  color: #999;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 申请记录列表 */
+.submissions-list {
+  padding: 0 30rpx 40rpx;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.submission-item {
+  margin-bottom: 20rpx;
+  width: 100%;
+}
+
+.submission-card {
+  background-color: #fff;
+  border-radius: 12rpx;
+  padding: 40rpx 30rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.artwork-title {
+  font-size: 38rpx;
+  font-weight: 600;
+  margin-bottom: 30rpx;
+  color: #333;
+  text-align: center;
+}
+
+.submission-info {
+  margin-bottom: 30rpx;
+}
+
+.info-row {
+  display: flex;
+  margin-bottom: 14rpx;
+  font-size: 28rpx;
+  line-height: 1.6;
+}
+
+.info-label {
+  color: #666;
+  width: 150rpx;
+}
+
+.info-value {
+  color: #333;
+  flex: 1;
+}
+
+.submission-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8rpx 24rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #fff;
+  border-radius: 30rpx;
+  margin-bottom: 20rpx;
+  height: 36rpx;
+}
+
+.submission-status.pending {
+  background-color: #ff6b00;
+  box-shadow: 0 4rpx 8rpx rgba(255, 107, 0, 0.3);
+}
+
+.submission-status.approved {
+  background-color: #4caf50;
+}
+
+.submission-status.rejected {
+  background-color: #f44336;
+}
+
+.action-buttons {
+  display: flex;
+  margin-top: 20rpx;
+  border-top: 1rpx solid #eee;
+  padding-top: 20rpx;
+}
+
+.action-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12rpx 0;
+  font-size: 28rpx;
+}
+
+.details-btn {
+  color: #4b6bfb;
+}
+
+.edit-btn {
+  color: #ff6b00;
+  border-left: 1rpx solid #eee;
+}
+
+/* 无数据提示 */
+.no-records {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 100rpx 0;
+}
+
+.no-data-icon {
+  width: 150rpx;
+  height: 150rpx;
+  margin-bottom: 30rpx;
+  opacity: 0.5;
+}
+
+.no-data-text {
+  font-size: 30rpx;
+  color: #999;
+  margin-bottom: 10rpx;
+}
+
+.no-data-tip {
+  font-size: 26rpx;
+  color: #bbb;
+}
+
+/* 详情弹窗 */
+.details-modal {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-mask {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1;
+}
+
+.modal-content {
+  position: relative;
+  width: 90%;
+  max-height: 90%;
+  background-color: #fff;
+  border-radius: 12rpx;
+  z-index: 2;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header {
+  padding: 30rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1rpx solid #eee;
+}
+
+.modal-title {
+  font-size: 34rpx;
+  font-weight: 500;
+  color: #333;
+}
+
+.modal-close {
+  font-size: 40rpx;
+  color: #999;
+  line-height: 1;
+}
+
+.modal-body {
+  flex: 1;
+  padding: 0 30rpx 30rpx;
+  max-height: calc(90vh - 100rpx);
+  width: auto;
+  box-sizing: border-box;
+}
+
+/* 详情内容样式 */
+.detail-section {
+  margin-bottom: 30rpx;
+  padding-bottom: 20rpx;
+  border-bottom: 1rpx solid #eee;
+  margin-left: 0;
+  margin-right: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.detail-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.section-title {
+  font-size: 30rpx;
+  font-weight: 500;
+  color: #333;
+  margin: 20rpx 0;
+  padding-left: 20rpx;
+  border-left: 8rpx solid #4b6bfb;
+}
+
+.detail-item {
+  margin-bottom: 16rpx;
+  font-size: 28rpx;
+  line-height: 1.5;
+  width: 100%;
+  box-sizing: border-box;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.detail-label {
+  color: #666;
+  margin-right: 10rpx;
+}
+
+.detail-value {
+  color: #333;
+}
+
+.detail-value.description {
+  display: block;
+  margin-top: 10rpx;
+  white-space: pre-wrap;
+  word-break: break-all;
+  color: #555;
+  background-color: #f9f9f9;
+  padding: 20rpx 40rpx;
+  border-radius: 8rpx;
+  line-height: 1.6;
+  letter-spacing: 1rpx;
+  width: 100%;
+  margin-left: 0;
+  margin-right: 0;
+  box-sizing: border-box;
+}
+
+/* 状态颜色 */
+.status-pending {
+  color: #ff6b00;
+  font-weight: 600;
+}
+
+.status-approved {
+  color: #4caf50;
+}
+
+.status-rejected {
+  color: #f44336;
+}
+
+/* 作品图片 */
+.artwork-images {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10rpx 0;
+}
+
+.artwork-image {
+  width: calc(50% - 10rpx);
+  height: 320rpx;
+  margin-bottom: 20rpx;
+  border-radius: 8rpx;
+  border: 1rpx solid #eee;
+  object-fit: cover;
+  box-sizing: border-box;
+}
+
+/* 个人照片 */
+.detail-photo {
+  margin-top: 10rpx;
+}
+
+.personal-photo {
+  width: 240rpx;
+  height: 320rpx;
+  border-radius: 8rpx;
+  border: 1rpx solid #eee;
+  object-fit: cover;
+}

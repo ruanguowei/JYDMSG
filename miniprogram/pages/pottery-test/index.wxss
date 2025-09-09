@@ -1,0 +1,88 @@
+/* pages/pottery-test/index.wxss */
+.container {
+  padding: 30rpx;
+  box-sizing: border-box;
+  min-height: 100vh;
+  background-color: #f6f6f6;
+}
+
+.title {
+  font-size: 36rpx;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 40rpx;
+  color: #333;
+}
+
+.card {
+  background-color: #fff;
+  border-radius: 12rpx;
+  padding: 30rpx;
+  margin-bottom: 30rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+}
+
+.card-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 20rpx;
+}
+
+.description {
+  font-size: 28rpx;
+  color: #666;
+  margin-bottom: 30rpx;
+  line-height: 1.5;
+}
+
+.action-button {
+  background-color: #4e6ef2;
+  color: #fff;
+  font-size: 30rpx;
+  margin: 30rpx 0;
+  height: 80rpx;
+  line-height: 80rpx;
+  border-radius: 40rpx;
+}
+
+.result {
+  margin-top: 30rpx;
+  background-color: #f9f9f9;
+  padding: 20rpx;
+  border-radius: 8rpx;
+}
+
+.result-title {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 10rpx;
+}
+
+.result-content {
+  font-size: 24rpx;
+  color: #666;
+  line-height: 1.5;
+  word-break: break-all;
+  white-space: pre-wrap;
+  max-height: 600rpx;
+  overflow-y: auto;
+}
+
+/* 查询功能相关样式 */
+.input-container {
+  margin-bottom: 20rpx;
+}
+
+.query-input {
+  width: 100%;
+  height: 88rpx;
+  border: 1rpx solid #e6e6e6;
+  border-radius: 8rpx;
+  padding: 0 24rpx;
+  box-sizing: border-box;
+  font-size: 28rpx;
+  color: #333;
+  background-color: #f9f9f9;
+} 

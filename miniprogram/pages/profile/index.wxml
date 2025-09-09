@@ -1,0 +1,257 @@
+<!--pages/profile/index.wxml-->
+<view class="profile-container">
+  <!-- 我的预约 -->
+  <view class="category-container">
+    <view class="category-title">我的预约</view>
+    <block wx:if="{{appointments.length > 0}}">
+      <view class="records-list">
+        <view class="record-item" wx:for="{{appointments}}" wx:key="index">
+          <view class="record-content" bindtap="viewAppointmentDetail" data-id="{{item._id}}">
+            <view class="record-title">预约日期: {{item.date}}</view>
+            <view class="record-info">
+              <text class="info-item">时段: {{item.time}}</text>
+              <text class="info-item">人数: {{item.visitors}}人</text>
+              <text class="info-item status-{{item.status}}">状态: {{item.status === 'approved' ? '预约成功' : item.status === 'rejected' ? '预约失败' : '待审核'}}</text>
+            </view>
+          </view>
+          <view class="delete-btn" catchtap="deleteAppointment" data-id="{{item._id}}" data-date="{{item.date}}">删除</view>
+        </view>
+      </view>
+    </block>
+    <view class="empty-hint" wx:else bindtap="viewAppointments">
+      <text>暂无预约记录，点击可预约参观</text>
+    </view>
+  </view>
+
+  <!-- 我的作品 -->
+  <view class="category-container">
+    <view class="category-title">我的作品</view>
+    <block wx:if="{{submissions.length > 0}}">
+      <view class="action-container">
+        <view class="action-btn full-width-btn" bindtap="navigateToQuery">
+          <text>查看我的作品</text>
+        </view>
+      </view>
+    </block>
+    <view class="empty-hint" wx:else bindtap="viewSubmissions">
+      <text>暂无参展作品，点击可提交参展</text>
+    </view>
+  </view>
+
+  <!-- 作品运送 -->
+  <view class="category-container">
+    <view class="category-title">作品运送</view>
+    <block wx:if="{{deliveries.length > 0}}">
+      <view class="records-list">
+        <view class="record-item" wx:for="{{deliveries}}" wx:key="index" bindtap="showDeliveryDetails" data-index="{{index}}">
+          <view class="record-content">
+            <view class="record-title">运送方式: {{item.deliveryMethod}}</view>
+            <view class="record-info">
+              <text class="info-item">寄出日期: {{item.sendDate}}</text>
+              <text class="info-item">包裹数量: {{item.packageCount}}个</text>
+            </view>
+            <view class="record-info" wx:if="{{item.trackingNumber}}">
+              <text class="info-item">单号: {{item.trackingNumber}}</text>
+            </view>
+            <view class="record-remarks" wx:if="{{item.remarks}}">
+              备注: {{item.remarks.length > 30 ? item.remarks.substring(0, 30) + '...' : item.remarks}}
+            </view>
+          </view>
+          <view class="delete-btn" catchtap="deleteDelivery" data-id="{{item._id}}">删除</view>
+        </view>
+      </view>
+    </block>
+    <view class="empty-hint" wx:else bindtap="viewDeliveries">
+      <text>暂无运送记录，点击可提交运送信息</text>
+    </view>
+    <view class="view-more" bindtap="viewDeliveries" wx:if="{{deliveries.length > 0}}">
+      <text>查看更多</text>
+    </view>
+  </view>
+
+  <!-- 作品详情弹窗 -->
+  <view class="details-modal" wx:if="{{showSubmissionDetailsModal}}">
+    <view class="modal-mask" bindtap="hideSubmissionDetails"></view>
+    <view class="modal-content">
+      <view class="modal-header">
+        <text class="modal-title">作品详情</text>
+        <view class="modal-close" bindtap="hideSubmissionDetails">×</view>
+      </view>
+
+      <scroll-view scroll-y="true" class="modal-body">
+        <block wx:if="{{currentSubmission}}">
+          <!-- 作品信息 -->
+          <view class="detail-section">
+            <view class="section-title">作品信息</view>
+            
+            <view class="detail-item">
+              <text class="detail-label">作品名称：</text>
+              <text class="detail-value">{{currentSubmission.artworkName}}</text>
+            </view>
+            
+            <view class="detail-item" wx:if="{{currentSubmission.createYear}}">
+              <text class="detail-label">创作年份：</text>
+              <text class="detail-value">{{currentSubmission.createYear}}</text>
+            </view>
+            
+            <view class="detail-item" wx:if="{{currentSubmission.dimensions}}">
+              <text class="detail-label">作品尺寸：</text>
+              <text class="detail-value">{{currentSubmission.dimensions.length || '?' }} × {{currentSubmission.dimensions.width || '?'}} × {{currentSubmission.dimensions.height || '?'}} cm</text>
+            </view>
+            
+            <view class="detail-item" wx:if="{{currentSubmission.category}}">
+              <text class="detail-label">作品类别：</text>
+              <text class="detail-value">{{currentSubmission.category}}</text>
+            </view>
+            
+            <view class="detail-item" wx:if="{{currentSubmission.craftMaterial}}">
+              <text class="detail-label">作品工艺材料：</text>
+              <text class="detail-value">{{currentSubmission.craftMaterial}}</text>
+            </view>
+            
+            <view class="detail-item" wx:if="{{currentSubmission.artworkDescription}}">
+              <text class="detail-label">作品简介：</text>
+              <text class="detail-value description">{{currentSubmission.artworkDescription}}</text>
+            </view>
+          </view>
+          
+          <!-- 作品图片 -->
+          <view class="detail-section" wx:if="{{currentSubmission.artworkImages && currentSubmission.artworkImages.length > 0}}">
+            <view class="section-title">作品图片</view>
+            <view class="artwork-images">
+              <block wx:for="{{currentSubmission.artworkImages}}" wx:key="index">
+                <image 
+                  class="artwork-image" 
+                  src="{{item}}" 
+                  mode="aspectFill" 
+                  bindtap="previewSubmissionImage" 
+                  data-url="{{item}}" 
+                  data-urls="{{currentSubmission.artworkImages}}"
+                ></image>
+              </block>
+            </view>
+          </view>
+          
+          <!-- 申请状态 -->
+          <view class="detail-section">
+            <view class="section-title">申请状态</view>
+            
+            <view class="detail-item" wx:if="{{currentSubmission.submissionTime}}">
+              <text class="detail-label">提交时间：</text>
+              <text class="detail-value">{{currentSubmission.submissionTime}}</text>
+            </view>
+            
+            <view class="detail-item">
+              <text class="detail-label">审核状态：</text>
+              <text class="detail-value status-{{currentSubmission.status}}">
+                {{currentSubmission.status === 'approved' ? '已通过' : currentSubmission.status === 'rejected' ? '未通过' : '审核中'}}
+              </text>
+            </view>
+            
+            <view class="detail-item" wx:if="{{currentSubmission.feedback}}">
+              <text class="detail-label">审核反馈：</text>
+              <text class="detail-value">{{currentSubmission.feedback}}</text>
+            </view>
+          </view>
+        </block>
+      </scroll-view>
+    </view>
+  </view>
+  
+  <!-- 运送详情弹窗 -->
+  <view class="details-modal" wx:if="{{showDeliveryDetailsModal}}">
+    <view class="modal-mask" bindtap="hideDeliveryDetails"></view>
+    <view class="modal-content">
+      <view class="modal-header">
+        <text class="modal-title">运送详情</text>
+        <view class="modal-close" bindtap="hideDeliveryDetails">×</view>
+      </view>
+
+      <scroll-view scroll-y="true" class="modal-body">
+        <block wx:if="{{currentDelivery}}">
+          <!-- 运送基本信息 -->
+          <view class="detail-section">
+            <view class="section-title">基本信息</view>
+            
+            <view class="detail-item">
+              <text class="detail-label">运送方式：</text>
+              <text class="detail-value">{{currentDelivery.deliveryMethod}}</text>
+            </view>
+            
+            <view class="detail-item" wx:if="{{currentDelivery.expressCompany}}">
+              <text class="detail-label">快递公司：</text>
+              <text class="detail-value">{{currentDelivery.expressCompany}}</text>
+            </view>
+            
+            <view class="detail-item" wx:if="{{currentDelivery.trackingNumber}}">
+              <text class="detail-label">快递单号：</text>
+              <text class="detail-value">{{currentDelivery.trackingNumber}}</text>
+            </view>
+            
+            <view class="detail-item">
+              <text class="detail-label">寄出日期：</text>
+              <text class="detail-value">{{currentDelivery.sendDate}}</text>
+            </view>
+            
+            <view class="detail-item" wx:if="{{currentDelivery.estimatedArrival}}">
+              <text class="detail-label">预计到达日期：</text>
+              <text class="detail-value">{{currentDelivery.estimatedArrival}}</text>
+            </view>
+            
+            <view class="detail-item">
+              <text class="detail-label">包裹数量：</text>
+              <text class="detail-value">{{currentDelivery.packageCount}}个</text>
+            </view>
+            
+            <view class="detail-item" wx:if="{{currentDelivery.remarks}}">
+              <text class="detail-label">备注信息：</text>
+              <text class="detail-value description">{{currentDelivery.remarks}}</text>
+            </view>
+          </view>
+          
+          <!-- 包裹外观照片 -->
+          <view class="detail-section" wx:if="{{deliveryPackageImages && deliveryPackageImages.length > 0}}">
+            <view class="section-title">包裹外观照片</view>
+            <view class="artwork-images">
+              <block wx:for="{{deliveryPackageImages}}" wx:key="index">
+                <image 
+                  class="artwork-image" 
+                  src="{{item}}" 
+                  mode="aspectFill" 
+                  bindtap="previewDeliveryImage" 
+                  data-url="{{item}}" 
+                  data-urls="{{deliveryPackageImages}}"
+                  data-type="package"
+                ></image>
+              </block>
+            </view>
+          </view>
+          
+          <!-- 作品包装照片 -->
+          <view class="detail-section" wx:if="{{deliveryArtworkImages && deliveryArtworkImages.length > 0}}">
+            <view class="section-title">作品包装照片</view>
+            <view class="artwork-images">
+              <block wx:for="{{deliveryArtworkImages}}" wx:key="index">
+                <image 
+                  class="artwork-image" 
+                  src="{{item}}" 
+                  mode="aspectFill" 
+                  bindtap="previewDeliveryImage" 
+                  data-url="{{item}}" 
+                  data-urls="{{deliveryArtworkImages}}"
+                  data-type="artwork"
+                ></image>
+              </block>
+            </view>
+          </view>
+        </block>
+      </scroll-view>
+      
+      <!-- 固定在底部的操作按钮 -->
+      <view class="modal-footer">
+        <button class="footer-btn delete-btn" bindtap="deleteDelivery">删除记录</button>
+        <button class="footer-btn edit-btn" bindtap="editDelivery">修改信息</button>
+      </view>
+    </view>
+  </view>
+</view>

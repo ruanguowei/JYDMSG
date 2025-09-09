@@ -1,0 +1,194 @@
+<!--pages/pottery-submission/index.wxml-->
+<view class="container">
+  <view class="page-title">全国大学生陶艺作品展报名表</view>
+  
+  <form class="submission-form">
+    <!-- 个人信息部分 -->
+    <view class="form-card">
+      <view class="card-title">个人信息</view>
+      
+      <view class="form-row">
+        <view class="form-cell">
+          <view class="form-label required">姓名</view>
+          <input class="form-input" placeholder="请输入姓名" value="{{name}}" bindinput="inputName"/>
+        </view>
+        <view class="form-cell">
+          <view class="form-label required">性别</view>
+          <picker bindchange="bindGenderChange" value="{{genderIndex}}" range="{{genders}}">
+            <view class="picker {{gender ? '' : 'placeholder'}}">
+              {{gender || '请选择性别'}}
+              <text class="picker-arrow">▼</text>
+            </view>
+          </picker>
+        </view>
+      </view>
+      
+      <view class="form-row">
+        <view class="form-cell">
+          <view class="form-label required">所在学校</view>
+          <input class="form-input" placeholder="请输入学校名称" value="{{school}}" bindinput="inputSchool"/>
+        </view>
+        <view class="form-cell">
+          <view class="form-label required">年级</view>
+          <picker bindchange="bindGradeChange" value="{{gradeIndex}}" range="{{grades}}">
+            <view class="picker {{grade ? '' : 'placeholder'}}">
+              {{grade || '请选择年级'}}
+              <text class="picker-arrow">▼</text>
+            </view>
+          </picker>
+        </view>
+      </view>
+      
+      <view class="form-row">
+        <view class="form-cell">
+          <view class="form-label required">出生年月</view>
+          <picker mode="date" fields="month" bindchange="bindBirthDateChange" value="{{birthDate}}">
+            <view class="picker {{birthDate ? '' : 'placeholder'}}">
+              {{birthDate || '请选择出生年月'}}
+              <text class="picker-arrow">▼</text>
+            </view>
+          </picker>
+        </view>
+        <view class="form-cell">
+          <view class="form-label required">专业</view>
+          <input class="form-input" placeholder="请输入专业" value="{{major}}" bindinput="inputMajor"/>
+        </view>
+      </view>
+      
+      <view class="form-row">
+        <view class="form-cell">
+          <view class="form-label required">联系电话</view>
+          <input class="form-input" type="number" placeholder="请输入联系电话" value="{{phone}}" bindinput="inputPhone"/>
+        </view>
+        <view class="form-cell">
+          <view class="form-label required">邮箱</view>
+          <input class="form-input" placeholder="请输入邮箱" value="{{email}}" bindinput="inputEmail"/>
+        </view>
+      </view>
+      
+      <view class="form-group">
+        <view class="form-label required">身份证号码</view>
+        <input class="form-input" placeholder="请输入身份证号码" value="{{idNumber}}" bindinput="inputIdNumber"/>
+      </view>
+      
+      <view class="form-row">
+        <view class="form-cell">
+          <view class="form-label required">指导老师</view>
+          <input class="form-input" placeholder="请输入指导老师姓名" value="{{teacher}}" bindinput="inputTeacher"/>
+        </view>
+        <view class="form-cell">
+          <view class="form-label required">指导老师电话</view>
+          <input class="form-input" type="number" placeholder="请输入指导老师电话" value="{{teacherPhone}}" bindinput="inputTeacherPhone"/>
+        </view>
+      </view>
+      
+      <view class="form-group">
+        <view class="form-label required">邮寄地址</view>
+        <input class="form-input" placeholder="请输入作品邮寄地址" value="{{address}}" bindinput="inputAddress"/>
+        <view class="form-tip">（也是作品退件地址）</view>
+      </view>
+      
+      <view class="form-group">
+        <view class="form-label required">个人照片</view>
+        <view class="upload-single">
+          <view class="upload-preview" wx:if="{{photoUrl}}">
+            <image src="{{photoUrl}}" mode="aspectFill"></image>
+            <view class="upload-delete" bindtap="removePhoto">×</view>
+          </view>
+          <view class="upload-button" bindtap="choosePhoto" wx:else>
+            <text class="upload-icon">+</text>
+            <text class="upload-text">上传照片</text>
+          </view>
+        </view>
+      </view>
+    </view>
+    
+    <!-- 作品信息部分 -->
+    <view class="form-card">
+      <view class="card-title">作品信息</view>
+      
+      <view class="form-row">
+        <view class="form-cell">
+          <view class="form-label required">参展作品名称</view>
+          <input class="form-input" placeholder="请输入作品名称" value="{{artworkName}}" bindinput="inputArtworkName"/>
+        </view>
+        <view class="form-cell">
+          <view class="form-label required">创作年份</view>
+          <picker mode="date" fields="year" bindchange="bindCreateYearChange" value="{{createYear}}">
+            <view class="picker {{createYear ? '' : 'placeholder'}}">
+              {{createYear || '请选择创作年份'}}
+              <text class="picker-arrow">▼</text>
+            </view>
+          </picker>
+        </view>
+      </view>
+      
+      <view class="form-group">
+        <view class="form-label required">作品尺寸 (CM)</view>
+        <view class="dimension-inputs">
+          <input class="dimension-input" type="digit" placeholder="长" value="{{length}}" bindinput="inputLength"/>
+          <text class="dimension-separator">×</text>
+          <input class="dimension-input" type="digit" placeholder="宽" value="{{width}}" bindinput="inputWidth"/>
+          <text class="dimension-separator">×</text>
+          <input class="dimension-input" type="digit" placeholder="高" value="{{height}}" bindinput="inputHeight"/>
+        </view>
+      </view>
+      
+      <view class="form-group">
+        <view class="form-label required">作品类别</view>
+        <picker bindchange="bindCategoryChange" value="{{categoryIndex}}" range="{{categories}}">
+          <view class="picker {{category ? '' : 'placeholder'}}">
+            {{category || '请选择作品类别'}}
+            <text class="picker-arrow">▼</text>
+          </view>
+        </picker>
+        <view class="category-options">
+          <text class="category-option">技艺</text>
+          <text class="category-option">文脉</text>
+          <text class="category-option">算法</text>
+          <text class="category-option">产业</text>
+          <text class="category-option">视界</text>
+        </view>
+      </view>
+      
+      <view class="form-group">
+        <view class="form-label required">作品工艺、材料</view>
+        <textarea class="form-textarea" placeholder="请描述作品的工艺和使用的材料" value="{{craftMaterial}}" bindinput="inputCraftMaterial"></textarea>
+      </view>
+      
+      <view class="form-group">
+        <view class="form-label required">作品简介（200字以内）</view>
+        <textarea class="form-textarea" placeholder="请描述您的作品简介..." value="{{artworkDescription}}" bindinput="inputArtworkDescription" maxlength="200"></textarea>
+      </view>
+      
+      <view class="form-group">
+        <view class="form-label required">作品照片</view>
+        <view class="upload-container">
+          <!-- 已上传图片 -->
+          <block wx:for="{{artworkImages}}" wx:key="index">
+            <view class="upload-preview">
+              <image src="{{item}}" mode="aspectFill"></image>
+              <view class="upload-delete" data-index="{{index}}" bindtap="removeImage">×</view>
+            </view>
+          </block>
+          
+          <!-- 上传按钮，最多9张 -->
+          <view class="upload-button" bindtap="chooseImage" wx:if="{{artworkImages.length < 9}}">
+            <text class="upload-icon">+</text>
+          </view>
+        </view>
+        
+        <!-- 上传图片注意事项 -->
+        <view class="upload-tips">
+          <text>图片要求：</text>
+          <text>1. 请上传清晰的作品照片，建议使用白色背景</text>
+          <text>2. 图片格式支持JPG、PNG，单张大小不超过5MB</text>
+          <text>3. 请确保图片真实反映作品细节和质感</text>
+          <text>4. 至少上传1张正面照片</text>
+        </view>
+      </view>
+    </view>
+    
+    <button class="submit-button" bindtap="submitApplication" disabled="{{submitting}}">提交报名</button>
+  </form>
+</view>

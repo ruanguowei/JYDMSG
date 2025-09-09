@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>评选展示 - 景德镇艺术职业大学美术馆</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'PingFang SC', 'Helvetica Neue', Arial, sans-serif;
+            color: #333;
+            background-color: #f9fafb;
+            overflow-x: hidden;
+            overflow-y: auto;
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* IE and Edge */
+        }
+        body::-webkit-scrollbar {
+            display: none; /* Chrome, Safari, Opera */
+        }
+        html {
+            overflow-x: hidden;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        html::-webkit-scrollbar {
+            display: none;
+        }
+        .masonry-grid {
+            column-count: 2;
+            column-gap: 16px;
+            padding: 16px;
+        }
+        .masonry-item {
+            break-inside: avoid;
+            margin-bottom: 16px;
+        }
+        .artwork-card {
+            background: #fff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            transition: all 0.2s ease;
+        }
+        .artwork-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        .artwork-image {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+        }
+        .filter-bar {
+            position: sticky;
+            top: 0;
+            background: #fff;
+            padding: 16px;
+            border-bottom: 1px solid #f0f0f0;
+            z-index: 10;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+        }
+        .filter-options {
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            padding: 4px 0;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        .filter-options::-webkit-scrollbar {
+            display: none;
+        }
+        .filter-option {
+            padding: 8px 16px;
+            border-radius: 20px;
+            background: #f5f5f5;
+            white-space: nowrap;
+            font-size: 14px;
+            color: #666;
+            transition: all 0.2s ease;
+        }
+        .filter-option.active {
+            background: #4b6bfb;
+            color: #fff;
+        }
+        .tab-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 64px;
+            background: #fff;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            border-top: 1px solid #f0f0f0;
+            padding-bottom: env(safe-area-inset-bottom);
+            box-shadow: 0 -1px 5px rgba(0,0,0,0.03);
+        }
+        .tab-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+        }
+        .tab-icon {
+            font-size: 22px;
+            margin-bottom: 4px;
+            color: #999;
+        }
+        .tab-text {
+            font-size: 12px;
+            color: #999;
+        }
+        .active .tab-icon, .active .tab-text {
+            color: #4b6bfb;
+        }
+    </style>
+    <script src="navigation.js"></script>
+</head>
+<body class="bg-gray-50 pb-20">
+    <!-- 筛选栏 -->
+    <div class="filter-bar">
+        <div class="filter-options">
+            <div class="filter-option active">全部</div>
+            <div class="filter-option">绘画</div>
+            <div class="filter-option">雕塑</div>
+            <div class="filter-option">陶瓷</div>
+            <div class="filter-option">摄影</div>
+            <div class="filter-option">数字艺术</div>
+        </div>
+    </div>
+
+    <!-- 瀑布流展示 -->
+    <div class="masonry-grid">
+        <!-- 作品1 -->
+        <div class="masonry-item">
+            <a href="javascript:void(0)" onclick="navigateTo('artwork-detail.html?id=1')" class="block">
+                <div class="artwork-card">
+                    <img src="https://images.pexels.com/photos/1269968/pexels-photo-1269968.jpeg?auto=compress&cs=tinysrgb&w=800" alt="山水之间" class="artwork-image">
+                    <div class="p-4">
+                        <h3 class="font-medium text-gray-800">山水之间</h3>
+                        <p class="text-sm text-gray-500 mt-1">作者：张三</p>
+                        <div class="flex items-center mt-2">
+                            <i class="fas fa-star text-indigo-400 text-sm"></i>
+                            <span class="text-sm ml-1 text-gray-500">4.8</span>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- 作品2 -->
+        <div class="masonry-item">
+            <a href="javascript:void(0)" onclick="navigateTo('artwork-detail.html?id=2')" class="block">
+                <div class="artwork-card">
+                    <img src="https://images.pexels.com/photos/1266808/pexels-photo-1266808.jpeg?auto=compress&cs=tinysrgb&w=800" alt="城市印象" class="artwork-image">
+                    <div class="p-4">
+                        <h3 class="font-medium text-gray-800">城市印象</h3>
+                        <p class="text-sm text-gray-500 mt-1">作者：李四</p>
+                        <div class="flex items-center mt-2">
+                            <i class="fas fa-star text-indigo-400 text-sm"></i>
+                            <span class="text-sm ml-1 text-gray-500">4.9</span>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- 作品3 -->
+        <div class="masonry-item">
+            <a href="javascript:void(0)" onclick="navigateTo('artwork-detail.html?id=3')" class="block">
+                <div class="artwork-card">
+                    <img src="https://images.pexels.com/photos/1927314/pexels-photo-1927314.jpeg?auto=compress&cs=tinysrgb&w=800" alt="光影交错" class="artwork-image">
+                    <div class="p-4">
+                        <h3 class="font-medium text-gray-800">光影交错</h3>
+                        <p class="text-sm text-gray-500 mt-1">作者：王五</p>
+                        <div class="flex items-center mt-2">
+                            <i class="fas fa-star text-indigo-400 text-sm"></i>
+                            <span class="text-sm ml-1 text-gray-500">4.7</span>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- 作品4 -->
+        <div class="masonry-item">
+            <a href="javascript:void(0)" onclick="navigateTo('artwork-detail.html?id=4')" class="block">
+                <div class="artwork-card">
+                    <img src="https://images.pexels.com/photos/1585325/pexels-photo-1585325.jpeg?auto=compress&cs=tinysrgb&w=800" alt="自然之声" class="artwork-image">
+                    <div class="p-4">
+                        <h3 class="font-medium text-gray-800">自然之声</h3>
+                        <p class="text-sm text-gray-500 mt-1">作者：赵六</p>
+                        <div class="flex items-center mt-2">
+                            <i class="fas fa-star text-indigo-400 text-sm"></i>
+                            <span class="text-sm ml-1 text-gray-500">4.6</span>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+    
+    <!-- 底部导航栏 -->
+    <div class="tab-bar">
+        <div class="tab-item">
+            <i class="tab-icon fas fa-home"></i>
+            <span class="tab-text">首页</span>
+        </div>
+        <div class="tab-item">
+            <i class="tab-icon fas fa-calendar-alt"></i>
+            <span class="tab-text">预约</span>
+        </div>
+        <div class="tab-item active">
+            <i class="tab-icon fas fa-images"></i>
+            <span class="tab-text">展览</span>
+        </div>
+        <div class="tab-item">
+            <i class="tab-icon fas fa-upload"></i>
+            <span class="tab-text">参展</span>
+        </div>
+        <div class="tab-item">
+            <i class="tab-icon fas fa-user"></i>
+            <span class="tab-text">我的</span>
+        </div>
+    </div>
+</body>
+</html> 

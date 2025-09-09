@@ -1,0 +1,33 @@
+<!--pages/pottery-test/index.wxml-->
+<view class="container">
+  <view class="title">陶艺数据测试工具</view>
+  
+  <view class="card">
+    <view class="card-title">上传测试数据</view>
+    <view class="description">点击下方按钮将测试数据上传到pottery_submissions集合中</view>
+    
+    <button class="action-button" bindtap="uploadTestData" loading="{{loading}}">
+      上传测试数据
+    </button>
+    
+    <view class="result" wx:if="{{result}}">
+      <view class="result-title">执行结果:</view>
+      <view class="result-content">{{result}}</view>
+    </view>
+  </view>
+  
+  <!-- 查询数据部分 -->
+  <view class="card">
+    <view class="card-title">查询数据</view>
+    <view class="description">点击下方按钮查询pottery_submissions集合中的最新记录</view>
+    
+    <button class="action-button" bindtap="queryLatestData" loading="{{queryLoading}}">
+      查询最新数据
+    </button>
+    
+    <view class="result" wx:if="{{queryResult}}">
+      <view class="result-title">查询结果:</view>
+      <view class="result-content">{{queryResult}}</view>
+    </view>
+  </view>
+</view> 

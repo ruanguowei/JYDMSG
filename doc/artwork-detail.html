@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>作品详情 - 景德镇艺术职业大学美术馆</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'PingFang SC', 'Helvetica Neue', Arial, sans-serif;
+            color: #333;
+            background-color: #f9fafb;
+            overflow-x: hidden;
+            overflow-y: auto;
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* IE and Edge */
+        }
+        body::-webkit-scrollbar {
+            display: none; /* Chrome, Safari, Opera */
+        }
+        html {
+            overflow-x: hidden;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        html::-webkit-scrollbar {
+            display: none;
+        }
+        .artwork-header {
+            position: relative;
+        }
+        .artwork-image {
+            width: 100%;
+            height: 240px;
+            object-fit: cover;
+        }
+        .back-button {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            width: 36px;
+            height: 36px;
+            background: rgba(0,0,0,0.3);
+            backdrop-filter: blur(4px);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            z-index: 10;
+        }
+        .tab-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 64px;
+            background: #fff;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            border-top: 1px solid #f0f0f0;
+            padding-bottom: env(safe-area-inset-bottom);
+            box-shadow: 0 -1px 5px rgba(0,0,0,0.03);
+        }
+        .tab-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+        }
+        .tab-icon {
+            font-size: 22px;
+            margin-bottom: 4px;
+            color: #999;
+        }
+        .tab-text {
+            font-size: 12px;
+            color: #999;
+        }
+        .active .tab-icon, .active .tab-text {
+            color: #4b6bfb;
+        }
+        .info-section {
+            background: white;
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+        .tag {
+            display: inline-block;
+            padding: 4px 12px;
+            background: #f0f7ff;
+            color: #4b6bfb;
+            border-radius: 16px;
+            font-size: 12px;
+            margin-right: 8px;
+        }
+        .action-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 44px;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+    </style>
+    <script src="navigation.js"></script>
+</head>
+<body class="bg-gray-50 pb-20">
+    <!-- 作品图片头部 -->
+    <div class="artwork-header">
+        <a href="javascript:void(0)" class="back-button" onclick="goBack()">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+        <img src="https://images.pexels.com/photos/1269968/pexels-photo-1269968.jpeg?auto=compress&cs=tinysrgb&w=800" alt="山水之间" class="artwork-image" id="artwork-image">
+    </div>
+
+    <!-- 作品信息 -->
+    <div class="info-section">
+        <h1 class="text-xl font-medium" id="artwork-title">山水之间</h1>
+        <div class="flex items-center mt-2">
+            <i class="fas fa-star text-indigo-400 text-sm"></i>
+            <span class="text-sm ml-1 text-gray-500" id="artwork-rating">4.8</span>
+            <span class="text-sm ml-3 text-gray-500">评分人数: 56</span>
+        </div>
+        <div class="mt-4 flex">
+            <span class="tag">绘画</span>
+            <span class="tag">风景</span>
+            <span class="tag">水墨</span>
+        </div>
+    </div>
+
+    <!-- 作者信息 -->
+    <div class="info-section">
+        <h2 class="text-base font-medium mb-3">创作者</h2>
+        <div class="flex items-center">
+            <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                <i class="fas fa-user text-indigo-400"></i>
+            </div>
+            <div class="ml-3">
+                <p class="font-medium text-gray-800" id="artwork-author">张三</p>
+                <p class="text-xs text-gray-500">陶瓷艺术学院 2022级</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 创作理念 -->
+    <div class="info-section">
+        <h2 class="text-base font-medium mb-3">创作理念</h2>
+        <p class="text-sm text-gray-700 leading-relaxed" id="artwork-desc">
+            这件作品受中国传统山水画启发，融合了现代艺术的表现手法。我尝试通过色彩的变化和空间的层次，表达出山水之间的自然之美和内在精神。画面中的山峦起伏，水流潺潺，试图营造出一种宁静与流动并存的和谐感，引导观者进入一个远离尘嚣的精神世界。
+        </p>
+    </div>
+
+    <!-- 点评区域 -->
+    <div class="info-section">
+        <h2 class="text-base font-medium mb-3">专家点评</h2>
+        <div class="border-l-2 border-indigo-400 pl-4 py-1">
+            <p class="text-sm text-gray-700 leading-relaxed">
+                作品在传统与现代的融合上做得相当出色，笔触细腻而富有表现力。构图上层次分明，意境深远，是一件非常优秀的青年艺术家作品。
+            </p>
+            <p class="text-xs text-gray-500 mt-2">— 李教授（美术学院）</p>
+        </div>
+    </div>
+
+    <!-- 作品操作 -->
+    <div class="flex px-4 gap-3">
+        <button class="action-button flex-1 bg-indigo-50 text-indigo-500">
+            <i class="fas fa-star mr-2"></i> 评分
+        </button>
+        <button class="action-button flex-1 bg-indigo-500 text-white">
+            分享作品
+        </button>
+    </div>
+
+    <!-- 底部导航栏 -->
+    <div class="tab-bar">
+        <div class="tab-item">
+            <i class="tab-icon fas fa-home"></i>
+            <span class="tab-text">首页</span>
+        </div>
+        <div class="tab-item">
+            <i class="tab-icon fas fa-calendar-alt"></i>
+            <span class="tab-text">预约</span>
+        </div>
+        <div class="tab-item active">
+            <i class="tab-icon fas fa-images"></i>
+            <span class="tab-text">展览</span>
+        </div>
+        <div class="tab-item">
+            <i class="tab-icon fas fa-upload"></i>
+            <span class="tab-text">参展</span>
+        </div>
+        <div class="tab-item">
+            <i class="tab-icon fas fa-user"></i>
+            <span class="tab-text">我的</span>
+        </div>
+    </div>
+
+    <!-- JavaScript脚本，根据URL参数显示不同作品内容 -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 获取URL中的作品ID参数
+            const urlParams = new URLSearchParams(window.location.search);
+            const artworkId = urlParams.get('id');
+            
+            // 根据作品ID设置不同内容
+            const artworkData = {
+                '1': {
+                    title: '山水之间',
+                    author: '张三',
+                    rating: '4.8',
+                    image: 'https://images.pexels.com/photos/1269968/pexels-photo-1269968.jpeg?auto=compress&cs=tinysrgb&w=800',
+                    desc: '这件作品受中国传统山水画启发，融合了现代艺术的表现手法。我尝试通过色彩的变化和空间的层次，表达出山水之间的自然之美和内在精神。画面中的山峦起伏，水流潺潺，试图营造出一种宁静与流动并存的和谐感，引导观者进入一个远离尘嚣的精神世界。'
+                },
+                '2': {
+                    title: '城市印象',
+                    author: '李四',
+                    rating: '4.9',
+                    image: 'https://images.pexels.com/photos/1266808/pexels-photo-1266808.jpeg?auto=compress&cs=tinysrgb&w=800',
+                    desc: '这幅作品是我对现代城市生活的一种艺术表达。通过色彩的碰撞和线条的交织，我试图捕捉都市中的活力与节奏。画面中既有建筑的几何感，也有人文的温度，希望能引发观者对城市生活方式的思考。'
+                },
+                '3': {
+                    title: '光影交错',
+                    author: '王五',
+                    rating: '4.7',
+                    image: 'https://images.pexels.com/photos/1927314/pexels-photo-1927314.jpeg?auto=compress&cs=tinysrgb&w=800',
+                    desc: '这件作品探索了光与影的关系，以及它们如何塑造我们对空间的感知。通过特定的光源和角度，我创造了一种动态的视觉体验，让观众在欣赏过程中感受到光影变化带来的美感与神秘感。'
+                },
+                '4': {
+                    title: '自然之声',
+                    author: '赵六',
+                    rating: '4.6',
+                    image: 'https://images.pexels.com/photos/1585325/pexels-photo-1585325.jpeg?auto=compress&cs=tinysrgb&w=800',
+                    desc: '作为一名对自然充满热爱的艺术家，这件作品是我对大自然声音的视觉诠释。我尝试将听觉元素转化为视觉表现，用流动的线条和和谐的色彩来呈现风、水、树叶的声音，希望观众能在视觉中"听到"自然的旋律。'
+                }
+            };
+            
+            if (artworkId && artworkData[artworkId]) {
+                const data = artworkData[artworkId];
+                document.getElementById('artwork-title').textContent = data.title;
+                document.getElementById('artwork-author').textContent = data.author;
+                document.getElementById('artwork-rating').textContent = data.rating;
+                document.getElementById('artwork-image').src = data.image;
+                document.getElementById('artwork-desc').textContent = data.desc;
+                document.title = data.title + ' - 景德镇艺术职业大学美术馆';
+            }
+        });
+    </script>
+</body>
+</html> 

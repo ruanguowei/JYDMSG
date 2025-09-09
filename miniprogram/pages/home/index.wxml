@@ -1,0 +1,60 @@
+<!-- 轮播图 -->
+<view class="banner">
+  <swiper wx:if="{{banners.length > 0}}" indicator-dots="{{true}}" autoplay="{{true}}" interval="{{3000}}" duration="{{500}}">
+    <swiper-item wx:for="{{banners}}" wx:key="_id">
+      <image src="{{item.imageUrl}}" mode="aspectFill" lazy-load="{{true}}"></image>
+    </swiper-item>
+  </swiper>
+  <view wx:else class="banner-placeholder">    <view class="empty-banner"></view>  </view>
+</view>
+
+<!-- 加载状态 -->
+<view wx:if="{{loading}}" class="loading">
+  <view class="loading-spinner"></view>
+</view>
+
+<!-- 快捷入口 -->
+<view class="quick-actions">
+  <!-- 预约参观按钮 -->
+  <view class="quick-action-item" bindtap="navigateToAppointment">
+    <view class="quick-action-icon">
+      <image src="../../images/icons/calendar.png" mode="aspectFit" class="icon-image"></image>
+    </view>
+    <text class="quick-action-text">预约参观</text>
+  </view>
+  
+  <!-- 大陶展专区按钮 -->
+  <view class="quick-action-item" bindtap="navigateToPotteryExhibition">
+    <view class="quick-action-icon">
+      <image src="../../images/icons/jar-active.png" mode="aspectFit" class="icon-image"></image>
+    </view>
+    <text class="quick-action-text">大陶展专区</text>
+  </view>
+</view>
+
+<!-- 公告栏 -->
+<view class="notice-board">
+  <view class="notice-title">最新公告</view>
+  <view class="notice-list">
+    <view wx:if="{{notices.length === 0}}" class="notice-empty">暂无公告</view>
+    <view wx:for="{{notices}}" wx:key="_id" class="notice-item" bindtap="showNoticeDetail" data-id="{{index}}">
+      <text class="notice-dot"></text>
+      <text class="notice-text">{{item.title}}</text>
+    </view>
+  </view>
+</view>
+
+<!-- 公告详情弹窗 -->
+<view class="notice-modal" wx:if="{{showModal}}">
+  <view class="notice-modal-mask" bindtap="hideModal"></view>
+  <view class="notice-modal-content">
+    <view class="notice-modal-header">
+      <text class="notice-modal-title">{{currentNotice.title}}</text>
+      <view class="notice-modal-close" bindtap="hideModal">×</view>
+    </view>
+    <view class="notice-modal-body">
+      <view class="notice-modal-time" wx:if="{{currentNotice.createTime}}">{{currentNotice.createTime}}</view>
+      <view class="notice-modal-text">{{currentNotice.content}}</view>
+    </view>
+  </view>
+</view> 

@@ -1,0 +1,343 @@
+/* pages/expert-scoring/index.wxss */
+.scoring-container {
+  min-height: 100vh;
+  background: #f5f5f5;
+  padding-bottom: 120rpx;
+}
+
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 200rpx 0;
+}
+
+.loading-spinner {
+  width: 60rpx;
+  height: 60rpx;
+  border: 4rpx solid #f0f0f0;
+  border-top: 4rpx solid #4b6bfb;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20rpx;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.submission-detail {
+  padding: 20rpx;
+}
+
+.submission-image {
+  width: 100%;
+  height: 400rpx;
+  border-radius: 15rpx;
+  overflow: hidden;
+  margin-bottom: 30rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.1);
+}
+
+.submission-image image {
+  width: 100%;
+  height: 100%;
+}
+
+.submission-info {
+  background: #ffffff;
+  border-radius: 15rpx;
+  padding: 30rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+}
+
+.info-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333333;
+  margin-bottom: 20rpx;
+}
+
+.info-item {
+  display: flex;
+  margin-bottom: 15rpx;
+  font-size: 26rpx;
+}
+
+.label {
+  color: #666666;
+  width: 120rpx;
+  flex-shrink: 0;
+}
+
+.value {
+  color: #333333;
+  flex: 1;
+}
+
+.score-guide-btn {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #ffffff;
+  border-radius: 15rpx;
+  padding: 30rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+  font-size: 28rpx;
+  color: #4b6bfb;
+}
+
+.arrow {
+  font-size: 32rpx;
+  color: #cccccc;
+}
+
+.score-form {
+  background: #ffffff;
+  border-radius: 15rpx;
+  padding: 30rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+}
+
+.form-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333333;
+  margin-bottom: 30rpx;
+  text-align: center;
+}
+
+.score-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 25rpx 0;
+  border-bottom: 2rpx solid #f0f0f0;
+}
+
+.score-item:last-child {
+  border-bottom: none;
+}
+
+.score-label {
+  flex: 1;
+}
+
+.label-text {
+  font-size: 28rpx;
+  color: #333333;
+  font-weight: 500;
+}
+
+.label-desc {
+  font-size: 24rpx;
+  color: #999999;
+  margin-left: 10rpx;
+}
+
+.score-input {
+  display: flex;
+  align-items: center;
+  width: 150rpx;
+}
+
+.score-input input {
+  width: 100rpx;
+  height: 60rpx;
+  border: 2rpx solid #e0e0e0;
+  border-radius: 8rpx;
+  text-align: center;
+  font-size: 28rpx;
+  background: #f8f9fa;
+}
+
+.score-input input:focus {
+  border-color: #4b6bfb;
+  background: #ffffff;
+}
+
+.score-unit {
+  font-size: 24rpx;
+  color: #666666;
+  margin-left: 10rpx;
+}
+
+.total-score {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 30rpx;
+  padding: 20rpx;
+  background: #f8f9fa;
+  border-radius: 10rpx;
+}
+
+.total-label {
+  font-size: 30rpx;
+  color: #333333;
+  font-weight: 500;
+}
+
+.total-value {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #4b6bfb;
+  margin-left: 10rpx;
+}
+
+/* 扣分项样式 */
+.deductions {
+  background: #ffffff;
+  border-radius: 15rpx;
+  padding: 20rpx 30rpx;
+  margin-top: 20rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+}
+
+.deductions-title {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #333333;
+  margin-bottom: 16rpx;
+}
+
+.deduction-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12rpx;
+}
+
+.deduction-text {
+  margin-left: 12rpx;
+  font-size: 24rpx;
+  color: #666666;
+}
+
+.final-score {
+  margin-top: 10rpx;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.final-label {
+  font-size: 26rpx;
+  color: #333333;
+}
+
+.final-value {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #e91e63;
+  margin-left: 8rpx;
+}
+
+.submit-section {
+  padding: 0 20rpx;
+}
+
+.submit-btn {
+  width: 100%;
+  height: 80rpx;
+  background: linear-gradient(135deg, #4b6bfb 0%, #3b5bdb 100%);
+  color: #ffffff;
+  border-radius: 10rpx;
+  font-size: 32rpx;
+  font-weight: bold;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.submit-btn.loading {
+  opacity: 0.7;
+}
+
+.submit-btn::after {
+  border: none;
+}
+
+/* 评分指南弹窗样式 */
+.guide-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.guide-content {
+  width: 90%;
+  max-height: 80%;
+  background: #ffffff;
+  border-radius: 20rpx;
+  overflow: hidden;
+}
+
+.guide-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 30rpx 40rpx;
+  border-bottom: 2rpx solid #f0f0f0;
+}
+
+.guide-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333333;
+}
+
+.close-btn {
+  font-size: 40rpx;
+  color: #999999;
+  width: 60rpx;
+  height: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.guide-body {
+  padding: 30rpx 40rpx;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.guide-section {
+  margin-bottom: 30rpx;
+}
+
+.section-title {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #4b6bfb;
+  margin-bottom: 15rpx;
+}
+
+.section-content {
+  font-size: 24rpx;
+  color: #666666;
+  line-height: 1.6;
+}
+
+.score-level {
+  margin-bottom: 10rpx;
+  padding: 10rpx 0;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.score-level:last-child {
+  border-bottom: none;
+}

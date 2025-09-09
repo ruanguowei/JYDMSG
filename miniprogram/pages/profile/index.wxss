@@ -1,0 +1,387 @@
+/* pages/profile/index.wxss */
+.profile-container {
+  padding: 20rpx;
+  background-color: #f6f6f6;
+  min-height: 100vh;
+}
+
+/* 分类容器样式 */
+.category-container {
+  margin-bottom: 30rpx;
+  background-color: #fff;
+  border-radius: 12rpx;
+  padding: 30rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+}
+
+.category-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+  padding-left: 10rpx;
+  border-left: 8rpx solid #4b6bfb;
+  margin-bottom: 20rpx;
+}
+
+/* 记录列表 */
+.records-list {
+  margin-top: 20rpx;
+}
+
+.record-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.record-item:last-child {
+  border-bottom: none;
+}
+
+.record-content {
+  flex: 1;
+}
+
+.record-title {
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 10rpx;
+}
+
+.record-info {
+  display: flex;
+  flex-wrap: wrap;
+  margin-bottom: 10rpx;
+}
+
+.info-item {
+  font-size: 26rpx;
+  color: #666;
+  margin-right: 20rpx;
+  margin-bottom: 6rpx;
+}
+
+.info-item.status-approved {
+  color: #07c160;
+  font-weight: bold;
+}
+
+.info-item.status-pending {
+  color: #faad14;
+  font-weight: bold;
+}
+
+.info-item.status-rejected {
+  color: #ff4d4f;
+  font-weight: bold;
+}
+
+.record-reason, .record-desc, .record-remarks {
+  font-size: 26rpx;
+  color: #999;
+  line-height: 1.4;
+}
+
+.record-arrow {
+  display: none;
+}
+
+/* 删除按钮 */
+.delete-btn {
+  min-width: 100rpx;
+  height: 60rpx;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #ff4d4f;
+  font-size: 26rpx;
+  border-radius: 30rpx;
+  background-color: #fff;
+  padding: 0 20rpx;
+  border: 1px solid #ff4d4f;
+  margin-left: 20rpx;
+}
+
+.delete-btn:active {
+  background-color: #fff1f0;
+  opacity: 0.8;
+}
+
+/* 空状态提示 */
+.empty-hint {
+  display: flex;
+  justify-content: center;
+  padding: 40rpx 0;
+  color: #999;
+  font-size: 28rpx;
+}
+
+/* 查看更多 */
+.view-more {
+  text-align: center;
+  padding: 20rpx 0 0;
+  color: #4b6bfb;
+  font-size: 28rpx;
+  border-top: 1rpx dashed #f0f0f0;
+  margin-top: 10rpx;
+}
+
+/* 我的作品新样式 */
+.submission-item {
+  margin-bottom: 20rpx;
+}
+
+.submission-card {
+  background-color: #fff;
+  border-radius: 10rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.05);
+  padding: 20rpx;
+}
+
+.artwork-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 15rpx;
+}
+
+.submission-info {
+  margin-bottom: 15rpx;
+}
+
+.info-row {
+  display: flex;
+  margin-bottom: 10rpx;
+}
+
+.info-label {
+  width: 160rpx;
+  color: #666;
+  font-size: 26rpx;
+}
+
+.info-value {
+  flex: 1;
+  font-size: 26rpx;
+  color: #333;
+}
+
+.status-approved {
+  color: #07c160;
+}
+
+.status-rejected {
+  color: #ff4d4f;
+}
+
+.status-pending {
+  color: #faad14;
+}
+
+.action-buttons {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 15rpx;
+}
+
+.action-btn {
+  padding: 10rpx 20rpx;
+  border-radius: 6rpx;
+  font-size: 24rpx;
+  margin-left: 15rpx;
+}
+
+.details-btn {
+  background-color: #4b6bfb;
+  color: #fff;
+}
+
+.details-btn:active {
+  opacity: 0.8;
+}
+
+/* 弹窗样式 */
+.details-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+}
+
+.modal-mask {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+}
+
+.modal-content {
+  position: absolute;
+  top: 15%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 85%;
+  max-width: 650rpx;
+  max-height: 70vh;
+  background-color: #fff;
+  border-radius: 12rpx;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 25rpx 30rpx;
+  border-bottom: 1px solid #eee;
+  flex-shrink: 0;
+}
+
+.modal-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.modal-close {
+  font-size: 40rpx;
+  color: #999;
+  padding: 10rpx;
+}
+
+.modal-body {
+  padding: 20rpx 30rpx;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.detail-section {
+  margin-bottom: 40rpx;
+}
+
+.section-title {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #333;
+  padding-bottom: 15rpx;
+  border-bottom: 1px solid #f0f0f0;
+  margin-bottom: 20rpx;
+}
+
+.detail-item {
+  display: flex;
+  margin-bottom: 15rpx;
+}
+
+.detail-label {
+  width: 180rpx;
+  color: #666;
+  font-size: 26rpx;
+}
+
+.detail-value {
+  flex: 1;
+  font-size: 26rpx;
+  color: #333;
+}
+
+.detail-value.description {
+  white-space: pre-wrap;
+  line-height: 1.5;
+}
+
+.artwork-images {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 10rpx 0;
+}
+
+.artwork-image {
+  width: 180rpx;
+  height: 180rpx;
+  margin-right: 15rpx;
+  margin-bottom: 15rpx;
+  border-radius: 6rpx;
+  border: 1rpx solid #eee;
+}
+
+.action-container {
+  margin: 20rpx 0 10rpx 0;
+  padding: 0 10rpx;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+}
+
+.full-width-btn {
+  width: 85%;
+  height: 80rpx;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #4b6bfb;
+  color: #fff;
+  font-size: 30rpx;
+  font-weight: 400;
+  border-radius: 10rpx;
+  letter-spacing: 2rpx;
+  box-shadow: 0 4rpx 8rpx rgba(75, 107, 251, 0.2);
+}
+
+.full-width-btn:active {
+  opacity: 0.9;
+  transform: translateY(2rpx);
+}
+
+/* 运送详情弹窗底部按钮样式 */
+.modal-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx 30rpx;
+  border-top: 1px solid #eee;
+  background-color: #fff;
+  flex-shrink: 0;
+}
+
+.footer-btn {
+  width: 45%;
+  height: 80rpx;
+  border-radius: 40rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+  margin: 0;
+}
+
+.footer-btn.delete-btn {
+  background-color: #fff;
+  color: #ff4d4f;
+  border: 1px solid #ff4d4f;
+}
+
+.footer-btn.edit-btn {
+  background-color: #4b6bfb;
+  color: #fff;
+}
+
+.footer-btn:active {
+  opacity: 0.8;
+}
+
+.edit-btn {
+  background-color: #4b6bfb;
+  color: #fff;
+}
+

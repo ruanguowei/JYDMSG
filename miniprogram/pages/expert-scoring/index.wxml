@@ -1,0 +1,217 @@
+<!--pages/expert-scoring/index.wxml-->
+<view class="scoring-container">
+  <!-- 加载状态 -->
+  <view wx:if="{{loading}}" class="loading">
+    <view class="loading-spinner"></view>
+    <text>加载中...</text>
+  </view>
+
+  <!-- 作品信息 -->
+  <view wx:elif="{{submission}}" class="submission-detail">
+    <!-- 作品图片 -->
+    <view class="submission-image">
+      <image src="{{submission.imageUrl}}" mode="aspectFill"></image>
+    </view>
+
+    <!-- 作品基本信息 -->
+    <view class="submission-info">
+      <view class="info-title">{{submission.title}}</view>
+      <view class="info-item">
+        <text class="label">作者：</text>
+        <text class="value">{{submission.authorName}}</text>
+      </view>
+      <view class="info-item">
+        <text class="label">学校：</text>
+        <text class="value">{{submission.schoolName}}</text>
+      </view>
+      <view class="info-item">
+        <text class="label">分类：</text>
+        <text class="value">{{submission.categoryName}}</text>
+      </view>
+      <view class="info-item">
+        <text class="label">作品描述：</text>
+        <text class="value">{{submission.description}}</text>
+      </view>
+    </view>
+
+    <!-- 评分指南按钮 -->
+    <view class="score-guide-btn" bindtap="showScoreGuide">
+      <text>查看评分标准</text>
+      <text class="arrow">></text>
+    </view>
+
+    <!-- 评分表单 -->
+    <view class="score-form">
+      <view class="form-title">作品评分</view>
+      
+      <!-- 主题契合度 -->
+      <view class="score-item">
+        <view class="score-label">
+          <text class="label-text">主题契合度</text>
+          <text class="label-desc">(0-3分)</text>
+        </view>
+        <view class="score-input">
+          <input 
+            type="digit" 
+            value="{{scores.themeFit}}"
+            data-field="themeFit"
+            bindinput="onScoreChange"
+            placeholder="0"
+            maxlength="3"
+          />
+          <text class="score-unit">分</text>
+        </view>
+      </view>
+
+      <!-- 创意与表现力 -->
+      <view class="score-item">
+        <view class="score-label">
+          <text class="label-text">创意与表现力</text>
+          <text class="label-desc">(0-3分)</text>
+        </view>
+        <view class="score-input">
+          <input 
+            type="digit" 
+            value="{{scores.creativity}}"
+            data-field="creativity"
+            bindinput="onScoreChange"
+            placeholder="0"
+            maxlength="3"
+          />
+          <text class="score-unit">分</text>
+        </view>
+      </view>
+
+      <!-- 工艺与材料 -->
+      <view class="score-item">
+        <view class="score-label">
+          <text class="label-text">工艺与材料</text>
+          <text class="label-desc">(0-2分)</text>
+        </view>
+        <view class="score-input">
+          <input 
+            type="digit" 
+            value="{{scores.craftsmanship}}"
+            data-field="craftsmanship"
+            bindinput="onScoreChange"
+            placeholder="0"
+            maxlength="3"
+          />
+          <text class="score-unit">分</text>
+        </view>
+      </view>
+
+      <!-- 美感与实用性 -->
+      <view class="score-item">
+        <view class="score-label">
+          <text class="label-text">美感与实用性</text>
+          <text class="label-desc">(0-2分)</text>
+        </view>
+        <view class="score-input">
+          <input 
+            type="digit" 
+            value="{{scores.aesthetics}}"
+            data-field="aesthetics"
+            bindinput="onScoreChange"
+            placeholder="0"
+            maxlength="3"
+          />
+          <text class="score-unit">分</text>
+        </view>
+      </view>
+
+      <!-- 总分显示 -->
+      <view class="total-score">
+        <text class="total-label">总分：</text>
+        <text class="total-value">{{totalScore}}分</text>
+      </view>
+      
+      <!-- 扣分项（依据评审纪律） -->
+      <view class="deductions">
+        <view class="deductions-title">扣分项</view>
+        <checkbox-group>
+          <label class="deduction-item">
+            <checkbox value="true" checked="{{deductions.contentViolation}}" data-field="contentViolation" bindchange="onDeductionToggle"/>
+            <view class="deduction-text">内容违规（国家象征/宗教敏感/负面舆论等） -3分</view>
+          </label>
+          <label class="deduction-item">
+            <checkbox value="true" checked="{{deductions.ethicsViolation}}" data-field="ethicsViolation" bindchange="onDeductionToggle"/>
+            <view class="deduction-text">技术伦理失范（AI未标注、侵权等） -2分</view>
+          </label>
+          <label class="deduction-item">
+            <checkbox value="true" checked="{{deductions.materialsIncomplete}}" data-field="materialsIncomplete" bindchange="onDeductionToggle"/>
+            <view class="deduction-text">提交材料不全（缺创作说明/技术报告） -1分</view>
+          </label>
+        </checkbox-group>
+
+        <view class="final-score">
+          <text class="final-label">扣分后得分：</text>
+          <text class="final-value">{{finalScore}}分</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 提交按钮 -->
+    <view class="submit-section">
+      <button 
+        class="submit-btn {{submitting ? 'loading' : ''}}"
+        bindtap="submitScore"
+        disabled="{{submitting}}"
+      >
+        {{submitting ? '提交中...' : '提交评分'}}
+      </button>
+    </view>
+  </view>
+</view>
+
+<!-- 评分指南弹窗 -->
+<view wx:if="{{showScoreGuide}}" class="guide-modal" bindtap="hideScoreGuide">
+  <view class="guide-content" catchtap="">
+    <view class="guide-header">
+      <view class="guide-title">评分标准</view>
+      <view class="close-btn" bindtap="hideScoreGuide">×</view>
+    </view>
+    
+    <view class="guide-body">
+      <view class="guide-section">
+        <view class="section-title">主题契合度（3分）</view>
+        <view class="section-content">
+          <view class="score-level">优（3分）：精准对应所属板块，主题表达深刻，兼具文化传承与科技赋能创新</view>
+          <view class="score-level">良（2分）：主题关联清晰，但创新性不足或技术融合较浅</view>
+          <view class="score-level">中（1分）：仅部分元素符合主题，未体现板块核心逻辑</view>
+          <view class="score-level">差（0-0.5分）：偏离主题或未明确板块归属</view>
+        </view>
+      </view>
+      
+      <view class="guide-section">
+        <view class="section-title">创意与表现力（3分）</view>
+        <view class="section-content">
+          <view class="score-level">优（3分）：突破传统形式，智能技术应用自然，情感表达强烈且具"普世价值"</view>
+          <view class="score-level">良（2分）：创意明显但技术融合生硬，或情感表达较单薄</view>
+          <view class="score-level">中（1分）：构思常规，技术仅为装饰性添加，缺乏深度创新</view>
+          <view class="score-level">差（0-0.5分）：无原创性，技术堆砌或与主题割裂</view>
+        </view>
+      </view>
+      
+      <view class="guide-section">
+        <view class="section-title">工艺与材料（2分）</view>
+        <view class="section-content">
+          <view class="score-level">优（2分）：工艺精湛无瑕疵，材料创新性强，与设计高度统一</view>
+          <view class="score-level">良（1.5分）：工艺良好，材料运用合理但创新不足，局部轻微瑕疵</view>
+          <view class="score-level">中（1分）：工艺粗糙，材料选择不当，或存在明显缺陷</view>
+          <view class="score-level">差（0-0.5分）：工艺不合格，材料与主题冲突，存在安全隐患</view>
+        </view>
+      </view>
+      
+      <view class="guide-section">
+        <view class="section-title">美感与实用性（2分）</view>
+        <view class="section-content">
+          <view class="score-level">优（2分）：视觉冲击力强，造型/色彩和谐统一，符合人体工学且具备实用功能</view>
+          <view class="score-level">良（1.5分）：美感良好，实用性达标但无突出亮点，舒适度一般</view>
+          <view class="score-level">中（1分）：美感不足，实用性弱，或存在设计缺陷</view>
+          <view class="score-level">差（0-0.5分）：缺乏审美价值，无实用功能或存在安全风险</view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

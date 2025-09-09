@@ -1,0 +1,220 @@
+<!--pages/pottery-query/index.wxml-->
+<view class="container">
+  <view class="page-title">参展查询</view>
+  
+  <!-- 加载状态 -->
+  <view wx:if="{{loading}}" class="loading">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载中...</text>
+  </view>
+
+  <!-- 申请记录列表 -->
+  <view class="submissions-list" wx:if="{{submissions && submissions.length > 0}}">
+    <view class="submission-item" wx:for="{{submissions}}" wx:key="id">
+      <view class="submission-card" bindtap="showDetails" data-index="{{index}}">
+        <view class="artwork-title">《{{item.artworkName || '未命名作品'}}》</view>
+        
+        <view class="submission-info">
+          <view class="info-row">
+            <text class="info-label">申请人：</text>
+            <text class="info-value">{{item.name}}</text>
+          </view>
+          <view class="info-row">
+            <text class="info-label">提交时间：</text>
+            <text class="info-value">{{item.submitTime || '暂无时间'}}</text>
+          </view>
+          <view class="info-row">
+            <text class="info-label">作品类别：</text>
+            <text class="info-value">{{item.category}}</text>
+          </view>
+        </view>
+        
+        <view class="submission-status {{item.status}}">{{statusText[item.status] || '处理中'}}</view>
+        
+        <view class="action-buttons">
+          <view class="action-btn details-btn" catchtap="showDetails" data-index="{{index}}">
+            <text>查看详情</text>
+          </view>
+          <view class="action-btn edit-btn" catchtap="showEditOptions" data-id="{{item._id}}" data-name="{{item.artworkName || '未命名作品'}}" data-index="{{index}}">
+            <text>修改</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 无记录提示 -->
+  <view wx:if="{{!loading && (!submissions || submissions.length === 0)}}" class="no-records">
+    <image class="no-data-icon" src="/images/icons/noDate.png" mode="aspectFit"></image>
+    <text class="no-data-text">暂无参展申请记录</text>
+  </view>
+
+  <!-- 详情弹窗 -->
+  <view class="details-modal" wx:if="{{showDetailsModal}}">
+    <view class="modal-mask" bindtap="hideDetails"></view>
+    <view class="modal-content">
+      <view class="modal-header">
+        <text class="modal-title">申请详情</text>
+        <view class="modal-close" bindtap="hideDetails">×</view>
+      </view>
+
+      <scroll-view scroll-y="true" class="modal-body">
+        <block wx:if="{{currentSubmission}}">
+          <!-- 作品信息 -->
+          <view class="detail-section">
+            <view class="section-title">作品信息</view>
+            
+            <view class="detail-item">
+              <text class="detail-label">作品名称：</text>
+              <text class="detail-value">{{currentSubmission.artworkName}}</text>
+            </view>
+            
+            <view class="detail-item" wx:if="{{currentSubmission.createYear}}">
+              <text class="detail-label">创作年份：</text>
+              <text class="detail-value">{{currentSubmission.createYear}}</text>
+            </view>
+            
+            <view class="detail-item" wx:if="{{currentSubmission.length || currentSubmission.width || currentSubmission.height}}">
+              <text class="detail-label">作品尺寸：</text>
+              <text class="detail-value">{{currentSubmission.length || '?' }} × {{currentSubmission.width || '?'}} × {{currentSubmission.height || '?'}} cm</text>
+            </view>
+            
+            <view class="detail-item" wx:if="{{currentSubmission.category}}">
+              <text class="detail-label">作品类别：</text>
+              <text class="detail-value">{{currentSubmission.category}}</text>
+            </view>
+            
+            <view class="detail-item" wx:if="{{currentSubmission.craftMaterial}}">
+              <text class="detail-label">作品工艺材料：</text>
+              <text class="detail-value">{{currentSubmission.craftMaterial}}</text>
+            </view>
+            
+            <view class="detail-item" wx:if="{{currentSubmission.artworkDescription}}">
+              <text class="detail-label">作品简介：</text>
+              <text class="detail-value description">{{currentSubmission.artworkDescription}}</text>
+            </view>
+          </view>
+          
+          <!-- 作品图片 -->
+          <view class="detail-section" wx:if="{{currentSubmission.artworkImages && currentSubmission.artworkImages.length > 0}}">
+            <view class="section-title">作品图片</view>
+            <view class="artwork-images">
+              <block wx:for="{{currentSubmission.artworkImages}}" wx:key="index">
+                <image 
+                  class="artwork-image" 
+                  src="{{item}}" 
+                  mode="aspectFill" 
+                  bindtap="previewImage" 
+                  data-url="{{item}}" 
+                  data-urls="{{currentSubmission.artworkImages}}"
+                ></image>
+              </block>
+            </view>
+          </view>
+          
+          <!-- 申请状态 -->
+          <view class="detail-section">
+            <view class="section-title">申请状态</view>
+            
+            <view class="detail-item">
+              <text class="detail-label">提交时间：</text>
+              <text class="detail-value">{{currentSubmission.submitTime || currentSubmission.updatedAt || '暂无时间'}}</text>
+            </view>
+            
+            <view class="detail-item">
+              <text class="detail-label">审核状态：</text>
+              <text class="detail-value status-{{currentSubmission.status}}">
+                {{statusText[currentSubmission.status] || '处理中'}}
+              </text>
+            </view>
+            
+            <view class="detail-item" wx:if="{{currentSubmission.feedback}}">
+              <text class="detail-label">审核反馈：</text>
+              <text class="detail-value">{{currentSubmission.feedback}}</text>
+            </view>
+          </view>
+          
+          <!-- 个人信息 -->
+          <view class="detail-section">
+            <view class="section-title">申请人信息</view>
+            
+            <view class="detail-item">
+              <text class="detail-label">姓名：</text>
+              <text class="detail-value">{{currentSubmission.name}}</text>
+            </view>
+            
+            <view class="detail-item" wx:if="{{currentSubmission.gender}}">
+              <text class="detail-label">性别：</text>
+              <text class="detail-value">{{currentSubmission.gender}}</text>
+            </view>
+            
+            <view class="detail-item" wx:if="{{currentSubmission.birthDate}}">
+              <text class="detail-label">出生年月：</text>
+              <text class="detail-value">{{currentSubmission.birthDate}}</text>
+            </view>
+            
+            <view class="detail-item" wx:if="{{currentSubmission.school}}">
+              <text class="detail-label">学校：</text>
+              <text class="detail-value">{{currentSubmission.school}}</text>
+            </view>
+            
+            <view class="detail-item" wx:if="{{currentSubmission.major}}">
+              <text class="detail-label">专业：</text>
+              <text class="detail-value">{{currentSubmission.major}}</text>
+            </view>
+            
+            <view class="detail-item" wx:if="{{currentSubmission.grade}}">
+              <text class="detail-label">年级：</text>
+              <text class="detail-value">{{currentSubmission.grade}}</text>
+            </view>
+            
+            <view class="detail-item" wx:if="{{currentSubmission.phone}}">
+              <text class="detail-label">联系电话：</text>
+              <text class="detail-value">{{currentSubmission.phone}}</text>
+            </view>
+            
+            <view class="detail-item" wx:if="{{currentSubmission.email}}">
+              <text class="detail-label">邮箱：</text>
+              <text class="detail-value">{{currentSubmission.email}}</text>
+            </view>
+            
+            <view class="detail-item" wx:if="{{currentSubmission.idNumber}}">
+              <text class="detail-label">身份证号：</text>
+              <text class="detail-value">{{currentSubmission.idNumber}}</text>
+            </view>
+            
+            <view class="detail-item" wx:if="{{currentSubmission.teacher}}">
+              <text class="detail-label">指导老师：</text>
+              <text class="detail-value">{{currentSubmission.teacher}}</text>
+            </view>
+            
+            <view class="detail-item" wx:if="{{currentSubmission.teacherPhone}}">
+              <text class="detail-label">老师电话：</text>
+              <text class="detail-value">{{currentSubmission.teacherPhone}}</text>
+            </view>
+            
+            <view class="detail-item" wx:if="{{currentSubmission.address}}">
+              <text class="detail-label">邮寄地址：</text>
+              <text class="detail-value">{{currentSubmission.address}}</text>
+            </view>
+            
+            <!-- 个人照片 -->
+            <view class="detail-item" wx:if="{{currentSubmission.photoUrl}}">
+              <text class="detail-label">个人照片：</text>
+              <view class="detail-photo">
+                <image 
+                  class="personal-photo" 
+                  src="{{currentSubmission.photoUrl}}" 
+                  mode="aspectFill" 
+                  bindtap="previewImage" 
+                  data-url="{{currentSubmission.photoUrl}}" 
+                  data-urls="{{[currentSubmission.photoUrl]}}"
+                ></image>
+              </view>
+            </view>
+          </view>
+        </block>
+      </scroll-view>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,6 @@
+{
+  "usingComponents": {},
+  "navigationBarTitleText": "参展查询",
+  "enablePullDownRefresh": true,
+  "backgroundTextStyle": "dark"
+}

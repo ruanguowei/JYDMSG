@@ -1,0 +1,6 @@
+{
+  "usingComponents": {},
+  "navigationBarTitleText": "评选结果",
+  "enablePullDownRefresh": true,
+  "backgroundTextStyle": "dark"
+}

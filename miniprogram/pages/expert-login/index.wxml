@@ -1,0 +1,99 @@
+<!--pages/expert-login/index.wxml-->
+<view class="login-container">
+  <!-- 头部标题 -->
+  <view class="header">
+    <view class="title">专家评审系统</view>
+    <view class="subtitle">第二届全国大学生陶艺作品展</view>
+  </view>
+
+  <!-- 登录表单 -->
+  <view class="login-form">
+    <view class="form-item">
+      <view class="label">专家验证码</view>
+      <input 
+        class="input" 
+        placeholder="请输入专家验证码" 
+        value="{{expertCode}}"
+        bindinput="onExpertCodeInput"
+        maxlength="20"
+      />
+    </view>
+    
+    <view class="form-item">
+      <view class="label">专家姓名</view>
+      <input 
+        class="input" 
+        placeholder="请输入专家姓名" 
+        value="{{expertName}}"
+        bindinput="onExpertNameInput"
+        maxlength="10"
+      />
+    </view>
+
+    <!-- 评审规则提示 -->
+    <view class="rules-tip">
+      <text>登录即表示您已阅读并同意</text>
+      <text class="rules-link" bindtap="showRules">《评审纪律》</text>
+    </view>
+
+    <!-- 登录按钮 -->
+    <button 
+      class="login-btn {{loading ? 'loading' : ''}}" 
+      bindtap="expertLogin"
+      disabled="{{loading}}"
+    >
+      {{loading ? '登录中...' : '专家登录'}}
+    </button>
+  </view>
+
+  <!-- 评审时间提示 -->
+  <view class="time-tip">
+    <view class="tip-title">评审时间</view>
+    <view class="tip-content">2025年10月18日 - 22日</view>
+    <view class="tip-note">系统将于评审结束后自动关闭</view>
+  </view>
+</view>
+
+<!-- 评审规则弹窗 -->
+<view wx:if="{{showRules}}" class="rules-modal" bindtap="hideRules">
+  <view class="rules-content" catchtap="">
+    <view class="rules-header">
+      <view class="rules-title">评审纪律</view>
+      <view class="close-btn" bindtap="hideRules">×</view>
+    </view>
+    
+    <view class="rules-body">
+      <view class="rules-section">
+        <view class="section-title">一、保密义务</view>
+        <view class="section-content">
+          严禁泄露评审材料、作品信息、评分过程及结果；不得公开讨论未公示的入围作品及作者信息。
+        </view>
+      </view>
+      
+      <view class="rules-section">
+        <view class="section-title">二、独立评审</view>
+        <view class="section-content">
+          评委需独立完成评分，禁止任何形式的私下沟通、串联或倾向性引导；不得接受参赛者及相关人员的请托、馈赠或施加影响。
+        </view>
+      </view>
+      
+      <view class="rules-section">
+        <view class="section-title">三、平台操作规范</view>
+        <view class="section-content">
+          仅限通过官方小程序专家端登录评审系统；不得委托他人代评或使用非认证设备操作。
+        </view>
+      </view>
+      
+      <view class="rules-section">
+        <view class="section-title">四、时效性与责任</view>
+        <view class="section-content">
+          须在规定时间内完成评分，逾期视为自动放弃；对评分结果承担个人责任，确保客观公正。
+        </view>
+      </view>
+    </view>
+    
+    <view class="rules-footer">
+      <button class="agree-btn" bindtap="agreeRulesAndLogin">同意并登录</button>
+    </view>
+  </view>
+</view>

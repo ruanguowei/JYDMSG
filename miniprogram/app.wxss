@@ -1,0 +1,65 @@
+/**app.wxss**/
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+} 
+
+/* 定义图标字体 */
+@font-face {
+  font-family: 'iconfont';
+  src: url('data:font/woff2;charset=utf-8;base64,d09GMgABAAAAAAO0AAsAAAAAB8QAAANnAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHFQGYACDHAqDFIJpATYCJAMQCwoABCAFhGcHQxsqBxFVnAPJfh7YMdk6S4uWjjUaT0fHI55H19Peh4m0CSot1RkVIZWhUJ0ZFaE6lco570+fbO6DsUopIFyA3m/ubck3WXumX1bnItSJ0xi0AArMQt9xL01fbWca/cY//3OZ3go+P1AuYw7tTXQDjAMKbE9sQAlygQS9MHbBS7iZQKdZSciVy+uaYJDYowJx74xRwFAU5JINrUIzdLWYxCsYWtNT9AzgJf5+/IesGJB0M/bUpUsZW6h8+IKPR1/jo0XnCHg6nYe1iIxVQCEeiv67sIXbVXRqZ7sCaFQl6at8wReffc7H/RcsJAKP/csjSVFEQyeYgL2Kl08GKUnyieALLZMvwrYTrdJ3wGMgA5+ZpgiwJGo61Nbfd0mn8/V9VDDYyx9xzvZZibRo+lrZVm1F+8Jz38OvtqKdridbQi/2Ru+9w1Q+efvdF/L5DviDb0eq+7304LuRqraXHnrjhTTifdcNfftJSbsG3mniU5TK6+Pz7J7p4RUyDzTsCQvYvxTt2Fzc/QO3R5Q0fGTEcDt0d6TesoWtW7o7Q2T3Hk4QYMfEPAAA+mjYaYkMKhWNJiPwMso6IZum5sRiMckotWiZ7aADvzpXnlMI8p/3my+ZuA9CTewAvlGpkoKGRGo57tsDDUxkiWQYl+QTCP8S/dfY9SNRhKDaE/rNEIPy39IEw29ls9xo6gRIPBG0uwr/1en/rvhXBvbdyrVrUdVsnaMz6tShw/8Kg8Qy++vU+btmHQqKmoqzF97YxNnAW6iTaKXTLClQTpJotbTJKcmZUT9OFw2an/uWQt43OLpJ+wE21/MYTCvdrNa5rouWuW6brrkeO+w226uV0a1dDkQvLEP30p9upT/T6vC/7qWj3UuH3Ev/u7OGrtGVZbEVJzKmBqwvlEjU6ZlaZKvHYuUcu9yKZCuVKufFbK+glZMVeVeOVGy5IBGpEidgfUERER2dURM1VetYGZuOQZdaIclaUtIJYszVQFYviKP7BJ3eZkhsqX2Q2OTDzJXjMJe1IoqtkqScuNgzH0JbnDJQPSuREtFh6oQUsVhMDVMPpaPE2BEH5cIsWIrCYiwpFh5Rt4wsKrIGR4xRiLWkxOPZXEcMdI6zIIktvIzHXVfisLCaJYEAAAA=') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+.iconfont {
+  font-family: 'iconfont' !important;
+  font-style: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-back:before {
+  content: "\e601";
+}
+
+.icon-calendar:before {
+  content: "\e602";
+}
+
+.icon-jar:before {
+  content: "\e603";
+}
+
+.icon-user:before {
+  content: "\e604";
+}
+
+.icon-star:before {
+  content: "\e605";
+}
+
+button {
+  background: initial;
+}
+
+button:focus{
+  outline: 0;
+}
+
+button::after{
+  border: none;
+}
+
+page {
+  font-family: 'PingFang SC', 'Helvetica Neue', Arial, sans-serif;
+  color: #333;
+  font-size: 14px;
+  background-color: #f9fafb;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}

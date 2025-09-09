@@ -1,0 +1,114 @@
+<!--pages/expert-results/index.wxml-->
+<view class="results-container">
+  <!-- 统计信息 -->
+  <view class="stats-section">
+    <view class="stats-title">评选统计</view>
+    <view class="stats-grid">
+      <view class="stat-item">
+        <view class="stat-number">{{stats.totalEvaluated}}</view>
+        <view class="stat-label">已评选</view>
+      </view>
+      <view class="stat-item">
+        <view class="stat-number">{{stats.averageScore}}</view>
+        <view class="stat-label">平均分</view>
+      </view>
+      <view class="stat-item">
+        <view class="stat-number">{{stats.highestScore}}</view>
+        <view class="stat-label">最高分</view>
+      </view>
+      <view class="stat-item">
+        <view class="stat-number">{{stats.lowestScore}}</view>
+        <view class="stat-label">最低分</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 分类筛选 -->
+  <view class="category-filter">
+    <scroll-view class="category-scroll" scroll-x="true">
+      <view class="category-list">
+        <view 
+          wx:for="{{categories}}" 
+          wx:key="key"
+          class="category-item {{selectedCategory === item.key ? 'active' : ''}}"
+          data-category="{{item.key}}"
+          bindtap="onCategoryChange"
+        >
+          {{item.name}}
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- 结果列表 -->
+  <view class="results-list">
+    <view wx:if="{{loading}}" class="loading">
+      <view class="loading-spinner"></view>
+      <text>加载中...</text>
+    </view>
+
+    <view wx:elif="{{filteredResults.length === 0}}" class="empty">
+      <image src="/images/icons/noDate.png" class="empty-icon"></image>
+      <text class="empty-text">暂无评选结果</text>
+    </view>
+
+    <view wx:else>
+      <view 
+        wx:for="{{filteredResults}}" 
+        wx:key="id"
+        class="result-item"
+        data-id="{{item.id}}"
+        bindtap="viewSubmissionDetail"
+      >
+        <view class="result-image">
+          <image src="{{item.imageUrl}}" mode="aspectFill"></image>
+          <view class="score-badge">{{item.totalScore}}分</view>
+        </view>
+        
+        <view class="result-info">
+          <view class="result-title">{{item.title}}</view>
+          <view class="result-author">作者：{{item.authorName}}</view>
+          <view class="result-category">分类：{{item.categoryName}}</view>
+          <view class="result-school">学校：{{item.schoolName}}</view>
+          
+          <view class="score-details">
+            <view class="score-detail-item">
+              <text class="detail-label">主题：</text>
+              <text class="detail-value">{{item.themeFit}}分</text>
+            </view>
+            <view class="score-detail-item">
+              <text class="detail-label">创意：</text>
+              <text class="detail-value">{{item.creativity}}分</text>
+            </view>
+            <view class="score-detail-item">
+              <text class="detail-label">工艺：</text>
+              <text class="detail-value">{{item.craftsmanship}}分</text>
+            </view>
+            <view class="score-detail-item">
+              <text class="detail-label">美感：</text>
+              <text class="detail-value">{{item.aesthetics}}分</text>
+            </view>
+          </view>
+          
+          <view class="evaluation-time">
+            评分时间：{{item.evaluationTime}}
+          </view>
+        </view>
+        
+        <view class="result-arrow">
+          <text class="arrow">></text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部操作栏 -->
+  <view class="bottom-actions">
+    <button class="action-btn secondary" bindtap="backToEvaluation">
+      返回评选
+    </button>
+    <button class="action-btn primary" bindtap="exportResults">
+      导出结果
+    </button>
+  </view>
+</view>

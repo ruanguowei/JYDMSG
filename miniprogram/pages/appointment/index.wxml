@@ -1,0 +1,95 @@
+<!--pages/appointment/index.wxml-->
+<view class="container">
+  <!-- 日历选择 -->
+  <view class="calendar-container">
+    <view class="section-title">选择日期</view>
+    <view class="calendar-header">
+      <view class="month-selector">
+        <view class="prev-month" bindtap="prevMonth">◀</view>
+        <view class="current-month">{{year}}年{{month}}月</view>
+        <view class="next-month" bindtap="nextMonth">▶</view>
+      </view>
+    </view>
+    <view class="week-header">
+      <view wx:for="{{weekDays}}" wx:key="index" class="week-day">{{item}}</view>
+    </view>
+    <view class="calendar-days">
+      <view 
+        wx:for="{{days}}" 
+        wx:key="index" 
+        class="calendar-day {{item.available ? 'available' : ''}} {{item.selected ? 'selected' : ''}} {{item.current ? 'current' : ''}} {{item.date === 0 ? 'empty' : ''}}"
+        data-date="{{item.date}}"
+        data-available="{{item.available}}"
+        bindtap="selectDate"
+      >
+        {{item.date !== 0 ? item.date : ''}}
+      </view>
+    </view>
+  </view>
+
+  <!-- 时段选择 -->
+  <view class="time-container">
+    <view class="section-title">选择时段</view>
+    <view class="time-slots">
+      <view 
+        wx:for="{{timeSlots}}" 
+        wx:key="index" 
+        class="time-slot {{item.selected ? 'selected' : ''}} {{item.available ? 'available' : 'disabled'}}"
+        data-index="{{index}}"
+        bindtap="selectTimeSlot"
+      >
+        <view>{{item.time}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 信息填写 -->
+  <view class="form-container">
+    <view class="section-title">填写信息</view>
+    
+    <!-- 参观人数选择 -->
+    <picker 
+      class="visitor-picker"
+      mode="selector"
+      range="{{visitorRange}}"
+      value="{{visitorIndex}}"
+      bindchange="onVisitorChange"
+    >
+      <view class="picker-item">
+        <text>参观人数</text>
+        <view class="picker-value">
+          <text>{{visitors}} 人</text>
+          <view class="arrow"></view>
+        </view>
+      </view>
+    </picker>
+    
+    <view class="form-item">
+      <view class="form-label">来访事由</view>
+      <textarea class="form-textarea" placeholder="请填写来访目的..." value="{{reason}}" bindinput="inputReason"></textarea>
+    </view>
+    
+    <!-- 确认预约按钮 -->
+    <button class="confirm-btn" bindtap="submitAppointment">确认预约</button>
+  </view>
+
+  <!-- 成功弹窗 -->
+  <view class="modal-mask" wx:if="{{showSuccessModal}}" bindtap="closeSuccessModal">
+    <view class="modal-content" catchtap="stopPropagation">
+      <view class="success-icon">✓</view>
+      <view class="modal-title">预约成功</view>
+      <view class="modal-text">您的参观预约已提交成功</view>
+      <button class="modal-btn" bindtap="closeSuccessModal">确定</button>
+    </view>
+  </view>
+  
+  <!-- 错误提示弹窗 -->
+  <view class="modal-mask" wx:if="{{showErrorModal}}" bindtap="closeErrorModal">
+    <view class="modal-content" catchtap="stopPropagation">
+      <view class="error-icon">!</view>
+      <view class="modal-title">提交失败</view>
+      <view class="modal-text">{{errorMessage}}</view>
+      <button class="modal-btn" bindtap="closeErrorModal">确定</button>
+    </view>
+  </view>
+</view>

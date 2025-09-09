@@ -1,0 +1,79 @@
+<!-- 作品图片头部 -->
+<view class="artwork-header">
+  <view class="back-button" bindtap="goBack">
+    <text class="iconfont icon-back"></text>
+  </view>
+  <image src="{{artwork.imageUrl}}" mode="aspectFill" class="artwork-image"></image>
+</view>
+
+<!-- 作品信息 -->
+<view class="info-section">
+  <view class="artwork-title">{{artwork.title}}</view>
+  <view class="artwork-rating">
+    <text class="iconfont icon-star"></text>
+    <text class="rating-value">{{artwork.rating}}</text>
+    <text class="rating-count">评分人数: {{artwork.ratingCount}}</text>
+  </view>
+  <view class="artwork-tags">
+    <view class="tag" wx:for="{{artwork.tags}}" wx:key="index">{{item}}</view>
+  </view>
+</view>
+
+<!-- 作者信息 -->
+<view class="info-section">
+  <view class="section-title">创作者</view>
+  <view class="author-info">
+    <view class="author-avatar">
+      <text class="iconfont icon-user"></text>
+    </view>
+    <view class="author-detail">
+      <view class="author-name">{{artwork.author.name}}</view>
+      <view class="author-desc">{{artwork.author.department}} {{artwork.author.grade}}级</view>
+    </view>
+  </view>
+</view>
+
+<!-- 创作理念 -->
+<view class="info-section">
+  <view class="section-title">创作理念</view>
+  <view class="artwork-desc">{{artwork.description}}</view>
+</view>
+
+<!-- 点评区域 -->
+<view class="info-section" wx:if="{{artwork.comment}}">
+  <view class="section-title">专家点评</view>
+  <view class="expert-comment">
+    <view class="comment-content">{{artwork.comment.content}}</view>
+    <view class="comment-author">— {{artwork.comment.author}}（{{artwork.comment.department}}）</view>
+  </view>
+</view>
+
+<!-- 作品操作 -->
+<view class="action-buttons">
+  <button class="action-button rating-button" bindtap="showRatingModal">
+    <text class="iconfont icon-star"></text> 评分
+  </button>
+  <button class="action-button share-button" open-type="share">
+    分享作品
+  </button>
+</view>
+
+<!-- 评分弹窗 -->
+<view class="rating-modal {{showRatingModal ? 'show' : ''}}">
+  <view class="rating-modal-content">
+    <view class="rating-modal-title">为作品评分</view>
+    <view class="rating-stars">
+      <view class="star {{currentRating >= index+1 ? 'active' : ''}}" 
+            wx:for="{{5}}" 
+            wx:key="index" 
+            bindtap="setRating" 
+            data-rating="{{index+1}}">
+        <text class="iconfont icon-star"></text>
+      </view>
+    </view>
+    <view class="rating-buttons">
+      <button class="cancel-button" bindtap="hideRatingModal">取消</button>
+      <button class="confirm-button" bindtap="submitRating">确认</button>
+    </view>
+  </view>
+</view> 
