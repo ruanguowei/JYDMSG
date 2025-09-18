@@ -49,6 +49,34 @@ form {
   width: 100%;
 }
 
+/* 表单分组样式 */
+.form-section {
+  background: white;
+  margin: 20rpx;
+  border-radius: 12rpx;
+  padding: 30rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 10rpx;
+  padding-left: 20rpx;
+  border-left: 6rpx solid #4b6bfb;
+}
+
+.section-tip {
+  font-size: 24rpx;
+  color: #ff6b35;
+  background: #fff3e0;
+  padding: 15rpx 20rpx;
+  border-radius: 8rpx;
+  margin-bottom: 30rpx;
+  border-left: 4rpx solid #ff6b35;
+}
+
 .form-group {
   background: white;
   border-radius: 15rpx;

@@ -26,8 +26,13 @@ exports.main = async (event, context) => {
     const requiredFields = [
       'name', 'gender', 'school', 'grade', 'birthDate', 'major', 
       'phone', 'email', 'idNumber', 'teacher', 'teacherPhone', 'address', 'photoUrl',
-      'artworkName', 'createYear', 'category', 'craftMaterial', 'artworkDescription'
+      'workType', 'artworkName', 'createYear', 'category', 'artworkDescription'
     ]
+    
+    // 根据作品类型添加特定必填字段
+    if(submissionData.workType === 'regular') {
+      requiredFields.push('craftMaterial');
+    }
     
     for(const field of requiredFields) {
       if(!submissionData[field]) {
@@ -38,19 +43,62 @@ exports.main = async (event, context) => {
       }
     }
     
-    // 检查作品尺寸
-    if(!submissionData.dimensions || !submissionData.dimensions.length || !submissionData.dimensions.width || !submissionData.dimensions.height) {
-      return {
-        success: false,
-        errMsg: '作品尺寸必须完整填写'
+    // 根据作品类型进行不同的验证
+    if(submissionData.workType === 'regular') {
+      // 常规作品：检查作品尺寸
+      if(!submissionData.dimensions || !Array.isArray(submissionData.dimensions) || submissionData.dimensions.length === 0) {
+        return {
+          success: false,
+          errMsg: '作品尺寸必须完整填写'
+        }
       }
-    }
-    
-    // 检查作品图片
-    if(!submissionData.artworkImages || submissionData.artworkImages.length === 0) {
-      return {
-        success: false,
-        errMsg: '至少需要上传一张作品照片'
+      
+      // 检查至少有一组完整的尺寸数据
+      const hasValidDimensions = submissionData.dimensions.some(dim => 
+        dim.length && dim.width && dim.height
+      );
+      if(!hasValidDimensions) {
+        return {
+          success: false,
+          errMsg: '至少需要完整填写一组作品尺寸'
+        }
+      }
+      
+      // 检查分类图片
+      if(!submissionData.perspectiveImage) {
+        return {
+          success: false,
+          errMsg: '请上传透视图'
+        }
+      }
+      
+      if(!submissionData.fourViewImages || submissionData.fourViewImages.length === 0) {
+        return {
+          success: false,
+          errMsg: '请至少上传一张四面图'
+        }
+      }
+      
+      if(!submissionData.detailImages || submissionData.detailImages.length === 0) {
+        return {
+          success: false,
+          errMsg: '请至少上传一张局部图'
+        }
+      }
+    } else if(submissionData.workType === 'video') {
+      // 视频作品：检查视频相关字段
+      const videoRequiredFields = [
+        'videoDuration', 'videoResolution', 'videoAspectRatio', 
+        'shootingTechnique', 'baiduCloudLink', 'baiduCloudPassword'
+      ];
+      
+      for(const field of videoRequiredFields) {
+        if(!submissionData[field]) {
+          return {
+            success: false,
+            errMsg: `视频作品必须填写${field}字段`
+          }
+        }
       }
     }
     
@@ -74,6 +122,62 @@ exports.main = async (event, context) => {
       };
     }
     
+    // 转换图片链接为HTTPS格式
+    const convertImageLinks = async (imageData) => {
+      if (!imageData) return '';
+      
+      // 如果是cloud://格式，转换为HTTPS
+      if (typeof imageData === 'string' && imageData.startsWith('cloud://')) {
+        try {
+          const result = await cloud.getTempFileURL({
+            fileList: [imageData]
+          });
+          return result.fileList[0]?.tempFileURL || imageData;
+        } catch (error) {
+          console.error('转换图片链接失败:', error);
+          return imageData;
+        }
+      }
+      
+      return imageData;
+    };
+    
+    const convertImageArray = async (imageArray) => {
+      if (!Array.isArray(imageArray) || imageArray.length === 0) return [];
+      
+      const cloudImages = imageArray.filter(img => img && img.startsWith('cloud://'));
+      if (cloudImages.length === 0) return imageArray;
+      
+      try {
+        const result = await cloud.getTempFileURL({
+          fileList: cloudImages
+        });
+        
+        // 创建映射表
+        const urlMap = {};
+        result.fileList.forEach(item => {
+          urlMap[item.fileID] = item.tempFileURL;
+        });
+        
+        // 替换cloud://链接为HTTPS链接
+        return imageArray.map(img => {
+          if (img && img.startsWith('cloud://')) {
+            return urlMap[img] || img;
+          }
+          return img;
+        });
+      } catch (error) {
+        console.error('转换图片数组失败:', error);
+        return imageArray;
+      }
+    };
+    
+    // 转换所有图片链接
+    const convertedPhotoUrl = await convertImageLinks(submissionData.photoUrl);
+    const convertedPerspectiveImage = await convertImageLinks(submissionData.perspectiveImage);
+    const convertedFourViewImages = await convertImageArray(submissionData.fourViewImages || []);
+    const convertedDetailImages = await convertImageArray(submissionData.detailImages || []);
+    
     // 更新记录
     const result = await db.collection('pottery_submissions')
       .doc(submissionData.submissionId)
@@ -83,6 +187,7 @@ exports.main = async (event, context) => {
           name: submissionData.name,
           gender: submissionData.gender,
           school: submissionData.school,
+          schoolProvinces: submissionData.schoolProvinces,
           grade: submissionData.grade,
           birthDate: submissionData.birthDate,
           major: submissionData.major,
@@ -92,19 +197,31 @@ exports.main = async (event, context) => {
           teacher: submissionData.teacher,
           teacherPhone: submissionData.teacherPhone,
           address: submissionData.address,
-          photoUrl: submissionData.photoUrl,
+          photoUrl: convertedPhotoUrl,
           
           // 作品信息
+          workType: submissionData.workType,
           artworkName: submissionData.artworkName,
           createYear: submissionData.createYear,
           dimensions: submissionData.dimensions,
           category: submissionData.category,
           craftMaterial: submissionData.craftMaterial,
           artworkDescription: submissionData.artworkDescription,
-          artworkImages: submissionData.artworkImages,
+          // 分类图片（已转换为HTTPS）
+          perspectiveImage: convertedPerspectiveImage,
+          fourViewImages: convertedFourViewImages,
+          detailImages: convertedDetailImages,
+          specialDisplay: submissionData.specialDisplay || '',
+          // 视频作品字段
+          videoDuration: submissionData.videoDuration || '',
+          videoResolution: submissionData.videoResolution || '',
+          videoAspectRatio: submissionData.videoAspectRatio || '',
+          shootingTechnique: submissionData.shootingTechnique || '',
+          baiduCloudLink: submissionData.baiduCloudLink || '',
+          baiduCloudPassword: submissionData.baiduCloudPassword || '',
           
           // 更新状态
-          updatedAt: db.serverDate(),
+          updatedAt: Date.now(),
           status: 'pending' // 修改后重置为待审核状态
         }
       });
@@ -122,4 +239,4 @@ exports.main = async (event, context) => {
       errMsg: '更新参展申请失败：' + error.message
     }
   }
-} 
+}

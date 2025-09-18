@@ -20,16 +20,11 @@
             <text class="info-value">{{item.name}}</text>
           </view>
           <view class="info-row">
-            <text class="info-label">提交时间：</text>
-            <text class="info-value">{{item.submitTime || '暂无时间'}}</text>
-          </view>
-          <view class="info-row">
             <text class="info-label">作品类别：</text>
             <text class="info-value">{{item.category}}</text>
           </view>
         </view>
         
-        <view class="submission-status {{item.status}}">{{statusText[item.status] || '处理中'}}</view>
         
         <view class="action-buttons">
           <view class="action-btn details-btn" catchtap="showDetails" data-index="{{index}}">
@@ -74,9 +69,27 @@
               <text class="detail-value">{{currentSubmission.createYear}}</text>
             </view>
             
-            <view class="detail-item" wx:if="{{currentSubmission.length || currentSubmission.width || currentSubmission.height}}">
+            <!-- 作品尺寸 - 仅常规作品显示 -->
+            <view class="detail-item" wx:if="{{currentSubmission.workType === 'regular' && currentSubmission.allDimensions && currentSubmission.allDimensions.length > 0}}">
+              <text class="detail-label">作品尺寸：</text>
+              <view class="detail-value">
+                <view wx:for="{{currentSubmission.allDimensions}}" wx:key="index" class="dimension-item">
+                  <text class="dimension-text">
+                    第{{index + 1}}组：{{item.length || '未填写'}} × {{item.width || '未填写'}} × {{item.height || '未填写'}} cm
+                  </text>
+                </view>
+              </view>
+            </view>
+            
+            <!-- 兼容旧数据 - 如果没有allDimensions但有单个尺寸（仅常规作品） -->
+            <view class="detail-item" wx:elif="{{currentSubmission.workType === 'regular' && (currentSubmission.length || currentSubmission.width || currentSubmission.height)}}">
               <text class="detail-label">作品尺寸：</text>
               <text class="detail-value">{{currentSubmission.length || '?' }} × {{currentSubmission.width || '?'}} × {{currentSubmission.height || '?'}} cm</text>
+            </view>
+            
+            <view class="detail-item" wx:if="{{currentSubmission.workType}}">
+              <text class="detail-label">作品类型：</text>
+              <text class="detail-value">{{currentSubmission.workType === 'regular' ? '常规作品' : '视频作品'}}</text>
             </view>
             
             <view class="detail-item" wx:if="{{currentSubmission.category}}">
@@ -93,10 +106,49 @@
               <text class="detail-label">作品简介：</text>
               <text class="detail-value description">{{currentSubmission.artworkDescription}}</text>
             </view>
+            
+            <!-- 视频作品专用信息 -->
+            <block wx:if="{{currentSubmission.workType === 'video'}}">
+              <view class="detail-item" wx:if="{{currentSubmission.videoDuration}}">
+                <text class="detail-label">视频时长：</text>
+                <text class="detail-value">{{currentSubmission.videoDuration}}</text>
+              </view>
+              
+              <view class="detail-item" wx:if="{{currentSubmission.videoResolution}}">
+                <text class="detail-label">视频清晰度：</text>
+                <text class="detail-value">{{currentSubmission.videoResolution}}</text>
+              </view>
+              
+              <view class="detail-item" wx:if="{{currentSubmission.videoAspectRatio}}">
+                <text class="detail-label">视频比例：</text>
+                <text class="detail-value">{{currentSubmission.videoAspectRatio}}</text>
+              </view>
+              
+              <view class="detail-item" wx:if="{{currentSubmission.shootingTechnique}}">
+                <text class="detail-label">拍摄技巧：</text>
+                <text class="detail-value">{{currentSubmission.shootingTechnique}}</text>
+              </view>
+              
+              <view class="detail-item" wx:if="{{currentSubmission.baiduCloudLink}}">
+                <text class="detail-label">百度云链接：</text>
+                <text class="detail-value">{{currentSubmission.baiduCloudLink}}</text>
+              </view>
+              
+              <view class="detail-item" wx:if="{{currentSubmission.baiduCloudPassword}}">
+                <text class="detail-label">百度云密码：</text>
+                <text class="detail-value">{{currentSubmission.baiduCloudPassword}}</text>
+              </view>
+            </block>
+            
+            <!-- 特殊陈列方式 -->
+            <view class="detail-item" wx:if="{{currentSubmission.specialDisplay}}">
+              <text class="detail-label">特殊陈列方式：</text>
+              <text class="detail-value">{{currentSubmission.specialDisplay}}</text>
+            </view>
           </view>
           
-          <!-- 作品图片 -->
-          <view class="detail-section" wx:if="{{currentSubmission.artworkImages && currentSubmission.artworkImages.length > 0}}">
+          <!-- 作品图片（仅常规作品显示） -->
+          <view class="detail-section" wx:if="{{currentSubmission.workType === 'regular' && currentSubmission.artworkImages && currentSubmission.artworkImages.length > 0}}">
             <view class="section-title">作品图片</view>
             <view class="artwork-images">
               <block wx:for="{{currentSubmission.artworkImages}}" wx:key="index">
@@ -115,18 +167,6 @@
           <!-- 申请状态 -->
           <view class="detail-section">
             <view class="section-title">申请状态</view>
-            
-            <view class="detail-item">
-              <text class="detail-label">提交时间：</text>
-              <text class="detail-value">{{currentSubmission.submitTime || currentSubmission.updatedAt || '暂无时间'}}</text>
-            </view>
-            
-            <view class="detail-item">
-              <text class="detail-label">审核状态：</text>
-              <text class="detail-value status-{{currentSubmission.status}}">
-                {{statusText[currentSubmission.status] || '处理中'}}
-              </text>
-            </view>
             
             <view class="detail-item" wx:if="{{currentSubmission.feedback}}">
               <text class="detail-label">审核反馈：</text>

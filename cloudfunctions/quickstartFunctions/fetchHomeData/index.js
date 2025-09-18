@@ -8,6 +8,65 @@ cloud.init({
 const db = cloud.database()
 const _ = db.command
 
+// 解析公告内容，提取结构化信息
+function parseAnnouncementContent(content) {
+  if (!content) {
+    return {
+      content: '',
+      theme: '',
+      sections: '',
+      registrationMethod: '',
+      contactPhone: '',
+      contactPerson: ''
+    };
+  }
+
+  const result = {
+    content: content,
+    theme: '',
+    sections: '',
+    registrationMethod: '',
+    contactPhone: '',
+    contactPerson: '',
+    pdfFiles: [],
+    attachments: []
+  };
+
+  // 提取活动主题
+  const themeMatch = content.match(/活动主题[：:]\s*([^\n\r]+)/);
+  if (themeMatch) {
+    result.theme = themeMatch[1].trim();
+  }
+
+  // 提取活动板块
+  const sectionsMatch = content.match(/活动板块[：:]\s*([^\n\r]+)/);
+  if (sectionsMatch) {
+    result.sections = sectionsMatch[1].trim();
+  }
+
+  // 征集截止时间提取已移除
+
+  // 提取报名方法
+  const registrationMatch = content.match(/报名方法[：:]\s*([^\n\r]+)/);
+  if (registrationMatch) {
+    result.registrationMethod = registrationMatch[1].trim();
+  }
+
+  // 提取咨询电话
+  const phoneMatch = content.match(/咨询电话[：:]\s*([0-9\-\s]+)/);
+  if (phoneMatch) {
+    result.contactPhone = phoneMatch[1].trim();
+  }
+
+  // 提取联系人
+  const personMatch = content.match(/咨询电话[：:]\s*[0-9\-\s]+\s*([^\n\r]+)/);
+  if (personMatch) {
+    result.contactPerson = personMatch[1].trim();
+  }
+
+  return result;
+}
+
 // 云函数入口函数
 exports.main = async (event, context) => {
   try {
@@ -86,13 +145,38 @@ exports.main = async (event, context) => {
     }
     
     // 映射公告数据
-    const announcements = announcementsResult.data.map(item => ({
-      _id: item._id,
-      title: item.ggbt,
-      content: item.ggnr,
-      expireTime: item.gqsj,
-      status: item.zt ? 'active' : 'inactive'
-    }));
+    const announcements = announcementsResult.data.map(item => {
+      // 解析公告内容，提取结构化信息
+      const content = item.ggnr || '';
+      const parsedContent = parseAnnouncementContent(content);
+      
+      // 为"2025大陶展征集与报名提醒"添加PDF文件
+      let pdfFiles = item.pdfFiles || [];
+      if (item.ggbt && item.ggbt.includes('2025大陶展征集与报名提醒')) {
+        pdfFiles = [{
+          name: '关于邀请参加第二届全国大学生陶艺作品展的函',
+          url: 'cloud://jdzyzdmsg-5g4rgrjl2008796f.6a64-jdzyzdmsg-5g4rgrjl2008796f-1378111268/首页资料/关于邀请参加第二届全国大学生陶艺作品展的函.pdf',
+          size: '2.5MB',
+          type: 'pdf'
+        }];
+      }
+      
+      return {
+        _id: item._id,
+        title: item.ggbt,
+        content: parsedContent.content,
+        theme: parsedContent.theme,
+        sections: parsedContent.sections,
+        registrationMethod: parsedContent.registrationMethod,
+        contactPhone: parsedContent.contactPhone,
+        contactPerson: parsedContent.contactPerson,
+        pdfFiles: pdfFiles,
+        attachments: item.attachments || [],
+        expireTime: item.gqsj,
+        createTime: item._createTime ? new Date(item._createTime).toLocaleString('zh-CN') : '',
+        status: item.zt ? 'active' : 'inactive'
+      };
+    });
     
     return {
       success: true,

@@ -11,10 +11,27 @@ exports.main = async (event, context) => {
 
   try {
     // 确保数据合法性
-    if (!data || !data.date || !data.time || !data.reason) {
+    if (!data || !data.date || !data.time || !data.reason || !data.reservationName || !data.reservationPhone) {
       return {
         success: false,
-        message: '预约信息不完整'
+        message: '预约信息不完整，请填写所有必填项'
+      };
+    }
+    
+    // 验证手机号格式
+    const phoneRegex = /^1[3-9]\d{9}$/;
+    if (!phoneRegex.test(data.reservationPhone)) {
+      return {
+        success: false,
+        message: '请输入正确的手机号码'
+      };
+    }
+    
+    // 验证姓名长度
+    if (data.reservationName.length < 2 || data.reservationName.length > 20) {
+      return {
+        success: false,
+        message: '姓名长度应在2-20个字符之间'
       };
     }
 

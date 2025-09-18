@@ -12,8 +12,10 @@ Page({
     timeSlots: [
       { time: '09:00-10:00', available: true, selected: false },
       { time: '10:00-11:00', available: true, selected: false },
+      { time: '11:00-12:00', available: true, selected: false },
       { time: '14:00-15:00', available: true, selected: false },
-      { time: '15:00-16:00', available: true, selected: false }
+      { time: '15:00-16:00', available: true, selected: false },
+      { time: '16:00-17:00', available: true, selected: false }
     ],
     reason: '',
     visitors: '',
@@ -21,6 +23,8 @@ Page({
     visitorIndex: 0, // 默认选择第一个值（1人）
     selectedDate: null,
     selectedTimeIndex: -1,
+    reservationName: '', // 预约人姓名
+    reservationPhone: '', // 联系方式
     showSuccessModal: false,
     showErrorModal: false,
     errorMessage: ''
@@ -84,10 +88,10 @@ Page({
                     today.getMonth() === month - 1 && 
                     today.getDate() === i;
       
-      // 假设周末和今天及之前的日期不可预约
-      const isWeekend = currentDate.getDay() === 0 || currentDate.getDay() === 6;
+      // 假设周一和今天及之前的日期不可预约，周六周日可以预约
+      const isMonday = currentDate.getDay() === 1; // 周一
       const isPast = currentDate < new Date(today.setHours(0, 0, 0, 0));
-      const available = !isWeekend && !isPast;
+      const available = !isPast && !isMonday; // 周一不可预约，周六周日可以预约
       
       days.push({
         date: i,
@@ -256,6 +260,24 @@ Page({
   },
 
   /**
+   * 输入预约人姓名
+   */
+  inputReservationName(e) {
+    this.setData({
+      reservationName: e.detail.value
+    });
+  },
+
+  /**
+   * 输入联系方式
+   */
+  inputReservationPhone(e) {
+    this.setData({
+      reservationPhone: e.detail.value
+    });
+  },
+
+  /**
    * 显示错误弹窗
    */
   showError(message) {
@@ -279,7 +301,7 @@ Page({
    * 提交预约
    */
   submitAppointment() {
-    const { selectedDate, selectedTimeIndex, reason, visitors } = this.data;
+    const { selectedDate, selectedTimeIndex, reason, visitors, reservationName, reservationPhone } = this.data;
     
     // 验证表单
     if (!selectedDate) {
@@ -289,6 +311,23 @@ Page({
     
     if (selectedTimeIndex === -1) {
       this.showError('请选择预约时段');
+      return;
+    }
+    
+    if (!reservationName || reservationName.trim() === '') {
+      this.showError('请填写预约人姓名');
+      return;
+    }
+    
+    if (!reservationPhone || reservationPhone.trim() === '') {
+      this.showError('请填写联系方式');
+      return;
+    }
+    
+    // 验证手机号格式
+    const phoneRegex = /^1[3-9]\d{9}$/;
+    if (!phoneRegex.test(reservationPhone)) {
+      this.showError('请输入正确的手机号码');
       return;
     }
     
@@ -308,6 +347,8 @@ Page({
       time: this.data.timeSlots[selectedTimeIndex].time,
       reason: reason.trim(),
       visitors: parseInt(visitors),
+      reservationName: reservationName.trim(),
+      reservationPhone: reservationPhone.trim(),
       status: 'approved', // 预约状态：直接设为已通过(approved)
       createTime: new Date().getTime()
     };

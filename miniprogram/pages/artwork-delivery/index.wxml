@@ -9,8 +9,33 @@
 
   <form bindsubmit="submitDeliveryInfo">
     <view class="form-group">
-      <view class="form-item">
-        <view class="form-label required">运送方式</view>
+      <!-- 基本信息确认 -->
+      <view class="form-section">
+        <view class="section-title">基本信息确认</view>
+        <view class="section-tip">请确保以下信息与报名时填写的信息完全一致</view>
+        
+        <view class="form-item">
+          <view class="form-label required">作者姓名</view>
+          <input class="form-input" name="name" placeholder="请输入作者姓名" value="{{name}}" bindinput="inputName"/>
+        </view>
+        
+        <view class="form-item">
+          <view class="form-label required">作品名称</view>
+          <input class="form-input" name="artworkName" placeholder="请输入作品名称" value="{{artworkName}}" bindinput="inputArtworkName"/>
+        </view>
+        
+        <view class="form-item">
+          <view class="form-label required">学校</view>
+          <input class="form-input" name="school" placeholder="请输入学校名称" value="{{school}}" bindinput="inputSchool"/>
+        </view>
+      </view>
+      
+      <!-- 运送信息 -->
+      <view class="form-section">
+        <view class="section-title">运送信息</view>
+        
+        <view class="form-item">
+          <view class="form-label required">运送方式</view>
         <picker bindchange="bindDeliveryMethodChange" value="{{deliveryMethodIndex}}" range="{{deliveryMethods}}">
           <view class="picker-input">
             <text wx:if="{{deliveryMethodIndex === -1}}">请选择运送方式</text>
@@ -107,6 +132,7 @@
       </view>
       
       <button class="submit-btn" form-type="submit">{{isEditMode ? '提交修改' : '提交运送信息'}}</button>
+      </view>
     </view>
   </form>
 

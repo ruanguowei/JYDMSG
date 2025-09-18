@@ -67,9 +67,8 @@
         
         <view class="result-info">
           <view class="result-title">{{item.title}}</view>
-          <view class="result-author">作者：{{item.authorName}}</view>
           <view class="result-category">分类：{{item.categoryName}}</view>
-          <view class="result-school">学校：{{item.schoolName}}</view>
+          
           
           <view class="score-details">
             <view class="score-detail-item">
@@ -106,9 +105,6 @@
   <view class="bottom-actions">
     <button class="action-btn secondary" bindtap="backToEvaluation">
       返回评选
-    </button>
-    <button class="action-btn primary" bindtap="exportResults">
-      导出结果
     </button>
   </view>
 </view>

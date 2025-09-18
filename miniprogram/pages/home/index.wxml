@@ -53,8 +53,76 @@
       <view class="notice-modal-close" bindtap="hideModal">×</view>
     </view>
     <view class="notice-modal-body">
-      <view class="notice-modal-time" wx:if="{{currentNotice.createTime}}">{{currentNotice.createTime}}</view>
-      <view class="notice-modal-text">{{currentNotice.content}}</view>
+      <view class="notice-modal-time" wx:if="{{currentNotice.createTime}}">
+        {{currentNotice.createTime}}
+      </view>
+      
+      <!-- 富文本内容区域 -->
+      <view class="notice-modal-content-rich">
+        <!-- 活动主题部分 -->
+        <view class="section" wx:if="{{currentNotice.theme}}">
+          <view class="section-title">🎯 活动主题</view>
+          <view class="section-content">{{currentNotice.theme}}</view>
+        </view>
+        
+        <!-- 活动板块部分 -->
+        <view class="section" wx:if="{{currentNotice.sections}}">
+          <view class="section-title">📋 活动板块</view>
+          <view class="section-content">{{currentNotice.sections}}</view>
+        </view>
+        
+        
+        <!-- 报名方法部分 -->
+        <view class="section" wx:if="{{currentNotice.registrationMethod}}">
+          <view class="section-title">📝 报名方法</view>
+          <view class="section-content">{{currentNotice.registrationMethod}}</view>
+        </view>
+        
+        <!-- 主要内容 -->
+        <view class="section" wx:if="{{currentNotice.content}}">
+          <view class="section-title">📄 详细内容</view>
+          <view class="section-content">{{currentNotice.content}}</view>
+        </view>
+        
+        <!-- 联系方式部分 -->
+        <view class="contact-info" wx:if="{{currentNotice.contactPhone}}">
+          <view class="section-title">📞 咨询电话</view>
+          <view class="section-content">
+            <text class="phone">{{currentNotice.contactPhone}}</text>
+            <text wx:if="{{currentNotice.contactPerson}}">（{{currentNotice.contactPerson}}）</text>
+          </view>
+        </view>
+        
+        <!-- PDF文件部分 -->
+        <view class="pdf-section" wx:if="{{currentNotice.pdfFiles && currentNotice.pdfFiles.length > 0}}">
+          <view class="section-title">📄 相关文件</view>
+          <view class="pdf-list">
+            <view wx:for="{{currentNotice.pdfFiles}}" wx:key="index" class="pdf-item" bindtap="previewPDF" data-url="{{item.url}}" data-name="{{item.name}}">
+              <view class="pdf-icon">📄</view>
+              <view class="pdf-info">
+                <view class="pdf-name">{{item.name || 'PDF文件'}}</view>
+                <view class="pdf-size" wx:if="{{item.size}}">{{item.size}}</view>
+              </view>
+              <view class="pdf-action">预览</view>
+            </view>
+          </view>
+        </view>
+        
+        <!-- 其他附件部分 -->
+        <view class="attachment-section" wx:if="{{currentNotice.attachments && currentNotice.attachments.length > 0}}">
+          <view class="section-title">📎 其他附件</view>
+          <view class="attachment-list">
+            <view wx:for="{{currentNotice.attachments}}" wx:key="index" class="attachment-item" bindtap="openAttachment" data-url="{{item.url}}" data-type="{{item.type}}" data-name="{{item.name}}">
+              <view class="attachment-icon">{{item.type === 'image' ? '🖼️' : '📎'}}</view>
+              <view class="attachment-info">
+                <view class="attachment-name">{{item.name}}</view>
+                <view class="attachment-type">{{item.type === 'image' ? '图片' : '文件'}}</view>
+              </view>
+              <view class="attachment-action">打开</view>
+            </view>
+          </view>
+        </view>
+      </view>
     </view>
   </view>
 </view> 

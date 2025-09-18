@@ -1,43 +1,5 @@
 <!--pages/expert-evaluation/index.wxml-->
 <view class="evaluation-container">
-  <!-- 专家信息头部 -->
-  <view class="expert-header">
-    <view class="expert-info">
-      <view class="expert-name">专家：{{expertInfo.expertName}}</view>
-      <view class="logout-btn" bindtap="logout">退出</view>
-    </view>
-    <view class="evaluation-stats">
-      <view class="stat-item">
-        <view class="stat-number">{{evaluationStats.total}}</view>
-        <view class="stat-label">总作品</view>
-      </view>
-      <view class="stat-item">
-        <view class="stat-number">{{evaluationStats.evaluated}}</view>
-        <view class="stat-label">已评选</view>
-      </view>
-      <view class="stat-item">
-        <view class="stat-number">{{evaluationStats.remaining}}</view>
-        <view class="stat-label">待评选</view>
-      </view>
-    </view>
-  </view>
-
-  <!-- 分类筛选 -->
-  <view class="category-filter">
-    <scroll-view class="category-scroll" scroll-x="true">
-      <view class="category-list">
-        <view 
-          wx:for="{{categories}}" 
-          wx:key="key"
-          class="category-item {{selectedCategory === item.key ? 'active' : ''}}"
-          data-category="{{item.key}}"
-          bindtap="onCategoryChange"
-        >
-          {{item.name}}
-        </view>
-      </view>
-    </scroll-view>
-  </view>
 
   <!-- 作品列表 -->
   <view class="submissions-list">
@@ -46,34 +8,26 @@
       <text>加载中...</text>
     </view>
 
-    <view wx:elif="{{filteredSubmissions.length === 0}}" class="empty">
+    <view wx:elif="{{submissions.length === 0}}" class="empty">
       <image src="/images/icons/noDate.png" class="empty-icon"></image>
-      <text class="empty-text">暂无作品</text>
+      <text class="empty-text">暂无待评选作品</text>
     </view>
 
     <view wx:else>
       <view 
-        wx:for="{{filteredSubmissions}}" 
+        wx:for="{{submissions}}" 
         wx:key="id"
-        class="submission-item {{item.isEvaluated ? 'evaluated' : ''}}"
+        class="submission-item"
         data-id="{{item.id}}"
         bindtap="navigateToScoring"
       >
         <view class="submission-image">
           <image src="{{item.imageUrl}}" mode="aspectFill"></image>
-          <view wx:if="{{item.isEvaluated}}" class="evaluated-tag">已评选</view>
         </view>
         
         <view class="submission-info">
           <view class="submission-title">{{item.title}}</view>
-          <view class="submission-author">作者：{{item.authorName}}</view>
           <view class="submission-category">分类：{{item.categoryName}}</view>
-          <view class="submission-school">学校：{{item.schoolName}}</view>
-          
-          <view wx:if="{{item.isEvaluated}}" class="submission-score">
-            <text class="score-label">评分：</text>
-            <text class="score-value">{{item.totalScore}}分</text>
-          </view>
         </view>
         
         <view class="submission-arrow">
@@ -85,11 +39,71 @@
 
   <!-- 底部操作栏 -->
   <view class="bottom-actions">
-    <button class="action-btn secondary" bindtap="navigateToResults">
-      查看结果
+    <button class="action-btn secondary" bindtap="showAdminLogin">
+      获取结果
     </button>
     <button class="action-btn primary" bindtap="fetchSubmissions">
       刷新列表
     </button>
+  </view>
+</view>
+
+<!-- 管理员登录弹窗 -->
+<view wx:if="{{showAdminModal}}" class="admin-modal" bindtap="hideAdminModal">
+  <view class="admin-modal-content" catchtap="stopPropagation">
+    <view class="admin-modal-header">
+      <view class="admin-modal-title">管理员登录</view>
+      <view class="admin-modal-close" bindtap="hideAdminModal">×</view>
+    </view>
+    
+    <view class="admin-modal-body">
+      <view class="admin-form-item">
+        <view class="admin-form-label">管理员账号</view>
+        <input 
+          class="admin-form-input" 
+          placeholder="请输入管理员账号" 
+          value="{{adminAccount}}"
+          bindinput="onAdminAccountInput"
+          maxlength="20"
+        />
+      </view>
+      
+      <view class="admin-form-item">
+        <view class="admin-form-label">管理员密码</view>
+        <input 
+          class="admin-form-input" 
+          placeholder="请输入管理员密码" 
+          value="{{adminPassword}}"
+          bindinput="onAdminPasswordInput"
+          password="{{true}}"
+          maxlength="20"
+        />
+      </view>
+    </view>
+    
+    <view class="admin-modal-footer">
+      <button class="admin-btn-cancel" bindtap="hideAdminModal">取消</button>
+      <button 
+        class="admin-btn-confirm {{adminLoading ? 'loading' : ''}}" 
+        bindtap="confirmAdminLogin"
+        disabled="{{adminLoading}}"
+      >
+        {{adminLoading ? '验证中...' : '确认登录'}}
+      </button>
+    </view>
+  </view>
+</view>
+
+<!-- 进度提示弹窗 -->
+<view wx:if="{{showProgressModal}}" class="progress-modal" bindtap="hideProgressModal">
+  <view class="progress-modal-content" catchtap="stopPropagation">
+    <view class="progress-modal-header">
+      <view class="progress-modal-title">正在生成排名结果</view>
+    </view>
+    
+    <view class="progress-modal-body">
+      <view class="progress-spinner"></view>
+      <view class="progress-text">此功能为组委会管理员专属：正在计算评分结果...</view>
+    </view>
   </view>
 </view>

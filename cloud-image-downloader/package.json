@@ -1,0 +1,21 @@
+{
+  "name": "cloud-image-downloader",
+  "version": "1.0.0",
+  "description": "微信云存储图片下载工具，用于将数据库中的云存储路径替换为本地图片文件",
+  "main": "wechat-cloud-downloader.js",
+  "scripts": {
+    "start": "node wechat-cloud-downloader.js",
+    "download": "node download-images.js"
+  },
+  "dependencies": {
+    "wx-server-sdk": "^3.0.0"
+  },
+  "keywords": [
+    "wechat",
+    "cloud-storage",
+    "image-download",
+    "database-migration"
+  ],
+  "author": "Your Name",
+  "license": "MIT"
+}

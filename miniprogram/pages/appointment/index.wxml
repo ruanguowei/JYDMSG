@@ -47,6 +47,18 @@
   <view class="form-container">
     <view class="section-title">填写信息</view>
     
+    <!-- 预约人姓名 -->
+    <view class="form-item">
+      <view class="form-label required">预约人姓名</view>
+      <input class="form-input" placeholder="请输入预约人姓名" value="{{reservationName}}" bindinput="inputReservationName"/>
+    </view>
+    
+    <!-- 联系方式 -->
+    <view class="form-item">
+      <view class="form-label required">联系方式</view>
+      <input class="form-input" type="number" placeholder="请输入手机号码" value="{{reservationPhone}}" bindinput="inputReservationPhone"/>
+    </view>
+    
     <!-- 参观人数选择 -->
     <picker 
       class="visitor-picker"

@@ -115,13 +115,26 @@ page {
 }
 
 /* 作品尺寸输入框 */
+.dimensions-container {
+  margin-top: 20rpx;
+}
+
+.dimension-group {
+  margin-bottom: 20rpx;
+  padding: 20rpx;
+  background-color: #f8f9fa;
+  border-radius: 8rpx;
+  border: 1rpx solid #e9ecef;
+}
+
 .dimension-inputs {
   display: flex;
   align-items: center;
+  margin-bottom: 15rpx;
 }
 
 .dimension-input {
-  width: 200rpx;
+  flex: 1;
   height: 88rpx;
   border: 1rpx solid #e6e6e6;
   border-radius: 8rpx;
@@ -131,12 +144,63 @@ page {
   font-size: 28rpx;
   color: #333;
   background-color: #f9f9f9;
+  margin: 0 10rpx;
 }
 
 .dimension-separator {
   margin: 0 15rpx;
   color: #666;
   font-size: 28rpx;
+}
+
+.dimension-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.dimension-btn {
+  padding: 10rpx 20rpx;
+  border-radius: 6rpx;
+  font-size: 24rpx;
+  border: none;
+}
+
+.dimension-btn.add {
+  background-color: #007aff;
+  color: white;
+  margin-top: 20rpx;
+  width: 100%;
+}
+
+.dimension-btn.remove {
+  background-color: #ff3b30;
+  color: white;
+}
+
+/* 字符计数样式 */
+.char-count {
+  text-align: right;
+  font-size: 24rpx;
+  color: #999;
+  margin-top: 10rpx;
+}
+
+/* 视频作品部分 */
+.video-work-section {
+  margin-top: 30rpx;
+  padding: 30rpx;
+  background: #f8f9fa;
+  border-radius: 16rpx;
+  border: 2rpx solid #e9ecef;
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 30rpx;
+  padding-bottom: 15rpx;
+  border-bottom: 2rpx solid #e9ecef;
 }
 
 /* 作品类别选项 */

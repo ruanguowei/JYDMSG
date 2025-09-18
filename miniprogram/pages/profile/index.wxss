@@ -119,15 +119,6 @@
   font-size: 28rpx;
 }
 
-/* 查看更多 */
-.view-more {
-  text-align: center;
-  padding: 20rpx 0 0;
-  color: #4b6bfb;
-  font-size: 28rpx;
-  border-top: 1rpx dashed #f0f0f0;
-  margin-top: 10rpx;
-}
 
 /* 我的作品新样式 */
 .submission-item {

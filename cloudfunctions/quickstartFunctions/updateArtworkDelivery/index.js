@@ -11,13 +11,51 @@ const _ = db.command;
 // 云函数入口函数
 exports.main = async (event, context) => {
   // 获取基本信息
-  const { id, deliveryMethod, expressCompany, trackingNumber, sendDate, estimatedArrival, packageCount, remarks, packageImages, artworkImages } = event;
+  const { 
+    id, 
+    // 基本信息确认
+    name, 
+    artworkName, 
+    school,
+    // 运送信息
+    deliveryMethod, 
+    expressCompany, 
+    trackingNumber, 
+    sendDate, 
+    estimatedArrival, 
+    packageCount, 
+    remarks, 
+    packageImages, 
+    artworkImages 
+  } = event;
   const openid = cloud.getWXContext().OPENID;
   
   if (!id || !deliveryMethod) {
     return {
       success: false,
       errMsg: '参数不完整'
+    };
+  }
+
+  // 验证基本信息字段
+  if (!name || !name.trim()) {
+    return {
+      success: false,
+      errMsg: '请输入姓名'
+    };
+  }
+
+  if (!artworkName || !artworkName.trim()) {
+    return {
+      success: false,
+      errMsg: '请输入作品名称'
+    };
+  }
+
+  if (!school || !school.trim()) {
+    return {
+      success: false,
+      errMsg: '请输入学校名称'
     };
   }
   
@@ -36,6 +74,12 @@ exports.main = async (event, context) => {
     
     // 构建更新数据
     const updateData = {
+      // 基本信息确认
+      name: name.trim(),
+      artworkName: artworkName.trim(),
+      school: school.trim(),
+      
+      // 运送信息
       deliveryMethod,
       expressCompany: expressCompany || '',
       trackingNumber: trackingNumber || '',

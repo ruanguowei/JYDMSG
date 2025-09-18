@@ -86,12 +86,12 @@ page {
 }
 
 .action-btn.expert-btn {
-  background: linear-gradient(135deg, #4b6bfb 0%, #3b5bdb 100%);
-  color: #ffffff;
+  background: #fff;
+  color: #333;
 }
 
 .action-btn.expert-btn .action-text {
-  color: #ffffff;
+  color: #333;
 }
 
 .action-btn {

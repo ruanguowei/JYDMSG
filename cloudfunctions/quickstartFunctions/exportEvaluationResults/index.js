@@ -12,7 +12,7 @@ exports.main = async (event, context) => {
   
   try {
     // 获取该专家已评分的所有作品
-    const submissionsResult = await db.collection('potterySubmissions')
+    const submissionsResult = await db.collection('pottery_submissions')
       .where({
         'evaluations.expertId': expertId
       })

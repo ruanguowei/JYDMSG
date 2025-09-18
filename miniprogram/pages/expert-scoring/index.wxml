@@ -8,29 +8,96 @@
 
   <!-- 作品信息 -->
   <view wx:elif="{{submission}}" class="submission-detail">
-    <!-- 作品图片 -->
-    <view class="submission-image">
-      <image src="{{submission.imageUrl}}" mode="aspectFill"></image>
+    <!-- 作品图片展示区域（仅常规作品显示） -->
+    <view class="images-section" wx:if="{{submission.workType === 'regular'}}">
+      <!-- 透视图 -->
+      <view wx:if="{{submission.perspectiveImage}}" class="image-group">
+        <view class="group-title">透视图</view>
+        <view class="image-grid single">
+          <view class="submission-image perspective-image">
+            <image src="{{submission.perspectiveImage}}" 
+                   mode="aspectFit" 
+                   bindtap="previewImage" 
+                   data-url="{{submission.perspectiveImage}}"
+                   bindload="onImageLoad"
+                   binderror="onImageError"></image>
+          </view>
+        </view>
+      </view>
+
+      <!-- 四面图 -->
+      <view wx:if="{{submission.fourViewImages && submission.fourViewImages.length > 0}}" class="image-group">
+        <view class="group-title">四面图（{{submission.fourViewImages.length}}张）</view>
+        <view class="image-grid">
+          <view wx:for="{{submission.fourViewImages}}" wx:key="*this" class="submission-image">
+            <image src="{{item}}" mode="aspectFill" bindtap="previewImage" data-url="{{item}}"></image>
+          </view>
+        </view>
+      </view>
+
+      <!-- 局部图 -->
+      <view wx:if="{{submission.detailImages && submission.detailImages.length > 0}}" class="image-group">
+        <view class="group-title">局部图（{{submission.detailImages.length}}张）</view>
+        <view class="image-grid">
+          <view wx:for="{{submission.detailImages}}" wx:key="*this" class="submission-image">
+            <image src="{{item}}" mode="aspectFill" bindtap="previewImage" data-url="{{item}}"></image>
+          </view>
+        </view>
+      </view>
+
     </view>
 
-    <!-- 作品基本信息 -->
+    <!-- 作品详细信息 -->
     <view class="submission-info">
-      <view class="info-title">{{submission.title}}</view>
-      <view class="info-item">
-        <text class="label">作者：</text>
-        <text class="value">{{submission.authorName}}</text>
+      <!-- 基本信息 -->
+      <view class="info-section">
+        <view class="section-title">基本信息</view>
+        
+        <view class="info-item full-width">
+          <text class="label">作品名称：</text>
+          <text class="value">{{submission.artworkName || submission.title}}</text>
+        </view>
+        
+        <view class="info-row">
+          <view class="info-item">
+            <text class="label">创作年份：</text>
+            <text class="value">{{submission.createYear || '未填写'}}</text>
+          </view>
+          <view class="info-item">
+            <text class="label">作品分类：</text>
+            <text class="value">{{submission.categoryName || submission.category}}</text>
+          </view>
+        </view>
       </view>
-      <view class="info-item">
-        <text class="label">学校：</text>
-        <text class="value">{{submission.schoolName}}</text>
+
+      <!-- 作品尺寸（仅常规作品显示） -->
+      <view class="info-section" wx:if="{{submission.workType === 'regular' && submission.allDimensions && submission.allDimensions.length > 0}}">
+        <view class="section-title">作品尺寸</view>
+        
+        <!-- 显示所有尺寸组 -->
+        <view class="all-dimensions">
+          <view wx:for="{{submission.allDimensions}}" wx:key="index" class="dimension-group">
+            <text class="dimension-group-text">
+              第{{index + 1}}组：{{item.length || '未填写'}} × {{item.width || '未填写'}} × {{item.height || '未填写'}} cm
+            </text>
+          </view>
+        </view>
       </view>
-      <view class="info-item">
-        <text class="label">分类：</text>
-        <text class="value">{{submission.categoryName}}</text>
+
+      <!-- 工艺材料 -->
+      <view class="info-section" wx:if="{{submission.craftMaterial}}">
+        <view class="section-title">工艺材料</view>
+        <view class="info-content">
+          <text class="content-text">{{submission.craftMaterial}}</text>
+        </view>
       </view>
-      <view class="info-item">
-        <text class="label">作品描述：</text>
-        <text class="value">{{submission.description}}</text>
+
+      <!-- 作品简介 -->
+      <view class="info-section" wx:if="{{submission.artworkDescription || submission.description}}">
+        <view class="section-title">作品简介</view>
+        <view class="info-content">
+          <text class="content-text">{{submission.artworkDescription || submission.description}}</text>
+        </view>
       </view>
     </view>
 
@@ -50,16 +117,14 @@
           <text class="label-text">主题契合度</text>
           <text class="label-desc">(0-3分)</text>
         </view>
-        <view class="score-input">
-          <input 
-            type="digit" 
-            value="{{scores.themeFit}}"
-            data-field="themeFit"
-            bindinput="onScoreChange"
-            placeholder="0"
-            maxlength="3"
-          />
-          <text class="score-unit">分</text>
+        <view class="score-options">
+          <view wx:for="{{[3, 2, 1, 0.5, 0]}}" wx:key="*this" 
+                class="score-option {{scores.themeFit === item ? 'selected' : ''}}"
+                data-field="themeFit" 
+                data-value="{{item}}"
+                bindtap="onScoreSelect">
+            {{item}}分
+          </view>
         </view>
       </view>
 
@@ -69,16 +134,14 @@
           <text class="label-text">创意与表现力</text>
           <text class="label-desc">(0-3分)</text>
         </view>
-        <view class="score-input">
-          <input 
-            type="digit" 
-            value="{{scores.creativity}}"
-            data-field="creativity"
-            bindinput="onScoreChange"
-            placeholder="0"
-            maxlength="3"
-          />
-          <text class="score-unit">分</text>
+        <view class="score-options">
+          <view wx:for="{{[3, 2, 1, 0.5, 0]}}" wx:key="*this" 
+                class="score-option {{scores.creativity === item ? 'selected' : ''}}"
+                data-field="creativity" 
+                data-value="{{item}}"
+                bindtap="onScoreSelect">
+            {{item}}分
+          </view>
         </view>
       </view>
 
@@ -88,16 +151,14 @@
           <text class="label-text">工艺与材料</text>
           <text class="label-desc">(0-2分)</text>
         </view>
-        <view class="score-input">
-          <input 
-            type="digit" 
-            value="{{scores.craftsmanship}}"
-            data-field="craftsmanship"
-            bindinput="onScoreChange"
-            placeholder="0"
-            maxlength="3"
-          />
-          <text class="score-unit">分</text>
+        <view class="score-options">
+          <view wx:for="{{[2, 1.5, 1, 0.5, 0]}}" wx:key="*this" 
+                class="score-option {{scores.craftsmanship === item ? 'selected' : ''}}"
+                data-field="craftsmanship" 
+                data-value="{{item}}"
+                bindtap="onScoreSelect">
+            {{item}}分
+          </view>
         </view>
       </view>
 
@@ -107,46 +168,45 @@
           <text class="label-text">美感与实用性</text>
           <text class="label-desc">(0-2分)</text>
         </view>
-        <view class="score-input">
-          <input 
-            type="digit" 
-            value="{{scores.aesthetics}}"
-            data-field="aesthetics"
-            bindinput="onScoreChange"
-            placeholder="0"
-            maxlength="3"
-          />
-          <text class="score-unit">分</text>
+        <view class="score-options">
+          <view wx:for="{{[2, 1.5, 1, 0.5, 0]}}" wx:key="*this" 
+                class="score-option {{scores.aesthetics === item ? 'selected' : ''}}"
+                data-field="aesthetics" 
+                data-value="{{item}}"
+                bindtap="onScoreSelect">
+            {{item}}分
+          </view>
         </view>
+      </view>
+
+      <!-- 扣分项（依据评审纪律） -->
+      <view class="deductions">
+        <view class="deductions-title">扣分项</view>
+        <checkbox-group bindchange="onDeductionGroupChange">
+          <label class="deduction-item">
+            <checkbox value="contentViolation" checked="{{deductions.contentViolation}}"/>
+            <view class="deduction-text">内容违规（国家象征/宗教敏感/负面舆论等） -3分</view>
+          </label>
+          <label class="deduction-item">
+            <checkbox value="ethicsViolation" checked="{{deductions.ethicsViolation}}"/>
+            <view class="deduction-text">技术伦理失范（AI未标注、侵权等） -2分</view>
+          </label>
+          <label class="deduction-item">
+            <checkbox value="materialsIncomplete" checked="{{deductions.materialsIncomplete}}"/>
+            <view class="deduction-text">提交材料不全（缺创作说明/技术报告） -1分</view>
+          </label>
+        </checkbox-group>
       </view>
 
       <!-- 总分显示 -->
       <view class="total-score">
-        <text class="total-label">总分：</text>
-        <text class="total-value">{{totalScore}}分</text>
-      </view>
-      
-      <!-- 扣分项（依据评审纪律） -->
-      <view class="deductions">
-        <view class="deductions-title">扣分项</view>
-        <checkbox-group>
-          <label class="deduction-item">
-            <checkbox value="true" checked="{{deductions.contentViolation}}" data-field="contentViolation" bindchange="onDeductionToggle"/>
-            <view class="deduction-text">内容违规（国家象征/宗教敏感/负面舆论等） -3分</view>
-          </label>
-          <label class="deduction-item">
-            <checkbox value="true" checked="{{deductions.ethicsViolation}}" data-field="ethicsViolation" bindchange="onDeductionToggle"/>
-            <view class="deduction-text">技术伦理失范（AI未标注、侵权等） -2分</view>
-          </label>
-          <label class="deduction-item">
-            <checkbox value="true" checked="{{deductions.materialsIncomplete}}" data-field="materialsIncomplete" bindchange="onDeductionToggle"/>
-            <view class="deduction-text">提交材料不全（缺创作说明/技术报告） -1分</view>
-          </label>
-        </checkbox-group>
-
-        <view class="final-score">
-          <text class="final-label">扣分后得分：</text>
-          <text class="final-value">{{finalScore}}分</text>
+        <view class="score-breakdown">
+          <text class="breakdown-item">基础分：{{totalScore}}分</text>
+          <text class="breakdown-item" wx:if="{{totalScore > finalScore}}">扣分：{{totalScore - finalScore}}分</text>
+        </view>
+        <view class="final-score-display">
+          <text class="total-label">最终得分：</text>
+          <text class="total-value">{{finalScore}}分</text>
         </view>
       </view>
     </view>

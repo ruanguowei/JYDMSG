@@ -13,6 +13,12 @@ exports.main = async (event, context) => {
   try {
     // 提取请求数据
     const {
+      // 基本信息确认
+      name,                // 姓名
+      artworkName,         // 作品名称
+      school,              // 学校
+      
+      // 运送信息
       deliveryMethod,      // 运送方式
       expressCompany,      // 快递公司
       trackingNumber,      // 快递单号
@@ -25,6 +31,29 @@ exports.main = async (event, context) => {
     } = event;
 
     // 数据验证
+    // 验证基本信息字段
+    if (!name || !name.trim()) {
+      return {
+        success: false,
+        errMsg: '请输入姓名'
+      };
+    }
+
+    if (!artworkName || !artworkName.trim()) {
+      return {
+        success: false,
+        errMsg: '请输入作品名称'
+      };
+    }
+
+    if (!school || !school.trim()) {
+      return {
+        success: false,
+        errMsg: '请输入学校名称'
+      };
+    }
+
+    // 验证运送信息字段
     if (!deliveryMethod) {
       return {
         success: false,
@@ -79,6 +108,12 @@ exports.main = async (event, context) => {
     // 构建要保存的数据
     const deliveryData = {
       _openid: OPENID,
+      // 基本信息确认
+      name: name.trim(),
+      artworkName: artworkName.trim(),
+      school: school.trim(),
+      
+      // 运送信息
       deliveryMethod,
       expressCompany: expressCompany || '',
       trackingNumber: trackingNumber || '',

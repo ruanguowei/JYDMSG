@@ -23,11 +23,7 @@
 <view class="action-buttons">
   <view class="action-btn" bindtap="navigateToSubmission">
     <image class="action-icon" src="/images/icons/报名.png" mode="aspectFit"></image>
-    <text class="action-text">省优推送</text>
-  </view>
-  <view class="action-btn {{!canPersonalRegister ? 'disabled' : ''}}" bindtap="navigateToPersonalRegistration">
-    <image class="action-icon" src="/images/icons/推送.png" mode="aspectFit"></image>
-    <text class="action-text">个人报名</text>
+    <text class="action-text">推选入口</text>
   </view>
   <view class="action-btn" bindtap="navigateToQuery">
     <image class="action-icon" src="/images/icons/查询.png" mode="aspectFit"></image>
@@ -38,7 +34,7 @@
     <text class="action-text">作品运送</text>
   </view>
   <view class="action-btn expert-btn" bindtap="navigateToExpertEvaluation">
-    <image class="action-icon" src="/images/icons/usercenter.png" mode="aspectFit"></image>
+    <image class="action-icon" src="/images/icons/专家课堂-激活.png" mode="aspectFit"></image>
     <text class="action-text">专家评选</text>
   </view>
 </view> 

@@ -1,0 +1,43 @@
+{
+  "potterySubmissions": [
+    {
+      "_id": "submission_001",
+      "name": "张三",
+      "school": "景德镇陶瓷大学",
+      "photoUrl": "cloud://your-env.xxx-xxx-xxx/personal_photos/1703123456789_abc123.jpg",
+      "artworkImages": [
+        "cloud://your-env.xxx-xxx-xxx/artwork_photos/1703123456790_def456.jpg",
+        "cloud://your-env.xxx-xxx-xxx/artwork_photos/1703123456791_ghi789.jpg"
+      ],
+      "artworkName": "青花瓷瓶",
+      "category": "technique",
+      "status": "pending"
+    },
+    {
+      "_id": "submission_002", 
+      "name": "李四",
+      "school": "中央美术学院",
+      "photoUrl": "cloud://your-env.xxx-xxx-xxx/personal_photos/1703123456792_jkl012.jpg",
+      "artworkImages": [
+        "cloud://your-env.xxx-xxx-xxx/artwork_photos/1703123456793_mno345.jpg"
+      ],
+      "artworkName": "现代陶艺",
+      "category": "vision",
+      "status": "approved"
+    }
+  ],
+  "artworkDeliveries": [
+    {
+      "_id": "delivery_001",
+      "packageImages": [
+        "cloud://your-env.xxx-xxx-xxx/package_photos/1703123456794_pqr678.jpg"
+      ],
+      "artworkImages": [
+        "cloud://your-env.xxx-xxx-xxx/artwork_photos/1703123456795_stu901.jpg",
+        "cloud://your-env.xxx-xxx-xxx/artwork_photos/1703123456796_vwx234.jpg"
+      ],
+      "deliveryMethod": "快递",
+      "status": "pending"
+    }
+  ]
+}

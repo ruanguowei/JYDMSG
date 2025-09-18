@@ -65,17 +65,35 @@
   display: flex;
   margin-bottom: 15rpx;
   font-size: 26rpx;
+  align-items: flex-start;
 }
 
 .label {
   color: #666666;
   width: 120rpx;
   flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .value {
   color: #333333;
   flex: 1;
+  word-wrap: break-word;
+  word-break: break-all;
+  line-height: 1.4;
+}
+
+/* 内容文本样式 */
+.info-content {
+  margin-bottom: 15rpx;
+}
+
+.content-text {
+  color: #333333;
+  font-size: 26rpx;
+  line-height: 1.6;
+  word-wrap: break-word;
+  word-break: break-all;
 }
 
 .score-guide-btn {
@@ -165,6 +183,40 @@
   font-size: 24rpx;
   color: #666666;
   margin-left: 10rpx;
+}
+
+/* 新增：评分选项样式 */
+.score-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15rpx;
+  width: 100%;
+  max-width: 500rpx;
+}
+
+.score-option {
+  padding: 12rpx 24rpx;
+  border: 2rpx solid #e0e0e0;
+  border-radius: 25rpx;
+  background: #fafafa;
+  font-size: 26rpx;
+  color: #666666;
+  text-align: center;
+  min-width: 80rpx;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.score-option:hover {
+  border-color: #4b6bfb;
+  background: #f0f4ff;
+}
+
+.score-option.selected {
+  border-color: #4b6bfb;
+  background: #4b6bfb;
+  color: #ffffff;
+  font-weight: bold;
 }
 
 .total-score {
@@ -319,12 +371,6 @@
   margin-bottom: 30rpx;
 }
 
-.section-title {
-  font-size: 28rpx;
-  font-weight: bold;
-  color: #4b6bfb;
-  margin-bottom: 15rpx;
-}
 
 .section-content {
   font-size: 24rpx;
@@ -341,3 +387,97 @@
 .score-level:last-child {
   border-bottom: none;
 }
+
+/* 作品尺寸相关样式 */
+.info-section {
+  background: #ffffff;
+  border-radius: 15rpx;
+  padding: 30rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #4b6bfb;
+  margin-bottom: 20rpx;
+}
+
+.group-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #4b6bfb;
+  margin-bottom: 20rpx;
+}
+
+.info-row {
+  display: flex;
+  margin-bottom: 15rpx;
+}
+
+.info-row .info-item {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  margin-right: 20rpx;
+  font-size: 26rpx;
+}
+
+.info-row .info-item:last-child {
+  margin-right: 0;
+}
+
+.info-row .info-item .label {
+  color: #666666;
+  width: 120rpx;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.info-row .info-item .value {
+  color: #333333;
+  flex: 1;
+  word-wrap: break-word;
+  word-break: break-all;
+  line-height: 1.4;
+}
+
+.info-item.full-width {
+  flex: none;
+  width: 100%;
+  display: flex;
+  margin-bottom: 15rpx;
+  font-size: 26rpx;
+  align-items: flex-start;
+}
+
+.info-item.full-width .value {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 多尺寸组显示样式 */
+.all-dimensions {
+  margin-top: 20rpx;
+  padding: 20rpx;
+  background: #f8f9fa;
+  border-radius: 10rpx;
+}
+
+.dimension-group {
+  margin-bottom: 10rpx;
+}
+
+.dimension-group-text {
+  font-size: 24rpx;
+  color: #666666;
+  line-height: 1.5;
+}
+
+.dimension-group:last-child {
+  margin-bottom: 0;
+}
+

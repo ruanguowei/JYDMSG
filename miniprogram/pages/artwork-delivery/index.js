@@ -13,6 +13,11 @@ Page({
     expressCompanies: ['自送', '顺丰速运', '中通快递', '圆通速递', '韵达快递', '申通快递', 'EMS', '京东物流', '德邦物流', '其他'],
     expressCompanyIndex: -1,
     
+    // 基本信息确认字段
+    name: '',
+    artworkName: '',
+    school: '',
+    
     // 表单数据
     trackingNumber: '',
     sendDate: '',
@@ -85,6 +90,12 @@ Page({
         
         // 设置表单数据
         this.setData({
+          // 基本信息确认
+          name: editDelivery.name || '',
+          artworkName: editDelivery.artworkName || '',
+          school: editDelivery.school || '',
+          
+          // 运送信息
           deliveryMethodIndex,
           expressCompanyIndex,
           trackingNumber: editDelivery.trackingNumber || '',
@@ -180,6 +191,12 @@ Page({
         
         // 设置表单数据
         this.setData({
+          // 基本信息确认
+          name: data.name || '',
+          artworkName: data.artworkName || '',
+          school: data.school || '',
+          
+          // 运送信息
           deliveryMethodIndex,
           expressCompanyIndex,
           trackingNumber: data.trackingNumber || '',
@@ -366,6 +383,27 @@ Page({
   inputRemarks: function(e) {
     this.setData({
       remarks: e.detail.value
+    });
+  },
+
+  // 输入姓名
+  inputName: function(e) {
+    this.setData({
+      name: e.detail.value
+    });
+  },
+
+  // 输入作品名称
+  inputArtworkName: function(e) {
+    this.setData({
+      artworkName: e.detail.value
+    });
+  },
+
+  // 输入学校
+  inputSchool: function(e) {
+    this.setData({
+      school: e.detail.value
     });
   },
 
@@ -575,7 +613,23 @@ Page({
     });
     
     try {
-      // 验证必填字段
+      // 验证基本信息字段
+      if (!this.data.name.trim()) {
+        this.showError('请输入姓名');
+        return;
+      }
+      
+      if (!this.data.artworkName.trim()) {
+        this.showError('请输入作品名称');
+        return;
+      }
+      
+      if (!this.data.school.trim()) {
+        this.showError('请输入学校名称');
+        return;
+      }
+      
+      // 验证运送信息字段
       if (this.data.deliveryMethodIndex === -1) {
         this.showError('请选择运送方式');
         return;
@@ -635,6 +689,12 @@ Page({
       
       // 构建提交数据
       const deliveryData = {
+        // 基本信息确认
+        name: this.data.name.trim(),
+        artworkName: this.data.artworkName.trim(),
+        school: this.data.school.trim(),
+        
+        // 运送信息
         deliveryMethod: this.data.deliveryMethods[this.data.deliveryMethodIndex],
         expressCompany: this.data.expressCompanyIndex !== -1 ? this.data.expressCompanies[this.data.expressCompanyIndex] : '',
         trackingNumber: this.data.trackingNumber,
@@ -705,6 +765,12 @@ Page({
   // 重置表单
   resetForm: function() {
     this.setData({
+      // 基本信息确认
+      name: '',
+      artworkName: '',
+      school: '',
+      
+      // 运送信息
       deliveryMethodIndex: -1,
       expressCompanyIndex: -1,
       trackingNumber: '',

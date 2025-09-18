@@ -25,25 +25,13 @@ Page({
       }
     ],
     loading: true,
-    canPersonalRegister: false // 个人报名是否可用
   },
   
   onLoad: function() {
     // 页面加载时调用云函数获取展览信息
     this.fetchExhibitionInfo();
-    // 检查个人报名是否可用
-    this.checkPersonalRegistrationAvailable();
   },
   
-  // 检查个人报名是否可用（2025/6/4之后才能点击）
-  checkPersonalRegistrationAvailable: function() {
-    const currentDate = new Date();
-    const targetDate = new Date('2025-06-04');
-    
-    this.setData({
-      canPersonalRegister: currentDate >= targetDate
-    });
-  },
   
   // 导航到参展提交页面
   navigateToSubmission: function() {
@@ -51,22 +39,6 @@ Page({
     this.checkSubmissionStatus();
   },
   
-  // 个人报名功能
-  navigateToPersonalRegistration: function() {
-    if (!this.data.canPersonalRegister) {
-      wx.showToast({
-        title: '个人报名将于2025年6月4日开放',
-        icon: 'none',
-        duration: 2000
-      });
-      return;
-    }
-    
-    // 导航到我要参展页面
-    wx.navigateTo({
-      url: '/pages/pottery-submission/index'
-    });
-  },
   
   // 检查用户是否已经提交过参展申请
   checkSubmissionStatus: function() {
@@ -137,16 +109,170 @@ Page({
   
   // 导航到作品运送页面
   navigateToDelivery: function() {
-    wx.navigateTo({
-      url: '/pages/artwork-delivery/index'
+    // 先校验作品运送时间窗口
+    wx.showLoading({ title: '校验运送时间...', mask: true })
+    wx.cloud.callFunction({
+      name: 'quickstartFunctions',
+      data: { type: 'getDeliveryTimeLimit' },
+      success: res => {
+        wx.hideLoading()
+        if (!res.result || !res.result.success) {
+          wx.showToast({ title: '无法获取运送时间配置', icon: 'none' })
+          return
+        }
+        const cfg = res.result.data
+        if (!cfg || !cfg.deliveryBeginTime || !cfg.deliveryEndTime) {
+          wx.showModal({
+            title: '提示',
+            content: '尚未配置作品运送时间，请稍后再试。',
+            showCancel: false
+          })
+          return
+        }
+        
+        // 解析时间配置
+        const parseTimeToMs = (timeStr) => {
+          if (!timeStr) return NaN
+          const date = new Date(timeStr)
+          return date.getTime()
+        }
+        
+        const now = Date.now()
+        const start = parseTimeToMs(cfg.deliveryBeginTime)
+        const end = parseTimeToMs(cfg.deliveryEndTime)
+        
+        console.log('[delivery_time_limit] raw:', cfg, 'parsed:', { start, end, now })
+        
+        if (isNaN(start) || isNaN(end)) {
+          wx.showModal({
+            title: '提示',
+            content: '运送时间配置格式错误，请联系管理员。',
+            showCancel: false
+          })
+          return
+        }
+        
+        if (now < start) {
+          const startDate = new Date(start).toLocaleDateString('zh-CN')
+          wx.showModal({
+            title: '提示',
+            content: `作品运送尚未开始，开始时间：${startDate}`,
+            showCancel: false
+          })
+          return
+        }
+        
+        if (now > end) {
+          const endDate = new Date(end).toLocaleDateString('zh-CN')
+          wx.showModal({
+            title: '提示',
+            content: `作品运送已结束，结束时间：${endDate}`,
+            showCancel: false
+          })
+          return
+        }
+        
+        // 时间验证通过，跳转到作品运送页面
+        wx.navigateTo({
+          url: '/pages/artwork-delivery/index'
+        })
+      },
+      fail: err => {
+        wx.hideLoading()
+        console.error('获取运送时间限制失败:', err)
+        wx.showToast({ title: '网络异常，请重试', icon: 'none' })
+      }
     })
   },
 
   // 导航到专家评选页面
   navigateToExpertEvaluation: function() {
-    wx.navigateTo({
-      url: '/pages/expert-login/index'
+    // 先校验评审时间窗口
+    wx.showLoading({ title: '校验评审时间...', mask: true })
+    wx.cloud.callFunction({
+      name: 'quickstartFunctions',
+      data: { type: 'getEvaluationSettings' },
+      success: res => {
+        wx.hideLoading()
+        if (!res.result || !res.result.success) {
+          wx.showToast({ title: '无法获取评审配置', icon: 'none' })
+          return
+        }
+        const cfg = res.result.data
+        if (!cfg || !cfg.startTime || !cfg.endTime) {
+          wx.showModal({
+            title: '提示',
+            content: '尚未配置评审时间，请稍后再试。',
+            showCancel: false
+          })
+          return
+        }
+        // 前端严格按 YYYYMMDD 数字解析为本地时间（00:00 与 23:59）
+        const parseYmdToMs = (n, isEnd) => {
+          if (n == null) return NaN
+          // 兼容数字/字符串，去除非数字字符与空白
+          const s = String(n).replace(/[^\d]/g, '').slice(0, 8)
+          if (s.length !== 8) return NaN
+          const y = parseInt(s.slice(0,4), 10)
+          const m = parseInt(s.slice(4,6), 10) - 1
+          const d = parseInt(s.slice(6,8), 10)
+          const dt = new Date(y, m, d)
+          if (isEnd) {
+            dt.setHours(23,59,59,999)
+          } else {
+            dt.setHours(0,0,0,0)
+          }
+          return dt.getTime()
+        }
+        const now = Date.now()
+        const start = parseYmdToMs(cfg.startTime, false)
+        const end = parseYmdToMs(cfg.endTime, true)
+        console.log('[evaluation_settings] raw:', cfg, 'parsed:', { start, end, now })
+        if (isNaN(start) || isNaN(end)) {
+          wx.showModal({
+            title: '配置有误',
+            content: `评审时间格式需为8位数字 YYYYMMDD。当前: startTime=${cfg.startTime}, endTime=${cfg.endTime}`,
+            showCancel: false
+          })
+          return
+        }
+        if (now < start) {
+          const startStr = this.formatDateTime(new Date(start))
+          wx.showModal({
+            title: '评审未开始',
+            content: `评审将于 ${startStr} 开始。${cfg.note || ''}`.trim(),
+            showCancel: false
+          })
+          return
+        }
+        if (now > end) {
+          const endStr = this.formatDateTime(new Date(end))
+          wx.showModal({
+            title: '评审已结束',
+            content: `评审已于 ${endStr} 结束。${cfg.note || ''}`.trim(),
+            showCancel: false
+          })
+          return
+        }
+        wx.navigateTo({ url: '/pages/expert-login/index' })
+      },
+      fail: err => {
+        wx.hideLoading()
+        console.error('获取评审配置失败', err)
+        wx.showToast({ title: '网络异常', icon: 'none' })
+      }
     })
+  },
+  
+  // 本地时间格式化：YYYY年MM月DD日 HH:mm
+  formatDateTime: function(dt) {
+    const pad = (n) => n < 10 ? '0' + n : '' + n
+    const y = dt.getFullYear()
+    const m = pad(dt.getMonth() + 1)
+    const d = pad(dt.getDate())
+    const hh = pad(dt.getHours())
+    const mm = pad(dt.getMinutes())
+    return `${y}年${m}月${d}日 ${hh}:${mm}`
   },
   
   // 获取展览信息

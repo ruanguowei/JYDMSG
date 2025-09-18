@@ -45,8 +45,10 @@
       <view class="records-list">
         <view class="record-item" wx:for="{{deliveries}}" wx:key="index" bindtap="showDeliveryDetails" data-index="{{index}}">
           <view class="record-content">
-            <view class="record-title">运送方式: {{item.deliveryMethod}}</view>
+            <view class="record-title" wx:if="{{item.artworkName}}">《{{item.artworkName}}》</view>
+            <view class="record-title" wx:else>运送方式: {{item.deliveryMethod}}</view>
             <view class="record-info">
+              <text class="info-item">运送方式: {{item.deliveryMethod}}</text>
               <text class="info-item">寄出日期: {{item.sendDate}}</text>
               <text class="info-item">包裹数量: {{item.packageCount}}个</text>
             </view>
@@ -63,9 +65,6 @@
     </block>
     <view class="empty-hint" wx:else bindtap="viewDeliveries">
       <text>暂无运送记录，点击可提交运送信息</text>
-    </view>
-    <view class="view-more" bindtap="viewDeliveries" wx:if="{{deliveries.length > 0}}">
-      <text>查看更多</text>
     </view>
   </view>
 
@@ -94,7 +93,7 @@
               <text class="detail-value">{{currentSubmission.createYear}}</text>
             </view>
             
-            <view class="detail-item" wx:if="{{currentSubmission.dimensions}}">
+            <view class="detail-item" wx:if="{{currentSubmission.workType === 'regular' && currentSubmission.dimensions}}">
               <text class="detail-label">作品尺寸：</text>
               <text class="detail-value">{{currentSubmission.dimensions.length || '?' }} × {{currentSubmission.dimensions.width || '?'}} × {{currentSubmission.dimensions.height || '?'}} cm</text>
             </view>
@@ -141,12 +140,6 @@
               <text class="detail-value">{{currentSubmission.submissionTime}}</text>
             </view>
             
-            <view class="detail-item">
-              <text class="detail-label">审核状态：</text>
-              <text class="detail-value status-{{currentSubmission.status}}">
-                {{currentSubmission.status === 'approved' ? '已通过' : currentSubmission.status === 'rejected' ? '未通过' : '审核中'}}
-              </text>
-            </view>
             
             <view class="detail-item" wx:if="{{currentSubmission.feedback}}">
               <text class="detail-label">审核反馈：</text>
@@ -172,6 +165,21 @@
           <!-- 运送基本信息 -->
           <view class="detail-section">
             <view class="section-title">基本信息</view>
+            
+            <view class="detail-item" wx:if="{{currentDelivery.name}}">
+              <text class="detail-label">姓名：</text>
+              <text class="detail-value">{{currentDelivery.name}}</text>
+            </view>
+            
+            <view class="detail-item" wx:if="{{currentDelivery.artworkName}}">
+              <text class="detail-label">作品名称：</text>
+              <text class="detail-value">{{currentDelivery.artworkName}}</text>
+            </view>
+            
+            <view class="detail-item" wx:if="{{currentDelivery.school}}">
+              <text class="detail-label">学校：</text>
+              <text class="detail-value">{{currentDelivery.school}}</text>
+            </view>
             
             <view class="detail-item">
               <text class="detail-label">运送方式：</text>

@@ -39,6 +39,22 @@
 
 .stat-item {
   text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-radius: 12rpx;
+  position: relative;
+  padding: 10rpx;
+}
+
+.stat-item:active {
+  background: rgba(75, 107, 251, 0.1);
+  transform: scale(0.98);
+}
+
+/* 统计数字选中状态 */
+.stat-item.selected {
+  background: rgba(75, 107, 251, 0.15);
+  border: 2rpx solid #4b6bfb;
 }
 
 .stat-number {
@@ -52,6 +68,7 @@
   font-size: 24rpx;
   color: #666666;
 }
+
 
 .category-filter {
   background: #ffffff;
@@ -83,6 +100,7 @@
   background: #4b6bfb;
   color: #ffffff;
 }
+
 
 .submissions-list {
   padding: 0 20rpx;
@@ -259,4 +277,171 @@
 
 .action-btn::after {
   border: none;
+}
+
+/* 管理员登录弹窗样式 */
+.admin-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.admin-modal-content {
+  width: 600rpx;
+  background: #ffffff;
+  border-radius: 20rpx;
+  overflow: hidden;
+}
+
+.admin-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 40rpx 40rpx 20rpx;
+  border-bottom: 2rpx solid #f0f0f0;
+}
+
+.admin-modal-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #333333;
+}
+
+.admin-modal-close {
+  font-size: 48rpx;
+  color: #999999;
+  line-height: 1;
+}
+
+.admin-modal-body {
+  padding: 40rpx;
+}
+
+.admin-form-item {
+  margin-bottom: 40rpx;
+}
+
+.admin-form-label {
+  font-size: 28rpx;
+  color: #333333;
+  margin-bottom: 20rpx;
+}
+
+.admin-form-input {
+  width: 100%;
+  height: 80rpx;
+  background: #f8f9fa;
+  border: 2rpx solid #e0e0e0;
+  border-radius: 10rpx;
+  padding: 0 20rpx;
+  font-size: 28rpx;
+  color: #333333;
+}
+
+.admin-form-input:focus {
+  border-color: #007aff;
+  background: #ffffff;
+}
+
+.admin-modal-footer {
+  display: flex;
+  padding: 20rpx 40rpx 40rpx;
+  gap: 20rpx;
+}
+
+.admin-btn-cancel,
+.admin-btn-confirm {
+  flex: 1;
+  height: 80rpx;
+  border-radius: 10rpx;
+  font-size: 28rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.admin-btn-cancel {
+  background: #f8f9fa;
+  color: #666666;
+  border: 2rpx solid #e0e0e0;
+}
+
+.admin-btn-confirm {
+  background: #007aff;
+  color: #ffffff;
+}
+
+.admin-btn-confirm.loading {
+  background: #cccccc;
+}
+
+.admin-btn-cancel::after,
+.admin-btn-confirm::after {
+  border: none;
+}
+
+/* 进度提示弹窗样式 */
+.progress-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1001;
+}
+
+.progress-modal-content {
+  width: 600rpx;
+  background: #ffffff;
+  border-radius: 20rpx;
+  overflow: hidden;
+}
+
+.progress-modal-header {
+  padding: 40rpx 40rpx 20rpx;
+  text-align: center;
+  border-bottom: 2rpx solid #f0f0f0;
+}
+
+.progress-modal-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #333333;
+}
+
+.progress-modal-body {
+  padding: 60rpx 40rpx;
+  text-align: center;
+}
+
+.progress-spinner {
+  width: 60rpx;
+  height: 60rpx;
+  border: 4rpx solid #f0f0f0;
+  border-top: 4rpx solid #007aff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 30rpx;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.progress-text {
+  font-size: 28rpx;
+  color: #666666;
+  line-height: 1.5;
 }

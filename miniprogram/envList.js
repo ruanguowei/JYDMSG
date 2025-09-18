@@ -1,6 +1,6 @@
 const envList = [
   {
-    envId: 'cloud1-7gnqlu9q952ceb2b',
+    envId: 'jdzyzdmsg-5g4rgrjl2008796f',
     envName: '景德镇艺术职业大学美术馆'
   }
 ];

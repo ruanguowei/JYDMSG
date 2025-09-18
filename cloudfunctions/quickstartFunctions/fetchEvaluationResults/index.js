@@ -23,14 +23,19 @@ exports.main = async (event, context) => {
       // 找到该专家的评分记录
       const expertEvaluation = item.evaluations.find(eval => eval.expertId === expertId)
       
+      const { key: categoryKey, name: categoryName } = normalizeCategory(item.category)
+
       return {
         id: item._id,
         title: item.title,
-        authorName: item.authorName,
-        schoolName: item.schoolName,
-        category: item.category,
-        categoryName: getCategoryName(item.category),
-        imageUrl: item.imageUrl,
+        category: categoryKey,
+        categoryName: categoryName,
+        // 优先使用透视图，其次使用四面图第一张，最后使用其他图片
+        imageUrl: item.perspectiveImage || 
+                 (item.fourViewImages && item.fourViewImages[0]) || 
+                 (item.artworkImages && item.artworkImages[0]) || 
+                 (item.detailImages && item.detailImages[0]) || 
+                 item.imageUrl || '',
         description: item.description,
         themeFit: expertEvaluation.themeFit,
         creativity: expertEvaluation.creativity,
@@ -57,12 +62,35 @@ exports.main = async (event, context) => {
 
 // 获取分类名称
 function getCategoryName(category) {
-  const categoryMap = {
-    'technique': '技艺类',
-    'culture': '文脉类', 
-    'algorithm': '算法类',
-    'industry': '产业类',
-    'vision': '视界类'
+  const { name } = normalizeCategory(category)
+  return name
+}
+
+function normalizeCategory(category) {
+  const map = {
+    'technique': '技艺类', '技艺': '技艺类', '技艺类': '技艺类',
+    'culture': '文脉类', '文脉': '文脉类', '文脉类': '文脉类',
+    'algorithm': '算法类', '算法': '算法类', '算法类': '算法类',
+    'industry': '产业类', '产业': '产业类', '产业类': '产业类',
+    'vision': '视界类', '视界': '视界类', '视界类': '视界类'
   }
-  return categoryMap[category] || '未知分类'
+  const raw = (category || '').toString().replace(/[\s\u3000]+/g, '')
+  const lower = raw.toLowerCase()
+  const keyGuess = {
+    'technique': 'technique',
+    'culture': 'culture',
+    'algorithm': 'algorithm',
+    'industry': 'industry',
+    'vision': 'vision'
+  }[lower]
+  const name = map[raw] || map[keyGuess] || '未知分类'
+  const reverse = {
+    '技艺类': 'technique',
+    '文脉类': 'culture',
+    '算法类': 'algorithm',
+    '产业类': 'industry',
+    '视界类': 'vision'
+  }
+  const key = reverse[name] || ''
+  return { key, name }
 }

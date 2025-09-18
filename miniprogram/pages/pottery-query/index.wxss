@@ -281,6 +281,26 @@
   color: #333;
 }
 
+/* 尺寸组显示样式 */
+.dimension-item {
+  margin-bottom: 8rpx;
+}
+
+.dimension-item:last-child {
+  margin-bottom: 0;
+}
+
+.dimension-text {
+  font-size: 26rpx;
+  color: #333;
+  line-height: 1.4;
+  display: block;
+  padding: 8rpx 12rpx;
+  background-color: #f8f9fa;
+  border-radius: 6rpx;
+  border-left: 4rpx solid #4b6bfb;
+}
+
 .detail-value.description {
   display: block;
   margin-top: 10rpx;

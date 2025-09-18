@@ -19,10 +19,29 @@ const fetchSubmissionDetail = require('./fetchSubmissionDetail/index');
 const submitExpertScore = require('./submitExpertScore/index');
 const fetchEvaluationResults = require('./fetchEvaluationResults/index');
 const exportEvaluationResults = require('./exportEvaluationResults/index');
+const exportPotterySubmissions = require('./exportPotterySubmissions/index');
+const getEvaluationSettings = require('./getEvaluationSettings/index');
+const getDeliveryTimeLimit = require('./getDeliveryTimeLimit/index');
+
+// 管理员相关云函数
+const verifyAdmin = require('./verifyAdmin/index');
+const generateRankingResults = require('./generateRankingResults/index');
 
 // 云函数入口函数
 exports.main = async (event, context) => {
-  switch (event.type) {
+  try {
+    console.log('云函数被调用，参数:', JSON.stringify(event));
+    console.log('云函数类型:', event.type);
+    
+    if (!event.type) {
+      console.error('缺少type参数');
+      return {
+        success: false,
+        errMsg: '缺少type参数'
+      };
+    }
+    
+    switch (event.type) {
     case 'fetchHomeData':
       return await fetchHomeData.main(event, context);
     case 'createAppointment':
@@ -68,11 +87,35 @@ exports.main = async (event, context) => {
       return await fetchEvaluationResults.main(event, context);
     case 'exportEvaluationResults':
       return await exportEvaluationResults.main(event, context);
+    case 'exportPotterySubmissions':
+      return await exportPotterySubmissions.main(event, context);
+    case 'getEvaluationSettings':
+      return await getEvaluationSettings.main(event, context);
+    case 'getDeliveryTimeLimit':
+      return await getDeliveryTimeLimit.main(event, context);
+    // 管理员相关路由
+    case 'verifyAdmin':
+      return await verifyAdmin.main(event, context);
+    case 'generateRankingResults':
+      return await generateRankingResults.main(event, context);
     default:
+      console.error('未知的云函数类型:', event.type);
       return {
         success: false,
-        errMsg: '未知的云函数类型',
+        errMsg: '未知的云函数类型: ' + event.type,
       };
+    }
+  } catch (error) {
+    console.error('云函数执行异常:', error);
+    console.error('错误详情:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    });
+    return {
+      success: false,
+      errMsg: '云函数执行异常: ' + error.message
+    };
   }
 };
-        
+

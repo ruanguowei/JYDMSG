@@ -1,0 +1,811 @@
+{
+    "previewTableName": "pottery_submissions-preview",
+    "publishCacheStatus": "ready",
+    "subType": "database",
+    "schema": {
+        "x-primary-column": "name",
+        "x-kind": "tcb",
+        "x-defaultMethods": [
+            "wedaCreate",
+            "wedaUpdate",
+            "wedaDelete",
+            "wedaGetItem",
+            "wedaGetRecords",
+            "wedaGetList",
+            "wedaBatchCreate",
+            "wedaBatchUpdate",
+            "wedaBatchDelete"
+        ],
+        "type": "object",
+        "x-relatedType": "exist",
+        "x-viewId": "view-6ufo35mbtc",
+        "required": [
+            "gender",
+            "school",
+            "name",
+            "status"
+        ],
+        "properties": {
+            "_mainDep": {
+                "x-system": true,
+                "x-id": "0c80b14",
+                "format": "father-son",
+                "name": "_mainDep",
+                "x-hidden": true,
+                "title": "所属主管部门",
+                "type": "string",
+                "x-index": 7,
+                "x-unique": false,
+                "x-parent": {
+                    "fatherAction": "judge",
+                    "type": "father-son",
+                    "parentDataSourceName": "sys_department"
+                }
+            },
+            "videoAspectRatio": {
+                "x-required": false,
+                "x-keyPath": "",
+                "x-id": "video_aspect_ratio",
+                "format": "",
+                "description": "",
+                "type": "string",
+                "x-index": 99,
+                "title": "视频比例",
+                "x-unique": false
+            },
+            "gender": {
+                "x-required": true,
+                "x-keyPath": "",
+                "x-id": "2612c547",
+                "format": "",
+                "description": "",
+                "type": "string",
+                "x-index": 49,
+                "title": "性别（男/女）",
+                "x-unique": false
+            },
+            "craftMaterial": {
+                "x-required": false,
+                "x-keyPath": "",
+                "x-id": "6c77644c",
+                "format": "",
+                "description": "",
+                "type": "string",
+                "x-index": 79,
+                "title": "作品工艺、材料描述（最多20字）",
+                "x-unique": false
+            },
+            "createYear": {
+                "x-required": false,
+                "x-keyPath": "",
+                "x-id": "dd3e58ab",
+                "format": "",
+                "description": "",
+                "type": "string",
+                "x-index": 73,
+                "title": "创作年份",
+                "x-unique": false
+            },
+            "idNumber": {
+                "x-required": false,
+                "x-keyPath": "",
+                "x-id": "662c2688",
+                "format": "",
+                "description": "",
+                "type": "string",
+                "x-index": 61,
+                "title": "身份证号码",
+                "x-unique": false
+            },
+            "fourViewImages": {
+                "x-image-size": 10485760,
+                "x-required": false,
+                "x-keyPath": "",
+                "x-id": "four_view_images",
+                "format": "x-image",
+                "description": "",
+                "type": "array",
+                "x-index": 91,
+                "title": "四面图（3张）",
+                "x-storage-type": "https",
+                "items": {
+                    "type": "string"
+                },
+                "x-unique": false
+            },
+            "artworkDescription": {
+                "x-required": false,
+                "x-keyPath": "",
+                "x-id": "6ca3ee9e",
+                "format": "",
+                "description": "",
+                "type": "string",
+                "x-index": 81,
+                "title": "作品简介（200字以内）",
+                "x-unique": false
+            },
+            "submissionTime": {
+                "x-required": false,
+                "x-keyPath": "",
+                "x-id": "a8f3af21",
+                "format": "datetime",
+                "description": "",
+                "type": "number",
+                "x-index": 87,
+                "title": "提交时间",
+                "x-unique": false
+            },
+            "createdAt": {
+                "default": 0,
+                "x-system": true,
+                "x-id": "ed8ec07",
+                "format": "datetime",
+                "x-index": 2,
+                "type": "number",
+                "title": "创建时间",
+                "x-unique": false
+            },
+            "photoUrl": {
+                "x-required": false,
+                "x-keyPath": "",
+                "x-id": "2744a9e2",
+                "format": "",
+                "description": "",
+                "type": "string",
+                "x-index": 69,
+                "title": "个人照片云存储路径",
+                "x-unique": false
+            },
+            "teacher": {
+                "x-required": false,
+                "x-keyPath": "",
+                "x-id": "dddec49f",
+                "format": "",
+                "description": "",
+                "type": "string",
+                "x-index": 63,
+                "title": "指导老师姓名",
+                "x-unique": false
+            },
+            "major": {
+                "x-required": false,
+                "x-keyPath": "",
+                "x-id": "f52a991f",
+                "format": "",
+                "description": "",
+                "type": "string",
+                "x-index": 55,
+                "title": "专业",
+                "x-unique": false
+            },
+            "updateBy": {
+                "default": "",
+                "x-system": true,
+                "x-id": "93a079a",
+                "name": "updateBy",
+                "format": "father-son",
+                "pattern": "",
+                "x-hidden": true,
+                "x-index": 6,
+                "title": "修改人",
+                "type": "string",
+                "x-unique": false,
+                "x-parent": {
+                    "fatherAction": "judge",
+                    "type": "father-son",
+                    "parentDataSourceName": "sys_user"
+                }
+            },
+            "school": {
+                "x-required": true,
+                "x-keyPath": "",
+                "x-id": "fe731fff",
+                "format": "",
+                "description": "",
+                "type": "string",
+                "x-index": 12,
+                "title": "学校",
+                "x-unique": false
+            },
+            "perspectiveImage": {
+                "x-image-size": 10485760,
+                "x-required": false,
+                "x-keyPath": "",
+                "x-id": "perspective_image",
+                "format": "x-image",
+                "description": "",
+                "type": "string",
+                "x-index": 90,
+                "title": "透视图（1张）",
+                "x-storage-type": "https",
+                "x-unique": false
+            },
+            "teacherPhone": {
+                "x-required": false,
+                "x-keyPath": "",
+                "x-id": "5d3b6e71",
+                "format": "",
+                "description": "",
+                "type": "string",
+                "x-index": 65,
+                "title": "指导老师联系电话",
+                "x-unique": false
+            },
+            "shootingTechnique": {
+                "x-required": false,
+                "x-keyPath": "",
+                "x-id": "shooting_technique",
+                "format": "",
+                "description": "",
+                "type": "string",
+                "x-index": 100,
+                "title": "拍摄技巧",
+                "x-unique": false
+            },
+            "email": {
+                "x-required": false,
+                "x-keyPath": "",
+                "x-id": "28c63ec1",
+                "format": "",
+                "description": "",
+                "type": "string",
+                "x-index": 59,
+                "title": "邮箱",
+                "x-unique": false
+            },
+            "updatedAt": {
+                "default": 0,
+                "x-system": true,
+                "x-id": "065dda1",
+                "format": "datetime",
+                "x-index": 3,
+                "title": "更新时间",
+                "type": "number",
+                "x-unique": false
+            },
+            "owner": {
+                "default": "",
+                "x-system": true,
+                "x-id": "6a92526",
+                "name": "owner",
+                "format": "father-son",
+                "pattern": "",
+                "x-hidden": true,
+                "x-index": 4,
+                "title": "所有人",
+                "type": "string",
+                "x-unique": false,
+                "x-parent": {
+                    "fatherAction": "judge",
+                    "type": "father-son",
+                    "parentDataSourceName": "sys_user"
+                }
+            },
+            "address": {
+                "x-required": false,
+                "x-keyPath": "",
+                "x-id": "442f6b9b",
+                "format": "",
+                "description": "",
+                "type": "string",
+                "x-index": 67,
+                "title": "邮寄地址（也是作品退件地址）",
+                "x-unique": false
+            },
+            "evaluations": {
+                "x-required": false,
+                "x-keyPath": "",
+                "x-id": "evaluations",
+                "format": "",
+                "description": "",
+                "type": "array",
+                "x-index": 94,
+                "title": "专家评分记录",
+                "list": [
+                    {
+                        "x-id": "wptzsd0r",
+                        "name": "themeFit",
+                        "pId": "evaluations",
+                        "type": "number",
+                        "title": "主题契合度分数"
+                    },
+                    {
+                        "x-id": "8biqf9v0",
+                        "name": "finalScore",
+                        "pId": "evaluations",
+                        "type": "number",
+                        "title": "最终分数"
+                    },
+                    {
+                        "x-id": "tzmh8syb",
+                        "name": "expertId",
+                        "pId": "evaluations",
+                        "type": "string",
+                        "title": "专家ID"
+                    },
+                    {
+                        "x-id": "glnwk6ql",
+                        "name": "expertName",
+                        "pId": "evaluations",
+                        "type": "string",
+                        "title": "专家姓名"
+                    },
+                    {
+                        "x-id": "wz6ljc1r",
+                        "name": "ip",
+                        "pId": "evaluations",
+                        "type": "string",
+                        "title": "评分IP地址"
+                    },
+                    {
+                        "x-id": "2ehtljh8",
+                        "name": "creativity",
+                        "pId": "evaluations",
+                        "type": "number",
+                        "title": "创意与表现力分数"
+                    },
+                    {
+                        "x-id": "r2grm75d",
+                        "name": "aesthetics",
+                        "pId": "evaluations",
+                        "type": "number",
+                        "title": "美感与实用性分数"
+                    },
+                    {
+                        "x-id": "a5j0rhag",
+                        "name": "deductions",
+                        "pId": "evaluations",
+                        "type": "object",
+                        "title": "扣分项（对象，支持动态添加）",
+                        "list": [
+                            {
+                                "x-id": "xxcvf1uy",
+                                "name": "deduction_score",
+                                "pId": "a5j0rhag",
+                                "type": "number",
+                                "title": "扣分分数"
+                            },
+                            {
+                                "x-id": "usxrtqvm",
+                                "name": "deduction_reason",
+                                "pId": "a5j0rhag",
+                                "type": "string",
+                                "title": "扣分原因描述"
+                            }
+                        ],
+                        "properties": {
+                            "deduction_score": {
+                                "x-id": "xxcvf1uy",
+                                "pId": "a5j0rhag",
+                                "type": "number",
+                                "title": "扣分分数"
+                            },
+                            "deduction_reason": {
+                                "x-id": "usxrtqvm",
+                                "pId": "a5j0rhag",
+                                "type": "string",
+                                "title": "扣分原因描述"
+                            }
+                        },
+                        "required": []
+                    },
+                    {
+                        "x-id": "93e51903",
+                        "format": "datetime",
+                        "name": "evaluationTime",
+                        "pId": "evaluations",
+                        "type": "number",
+                        "title": "评分时间"
+                    },
+                    {
+                        "x-id": "h009m118",
+                        "name": "totalScore",
+                        "pId": "evaluations",
+                        "type": "number",
+                        "title": "总分"
+                    },
+                    {
+                        "x-id": "lj83uprf",
+                        "name": "craftsmanship",
+                        "pId": "evaluations",
+                        "type": "number",
+                        "title": "工艺与材料分数"
+                    }
+                ],
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "themeFit": {
+                            "x-id": "wptzsd0r",
+                            "pId": "evaluations",
+                            "type": "number",
+                            "title": "主题契合度分数"
+                        },
+                        "finalScore": {
+                            "x-id": "8biqf9v0",
+                            "pId": "evaluations",
+                            "type": "number",
+                            "title": "最终分数"
+                        },
+                        "expertId": {
+                            "x-id": "tzmh8syb",
+                            "pId": "evaluations",
+                            "type": "string",
+                            "title": "专家ID"
+                        },
+                        "expertName": {
+                            "x-id": "glnwk6ql",
+                            "pId": "evaluations",
+                            "type": "string",
+                            "title": "专家姓名"
+                        },
+                        "ip": {
+                            "x-id": "wz6ljc1r",
+                            "pId": "evaluations",
+                            "type": "string",
+                            "title": "评分IP地址"
+                        },
+                        "creativity": {
+                            "x-id": "2ehtljh8",
+                            "pId": "evaluations",
+                            "type": "number",
+                            "title": "创意与表现力分数"
+                        },
+                        "aesthetics": {
+                            "x-id": "r2grm75d",
+                            "pId": "evaluations",
+                            "type": "number",
+                            "title": "美感与实用性分数"
+                        },
+                        "deductions": {
+                            "x-id": "a5j0rhag",
+                            "pId": "evaluations",
+                            "type": "object",
+                            "title": "扣分项（对象，支持动态添加）",
+                            "list": [
+                                {
+                                    "x-id": "xxcvf1uy",
+                                    "name": "deduction_score",
+                                    "pId": "a5j0rhag",
+                                    "type": "number",
+                                    "title": "扣分分数"
+                                },
+                                {
+                                    "x-id": "usxrtqvm",
+                                    "name": "deduction_reason",
+                                    "pId": "a5j0rhag",
+                                    "type": "string",
+                                    "title": "扣分原因描述"
+                                }
+                            ],
+                            "properties": {
+                                "deduction_score": {
+                                    "x-id": "xxcvf1uy",
+                                    "pId": "a5j0rhag",
+                                    "type": "number",
+                                    "title": "扣分分数"
+                                },
+                                "deduction_reason": {
+                                    "x-id": "usxrtqvm",
+                                    "pId": "a5j0rhag",
+                                    "type": "string",
+                                    "title": "扣分原因描述"
+                                }
+                            },
+                            "required": []
+                        },
+                        "evaluationTime": {
+                            "x-id": "93e51903",
+                            "format": "datetime",
+                            "pId": "evaluations",
+                            "type": "number",
+                            "title": "评分时间"
+                        },
+                        "totalScore": {
+                            "x-id": "h009m118",
+                            "pId": "evaluations",
+                            "type": "number",
+                            "title": "总分"
+                        },
+                        "craftsmanship": {
+                            "x-id": "lj83uprf",
+                            "pId": "evaluations",
+                            "type": "number",
+                            "title": "工艺与材料分数"
+                        }
+                    }
+                },
+                "x-unique": false,
+                "required": []
+            },
+            "baiduCloudLink": {
+                "x-required": false,
+                "x-keyPath": "",
+                "x-id": "baidu_cloud_link",
+                "format": "",
+                "description": "",
+                "type": "string",
+                "x-index": 101,
+                "title": "百度云链接",
+                "x-unique": false
+            },
+            "openid": {
+                "x-required": false,
+                "x-keyPath": "",
+                "x-id": "63ed97e5",
+                "format": "",
+                "description": "",
+                "type": "string",
+                "x-index": 89,
+                "title": "提交者的微信OpenID",
+                "x-unique": false
+            },
+            "baiduCloudPassword": {
+                "x-required": false,
+                "x-keyPath": "",
+                "x-id": "baidu_cloud_password",
+                "format": "",
+                "description": "",
+                "type": "string",
+                "x-index": 102,
+                "title": "百度云密码",
+                "x-unique": false
+            },
+            "specialDisplay": {
+                "x-required": false,
+                "x-keyPath": "",
+                "x-id": "special_display",
+                "format": "",
+                "description": "",
+                "type": "string",
+                "x-index": 93,
+                "title": "特殊陈列方式描述（选填）",
+                "x-unique": false
+            },
+            "birthDate": {
+                "x-required": false,
+                "x-keyPath": "",
+                "x-id": "bec33f4b",
+                "format": "",
+                "description": "",
+                "type": "string",
+                "x-index": 53,
+                "title": "出生年月",
+                "x-unique": false
+            },
+            "artworkName": {
+                "x-required": false,
+                "x-keyPath": "",
+                "x-id": "d611f24d",
+                "format": "",
+                "description": "",
+                "type": "string",
+                "x-index": 71,
+                "title": "参展作品名称",
+                "x-unique": false
+            },
+            "createBy": {
+                "default": "",
+                "x-system": true,
+                "x-id": "ac19f1c",
+                "name": "createBy",
+                "format": "father-son",
+                "pattern": "",
+                "x-hidden": true,
+                "x-index": 5,
+                "title": "创建人",
+                "type": "string",
+                "x-unique": false,
+                "x-parent": {
+                    "fatherAction": "judge",
+                    "type": "father-son",
+                    "parentDataSourceName": "sys_user"
+                }
+            },
+            "videoDuration": {
+                "x-required": false,
+                "x-keyPath": "",
+                "x-id": "video_duration",
+                "format": "",
+                "description": "",
+                "type": "string",
+                "x-index": 97,
+                "title": "视频时长",
+                "x-unique": false
+            },
+            "phone": {
+                "x-required": false,
+                "x-keyPath": "",
+                "x-id": "1b26df45",
+                "format": "",
+                "description": "",
+                "type": "string",
+                "x-index": 57,
+                "title": "联系电话",
+                "x-unique": false
+            },
+            "_openid": {
+                "default": "",
+                "x-system": true,
+                "x-id": "3af43c1",
+                "name": "_openid",
+                "format": "",
+                "pattern": "",
+                "description": "仅微信云开发下使用",
+                "x-index": 45,
+                "title": "记录创建者",
+                "type": "string",
+                "x-unique": false
+            },
+            "grade": {
+                "x-required": false,
+                "x-keyPath": "",
+                "x-id": "eec89af4",
+                "format": "",
+                "description": "",
+                "type": "string",
+                "x-index": 51,
+                "title": "年级（如：大一、研一等）",
+                "x-unique": false
+            },
+            "name": {
+                "x-required": true,
+                "x-keyPath": "",
+                "x-id": "b8312f7e",
+                "format": "",
+                "name": "name",
+                "description": "",
+                "isEnum": false,
+                "type": "string",
+                "x-index": 47,
+                "title": "参展者姓名",
+                "x-unique": false
+            },
+            "workType": {
+                "x-required": false,
+                "x-keyPath": "",
+                "x-id": "work_type",
+                "format": "",
+                "description": "",
+                "type": "string",
+                "x-index": 96,
+                "title": "作品类型（regular/video）",
+                "x-unique": false
+            },
+            "detailImages": {
+                "x-image-size": 10485760,
+                "x-required": false,
+                "x-keyPath": "",
+                "x-id": "detail_images",
+                "format": "x-image",
+                "description": "",
+                "type": "array",
+                "x-index": 92,
+                "title": "局部图（3张）",
+                "x-storage-type": "https",
+                "items": {
+                    "type": "string"
+                },
+                "x-unique": false
+            },
+            "_id": {
+                "default": "",
+                "x-system": true,
+                "x-id": "bb00727",
+                "format": "",
+                "pattern": "",
+                "x-index": 1,
+                "type": "string",
+                "title": "数据标识",
+                "x-unique": true
+            },
+            "videoResolution": {
+                "x-required": false,
+                "x-keyPath": "",
+                "x-id": "video_resolution",
+                "format": "",
+                "description": "",
+                "type": "string",
+                "x-index": 98,
+                "title": "视频清晰度",
+                "x-unique": false
+            },
+            "category": {
+                "x-required": false,
+                "x-keyPath": "",
+                "x-id": "af439c27",
+                "format": "",
+                "description": "",
+                "type": "string",
+                "x-index": 77,
+                "title": "作品类别（技艺/文脉/算法/产业/视界）",
+                "x-unique": false
+            },
+            "dimensions": {
+                "x-required": false,
+                "x-keyPath": "",
+                "x-id": "c67751ea",
+                "format": "",
+                "description": "",
+                "type": "array",
+                "x-index": 75,
+                "title": "作品尺寸数组，支持多组",
+                "list": [
+                    {
+                        "x-id": "s9oipinj",
+                        "name": "length",
+                        "pId": "c67751ea",
+                        "type": "string",
+                        "title": "长度（厘米）"
+                    },
+                    {
+                        "x-id": "04nrnp8t",
+                        "name": "width",
+                        "pId": "c67751ea",
+                        "type": "string",
+                        "title": "宽度（厘米）"
+                    },
+                    {
+                        "x-id": "o39sihra",
+                        "name": "height",
+                        "pId": "c67751ea",
+                        "type": "string",
+                        "title": "高度（厘米）"
+                    }
+                ],
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "length": {
+                            "x-id": "s9oipinj",
+                            "pId": "c67751ea",
+                            "type": "string",
+                            "title": "长度（厘米）"
+                        },
+                        "width": {
+                            "x-id": "04nrnp8t",
+                            "pId": "c67751ea",
+                            "type": "string",
+                            "title": "宽度（厘米）"
+                        },
+                        "height": {
+                            "x-id": "o39sihra",
+                            "pId": "c67751ea",
+                            "type": "string",
+                            "title": "高度（厘米）"
+                        }
+                    }
+                },
+                "x-unique": false,
+                "required": []
+            },
+            "status": {
+                "x-required": true,
+                "x-keyPath": "",
+                "x-id": "a9dbc8ea",
+                "format": "",
+                "description": "",
+                "type": "string",
+                "x-index": 85,
+                "title": "审核状态",
+                "x-unique": false
+            }
+        }
+    },
+    "dbInstanceType": "FLEXDB",
+    "title": "我要参展",
+    "prodDbInfo": null,
+    "name": "pottery_submissions",
+    "dbLinkType": "internal",
+    "tableNameRule": "only_name",
+    "type": "database",
+    "previewDbInfo": null,
+    "updateTime": "2025-09-13T06:49:56",
+    "publishedTableName": "pottery_submissions",
+    "id": "data-50Ji0m8bz",
+    "dbSourceType": "internal_flexdb",
+    "methods": [],
+    "fun": "{\"onlineVersion\": 20, \"previewVersion\": 19, \"onlinePublishAt\": 1757746196282, \"prviewPublishAt\": 1757746196012}",
+    "publishStatus": 1,
+    "configuration": {}
+}

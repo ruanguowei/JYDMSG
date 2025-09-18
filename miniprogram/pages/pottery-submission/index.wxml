@@ -29,6 +29,18 @@
           <input class="form-input" placeholder="请输入学校名称" value="{{school}}" bindinput="inputSchool"/>
         </view>
         <view class="form-cell">
+          <view class="form-label required">学校省份</view>
+          <picker bindchange="bindSchoolProvinceChange" value="{{schoolProvinceIndex}}" range="{{provinces}}">
+            <view class="picker {{schoolProvince ? '' : 'placeholder'}}">
+              {{schoolProvince || '请选择省份'}}
+              <text class="picker-arrow">▼</text>
+            </view>
+          </picker>
+        </view>
+      </view>
+      
+      <view class="form-row">
+        <view class="form-cell">
           <view class="form-label required">年级</view>
           <picker bindchange="bindGradeChange" value="{{gradeIndex}}" range="{{grades}}">
             <view class="picker {{grade ? '' : 'placeholder'}}">
@@ -37,9 +49,6 @@
             </view>
           </picker>
         </view>
-      </view>
-      
-      <view class="form-row">
         <view class="form-cell">
           <view class="form-label required">出生年月</view>
           <picker mode="date" fields="month" bindchange="bindBirthDateChange" value="{{birthDate}}">
@@ -49,21 +58,22 @@
             </view>
           </picker>
         </view>
-        <view class="form-cell">
-          <view class="form-label required">专业</view>
-          <input class="form-input" placeholder="请输入专业" value="{{major}}" bindinput="inputMajor"/>
-        </view>
       </view>
       
       <view class="form-row">
         <view class="form-cell">
+          <view class="form-label required">专业</view>
+          <input class="form-input" placeholder="请输入专业" value="{{major}}" bindinput="inputMajor"/>
+        </view>
+        <view class="form-cell">
           <view class="form-label required">联系电话</view>
           <input class="form-input" type="number" placeholder="请输入联系电话" value="{{phone}}" bindinput="inputPhone"/>
         </view>
-        <view class="form-cell">
-          <view class="form-label required">邮箱</view>
-          <input class="form-input" placeholder="请输入邮箱" value="{{email}}" bindinput="inputEmail"/>
-        </view>
+      </view>
+      
+      <view class="form-group">
+        <view class="form-label required">邮箱</view>
+        <input class="form-input" placeholder="请输入邮箱" value="{{email}}" bindinput="inputEmail"/>
       </view>
       
       <view class="form-group">
@@ -107,6 +117,17 @@
     <view class="form-card">
       <view class="card-title">作品信息</view>
       
+      <!-- 作品类型选择 -->
+      <view class="form-group">
+        <view class="form-label required">作品类型</view>
+        <picker bindchange="bindWorkTypeChange" value="{{workTypeIndex}}" range="{{workTypes}}">
+          <view class="picker {{workType ? '' : 'placeholder'}}">
+            {{workTypes[workTypeIndex] || '请选择作品类型'}}
+            <text class="picker-arrow">▼</text>
+          </view>
+        </picker>
+      </view>
+      
       <view class="form-row">
         <view class="form-cell">
           <view class="form-label required">参展作品名称</view>
@@ -123,14 +144,29 @@
         </view>
       </view>
       
-      <view class="form-group">
+      <!-- 作品尺寸（仅常规作品） -->
+      <view wx:if="{{workType === 'regular'}}" class="form-group">
         <view class="form-label required">作品尺寸 (CM)</view>
-        <view class="dimension-inputs">
-          <input class="dimension-input" type="digit" placeholder="长" value="{{length}}" bindinput="inputLength"/>
-          <text class="dimension-separator">×</text>
-          <input class="dimension-input" type="digit" placeholder="宽" value="{{width}}" bindinput="inputWidth"/>
-          <text class="dimension-separator">×</text>
-          <input class="dimension-input" type="digit" placeholder="高" value="{{height}}" bindinput="inputHeight"/>
+        <view class="dimensions-container">
+          <block wx:for="{{dimensions}}" wx:key="index">
+            <view class="dimension-group">
+              <view class="dimension-inputs">
+                <input class="dimension-input" type="digit" placeholder="长" value="{{item.length}}" 
+                       data-index="{{index}}" data-field="length" bindinput="inputDimension"/>
+                <text class="dimension-separator">×</text>
+                <input class="dimension-input" type="digit" placeholder="宽" value="{{item.width}}" 
+                       data-index="{{index}}" data-field="width" bindinput="inputDimension"/>
+                <text class="dimension-separator">×</text>
+                <input class="dimension-input" type="digit" placeholder="高" value="{{item.height}}" 
+                       data-index="{{index}}" data-field="height" bindinput="inputDimension"/>
+              </view>
+              <view class="dimension-actions">
+                <button class="dimension-btn remove" bindtap="removeDimension" data-index="{{index}}" 
+                        wx:if="{{dimensions.length > 1}}">删除</button>
+              </view>
+            </view>
+          </block>
+          <button class="dimension-btn add" bindtap="addDimension">+ 添加尺寸组</button>
         </view>
       </view>
       
@@ -151,41 +187,136 @@
         </view>
       </view>
       
-      <view class="form-group">
+      <!-- 作品工艺、材料（仅常规作品） -->
+      <view wx:if="{{workType === 'regular'}}" class="form-group">
         <view class="form-label required">作品工艺、材料</view>
-        <textarea class="form-textarea" placeholder="请描述作品的工艺和使用的材料" value="{{craftMaterial}}" bindinput="inputCraftMaterial"></textarea>
+        <textarea class="form-textarea" placeholder="请描述作品的工艺和使用的材料（最多20字）" 
+                  value="{{craftMaterial}}" bindinput="inputCraftMaterial" maxlength="20"></textarea>
+        <view class="char-count">{{craftMaterial.length}}/20</view>
       </view>
       
       <view class="form-group">
         <view class="form-label required">作品简介（200字以内）</view>
         <textarea class="form-textarea" placeholder="请描述您的作品简介..." value="{{artworkDescription}}" bindinput="inputArtworkDescription" maxlength="200"></textarea>
+        <view class="char-count">{{artworkDescription.length}}/200</view>
       </view>
       
-      <view class="form-group">
-        <view class="form-label required">作品照片</view>
-        <view class="upload-container">
-          <!-- 已上传图片 -->
-          <block wx:for="{{artworkImages}}" wx:key="index">
-            <view class="upload-preview">
-              <image src="{{item}}" mode="aspectFill"></image>
-              <view class="upload-delete" data-index="{{index}}" bindtap="removeImage">×</view>
+      <!-- 常规作品图片上传 -->
+      <view wx:if="{{workType === 'regular'}}">
+        <!-- 透视图上传 -->
+        <view class="form-group">
+          <view class="form-label required">透视图（1张）</view>
+          <view class="upload-single">
+            <view class="upload-preview" wx:if="{{perspectiveImage}}">
+              <image src="{{perspectiveImage}}" mode="aspectFill"></image>
+              <view class="upload-delete" bindtap="removePerspectiveImage">×</view>
             </view>
-          </block>
-          
-          <!-- 上传按钮，最多9张 -->
-          <view class="upload-button" bindtap="chooseImage" wx:if="{{artworkImages.length < 9}}">
-            <text class="upload-icon">+</text>
+            <view class="upload-button" bindtap="choosePerspectiveImage" wx:else>
+              <text class="upload-icon">+</text>
+              <text class="upload-text">上传透视图</text>
+            </view>
           </view>
         </view>
         
-        <!-- 上传图片注意事项 -->
-        <view class="upload-tips">
-          <text>图片要求：</text>
-          <text>1. 请上传清晰的作品照片，建议使用白色背景</text>
-          <text>2. 图片格式支持JPG、PNG，单张大小不超过5MB</text>
-          <text>3. 请确保图片真实反映作品细节和质感</text>
-          <text>4. 至少上传1张正面照片</text>
+        <!-- 四面图上传 -->
+        <view class="form-group">
+          <view class="form-label required">四面图（3张）</view>
+          <view class="upload-container">
+            <block wx:for="{{fourViewImages}}" wx:key="index">
+              <view class="upload-preview">
+                <image src="{{item}}" mode="aspectFill"></image>
+                <view class="upload-delete" data-index="{{index}}" bindtap="removeFourViewImage">×</view>
+              </view>
+            </block>
+            <view class="upload-button" bindtap="chooseFourViewImages" wx:if="{{fourViewImages.length < 3}}">
+              <text class="upload-icon">+</text>
+            </view>
+          </view>
         </view>
+        
+        <!-- 局部图上传 -->
+        <view class="form-group">
+          <view class="form-label required">局部图（3张）</view>
+          <view class="upload-container">
+            <block wx:for="{{detailImages}}" wx:key="index">
+              <view class="upload-preview">
+                <image src="{{item}}" mode="aspectFill"></image>
+                <view class="upload-delete" data-index="{{index}}" bindtap="removeDetailImage">×</view>
+              </view>
+            </block>
+            <view class="upload-button" bindtap="chooseDetailImages" wx:if="{{detailImages.length < 3}}">
+              <text class="upload-icon">+</text>
+            </view>
+          </view>
+        </view>
+      </view>
+      
+      <!-- 特殊陈列方式描述（仅常规作品） -->
+      <view wx:if="{{workType === 'regular'}}" class="form-group">
+        <view class="form-label">特殊陈列方式描述</view>
+        <textarea class="form-textarea" placeholder="请描述特殊陈列方式（选填）" 
+                  value="{{specialDisplay}}" bindinput="inputSpecialDisplay"></textarea>
+      </view>
+      
+      <!-- 视频作品专用字段 -->
+      <view wx:if="{{workType === 'video'}}" class="video-work-section">
+        <view class="section-title">视频作品信息</view>
+        
+        <view class="form-row">
+          <view class="form-cell">
+            <view class="form-label required">视频时长</view>
+            <input class="form-input" placeholder="如：3分30秒" value="{{videoDuration}}" bindinput="inputVideoDuration"/>
+          </view>
+          <view class="form-cell">
+            <view class="form-label required">视频清晰度</view>
+            <picker bindchange="bindVideoResolutionChange" value="{{videoResolutionIndex}}" range="{{videoResolutions}}">
+              <view class="picker {{videoResolution ? '' : 'placeholder'}}">
+                {{videoResolution || '请选择清晰度'}}
+                <text class="picker-arrow">▼</text>
+              </view>
+            </picker>
+          </view>
+        </view>
+        
+        <view class="form-row">
+          <view class="form-cell">
+            <view class="form-label required">视频比例</view>
+            <picker bindchange="bindVideoAspectRatioChange" value="{{videoAspectRatioIndex}}" range="{{videoAspectRatios}}">
+              <view class="picker {{videoAspectRatio ? '' : 'placeholder'}}">
+                {{videoAspectRatio || '请选择比例'}}
+                <text class="picker-arrow">▼</text>
+              </view>
+            </picker>
+          </view>
+          <view class="form-cell">
+            <view class="form-label required">拍摄技巧</view>
+            <input class="form-input" placeholder="如：航拍、延时摄影等" value="{{shootingTechnique}}" bindinput="inputShootingTechnique"/>
+          </view>
+        </view>
+        
+        <view class="form-group">
+          <view class="form-label required">百度云链接</view>
+          <input class="form-input" placeholder="请输入百度云分享链接" value="{{baiduCloudLink}}" bindinput="inputBaiduCloudLink"/>
+        </view>
+        
+        <view class="form-group">
+          <view class="form-label required">百度云密码</view>
+          <input class="form-input" placeholder="请输入百度云提取密码" value="{{baiduCloudPassword}}" bindinput="inputBaiduCloudPassword"/>
+        </view>
+      </view>
+      
+      <!-- 上传图片注意事项 -->
+      <view wx:if="{{workType === 'regular'}}" class="upload-tips">
+        <text>1.像素与格式：像素达到300dpi及以上，采用jpg格式。</text>
+        <text>2.图片大小：每张图片大小不小于1MB，不大于5MB。</text>
+        <text>3.图片要求：均需白底背景，清晰展示作品细节。</text>
+      </view>
+      
+      <!-- 视频作品注意事项 -->
+      <view wx:if="{{workType === 'video'}}" class="upload-tips">
+        <text>1.视频格式：支持MP4、MOV、AVI等常见格式。</text>
+        <text>2.上传方式：请将视频上传至百度云，并填写分享链接和密码。</text>
+        <text>3.内容要求：视频应清晰展示作品全貌和细节。</text>
       </view>
     </view>
     
