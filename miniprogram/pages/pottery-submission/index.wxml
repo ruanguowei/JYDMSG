@@ -205,7 +205,7 @@
       <view wx:if="{{workType === 'regular'}}">
         <!-- 透视图上传 -->
         <view class="form-group">
-          <view class="form-label required">透视图（1张）</view>
+          <view class="form-label required">透视图（整体图）</view>
           <view class="upload-single">
             <view class="upload-preview" wx:if="{{perspectiveImage}}">
               <image src="{{perspectiveImage}}" mode="aspectFill"></image>
@@ -215,6 +215,11 @@
               <text class="upload-icon">+</text>
               <text class="upload-text">上传透视图</text>
             </view>
+          </view>
+          <!-- 透视图要求说明 -->
+          <view class="upload-requirements">
+            <view class="requirements-title">📐 比例要求</view>
+            <view class="requirements-content">宽高比16:9（横向）完整展示作品全貌，避免竖屏拍摄</view>
           </view>
         </view>
         
@@ -232,6 +237,11 @@
               <text class="upload-icon">+</text>
             </view>
           </view>
+          <!-- 四面图要求说明 -->
+          <view class="upload-requirements">
+            <view class="requirements-title">📐 比例要求</view>
+            <view class="requirements-content">宽高比16:9（横向）角度保持一定距离</view>
+          </view>
         </view>
         
         <!-- 局部图上传 -->
@@ -247,6 +257,22 @@
             <view class="upload-button" bindtap="chooseDetailImages" wx:if="{{detailImages.length < 3}}">
               <text class="upload-icon">+</text>
             </view>
+          </view>
+          <!-- 局部图要求说明 -->
+          <view class="upload-requirements">
+            <view class="requirements-title">📐 比例要求</view>
+            <view class="requirements-content">宽高比16:9（横向）突出作品细节和工艺特色</view>
+          </view>
+        </view>
+        
+        <!-- 通用文件要求说明 -->
+        <view class="upload-requirements common-requirements">
+          <view class="requirements-title">📋 文件要求</view>
+          <view class="requirements-content">
+            <view class="requirement-item">• 文件格式：JPG格式</view>
+            <view class="requirement-item">• 文件大小：1MB-5MB</view>
+            <view class="requirement-item">• 图片质量：清晰、光线充足、对焦准确</view>
+            <view class="requirement-item">• 分辨率：300dpi及以上</view>
           </view>
         </view>
       </view>
@@ -305,12 +331,6 @@
         </view>
       </view>
       
-      <!-- 上传图片注意事项 -->
-      <view wx:if="{{workType === 'regular'}}" class="upload-tips">
-        <text>1.像素与格式：像素达到300dpi及以上，采用jpg格式。</text>
-        <text>2.图片大小：每张图片大小不小于1MB，不大于5MB。</text>
-        <text>3.图片要求：均需白底背景，清晰展示作品细节。</text>
-      </view>
       
       <!-- 视频作品注意事项 -->
       <view wx:if="{{workType === 'video'}}" class="upload-tips">

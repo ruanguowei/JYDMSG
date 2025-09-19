@@ -66,10 +66,29 @@ exports.main = async (event, context) => {
           // 添加透视图数据
           perspectiveImage: item.perspectiveImage || '',
           fourViewImages: item.fourViewImages || [],
-          detailImages: item.detailImages || []
+          detailImages: item.detailImages || [],
+          // 添加作品类型和参赛资格字段
+          workType: item.workType || 'regular',
+          qualification: item.qualification !== false // 默认为true，除非明确设置为false
         }
       })
       .filter(item => {
+        // 只显示regular类型的作品
+        if (item.workType !== 'regular') {
+          console.log(`过滤掉作品 ${item.title}：非regular类型`, {
+            workType: item.workType
+          });
+          return false;
+        }
+        
+        // 只显示有参赛资格的作品
+        if (!item.qualification) {
+          console.log(`过滤掉作品 ${item.title}：无参赛资格`, {
+            qualification: item.qualification
+          });
+          return false;
+        }
+        
         // 过滤掉没有透视图数据的作品
         const hasPerspectiveImage = item.perspectiveImage && item.perspectiveImage.trim() !== '';
         const hasFourViewImages = item.fourViewImages && item.fourViewImages.length > 0;

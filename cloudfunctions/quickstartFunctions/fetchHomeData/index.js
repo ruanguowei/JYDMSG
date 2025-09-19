@@ -156,7 +156,7 @@ exports.main = async (event, context) => {
         pdfFiles = [{
           name: '关于邀请参加第二届全国大学生陶艺作品展的函',
           url: 'cloud://jdzyzdmsg-5g4rgrjl2008796f.6a64-jdzyzdmsg-5g4rgrjl2008796f-1378111268/首页资料/关于邀请参加第二届全国大学生陶艺作品展的函.pdf',
-          size: '2.5MB',
+          size: '25MB',
           type: 'pdf'
         }];
       }

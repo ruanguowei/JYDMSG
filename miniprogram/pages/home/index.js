@@ -48,6 +48,7 @@ Page({
   previewPDF: function(e) {
     const url = e.currentTarget.dataset.url;
     const name = e.currentTarget.dataset.name || 'PDF文件';
+    const size = e.currentTarget.dataset.size || '';
     
     if (!url) {
       wx.showToast({
@@ -57,8 +58,34 @@ Page({
       return;
     }
     
+    // 检查文件大小并提示用户
+    if (size) {
+      const sizeInMB = this.parseFileSize(size);
+      if (sizeInMB > 10) { // 大于10MB的文件
+        wx.showModal({
+          title: '文件较大',
+          content: '该文件较大，下载可能需要较长时间，是否继续？',
+          confirmText: '继续',
+          cancelText: '取消',
+          success: (res) => {
+            if (res.confirm) {
+              this.startPDFDownload(url, name, size);
+            }
+          }
+        });
+        return;
+      }
+    }
+    
+    this.startPDFDownload(url, name, size);
+  },
+  
+  // 开始PDF下载
+  startPDFDownload: function(url, name, size) {
+    // 显示加载提示（不显示文件大小）
     wx.showLoading({
-      title: '正在加载PDF...'
+      title: '正在加载PDF...',
+      mask: true
     });
     
     // 如果是云存储链接，先获取临时访问链接
@@ -66,10 +93,11 @@ Page({
       wx.cloud.getTempFileURL({
         fileList: [url],
         success: res => {
-          wx.hideLoading();
           if (res.fileList && res.fileList[0] && res.fileList[0].tempFileURL) {
-            this.openPDFDocument(res.fileList[0].tempFileURL, name);
+            // 不立即隐藏loading，让openPDFDocument处理
+            this.openPDFDocument(res.fileList[0].tempFileURL, name, size);
           } else {
+            wx.hideLoading();
             wx.showToast({
               title: '获取文件链接失败',
               icon: 'none'
@@ -87,43 +115,81 @@ Page({
       });
     } else {
       // 直接使用URL
-      wx.hideLoading();
-      this.openPDFDocument(url, name);
+      this.openPDFDocument(url, name, size);
+    }
+  },
+  
+  // 解析文件大小字符串为MB数值
+  parseFileSize: function(sizeStr) {
+    if (!sizeStr) return 0;
+    
+    const size = parseFloat(sizeStr);
+    const unit = sizeStr.toUpperCase();
+    
+    if (unit.includes('GB')) {
+      return size * 1024;
+    } else if (unit.includes('MB')) {
+      return size;
+    } else if (unit.includes('KB')) {
+      return size / 1024;
+    } else {
+      return size / (1024 * 1024); // 假设是字节
     }
   },
   
   // 打开PDF文档
-  openPDFDocument: function(url, name) {
+  openPDFDocument: function(url, name, size) {
+    const self = this;
+    
+    // 更新加载提示（不显示文件大小）
+    wx.showLoading({
+      title: '正在下载PDF...',
+      mask: true
+    });
+    
     wx.downloadFile({
       url: url,
       success: function(res) {
+        wx.hideLoading();
         if (res.statusCode === 200) {
+          // 显示预览提示
+          wx.showLoading({
+            title: '正在打开PDF...',
+            mask: true
+          });
+          
           wx.openDocument({
             filePath: res.tempFilePath,
             fileType: 'pdf',
             success: function() {
+              wx.hideLoading();
               console.log('PDF预览成功');
             },
             fail: function(err) {
+              wx.hideLoading();
               console.error('PDF预览失败:', err);
               wx.showToast({
                 title: 'PDF预览失败',
-                icon: 'none'
+                icon: 'none',
+                duration: 3000
               });
             }
           });
         } else {
           wx.showToast({
             title: '文件下载失败',
-            icon: 'none'
+            icon: 'none',
+            duration: 3000
           });
         }
       },
       fail: function(err) {
+        wx.hideLoading();
         console.error('文件下载失败:', err);
         wx.showToast({
-          title: '文件下载失败',
-          icon: 'none'
+          title: '文件下载失败，请检查网络连接',
+          icon: 'none',
+          duration: 3000
         });
       }
     });

@@ -365,3 +365,48 @@ page {
   background-color: #8aa2f2;
   color: rgba(255, 255, 255, 0.8);
 }
+
+/* 上传要求说明样式 */
+.upload-requirements {
+  margin-top: 20rpx;
+  padding: 20rpx;
+  background-color: #f8f9fa;
+  border-radius: 12rpx;
+  border-left: 4rpx solid #4e6ef2;
+}
+
+.requirements-title {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #4e6ef2;
+  margin-bottom: 12rpx;
+  display: flex;
+  align-items: center;
+}
+
+.requirements-content {
+  font-size: 24rpx;
+  color: #666666;
+  line-height: 1.5;
+}
+
+.common-requirements {
+  margin-top: 30rpx;
+  background-color: #fff3cd;
+  border-left-color: #ffc107;
+}
+
+.common-requirements .requirements-title {
+  color: #856404;
+}
+
+.requirement-item {
+  margin-bottom: 8rpx;
+  font-size: 24rpx;
+  color: #666666;
+  line-height: 1.4;
+}
+
+.requirement-item:last-child {
+  margin-bottom: 0;
+}

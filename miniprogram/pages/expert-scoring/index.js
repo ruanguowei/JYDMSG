@@ -192,6 +192,35 @@ Page({
       ethicsViolation: values.includes('ethicsViolation'),
       materialsIncomplete: values.includes('materialsIncomplete')
     };
+    
+    // 检查内容违规，如果勾选则弹出确认弹窗
+    if (deductions.contentViolation && !this.data.deductions.contentViolation) {
+      wx.showModal({
+        title: '取消资格确认',
+        content: '您勾选了"内容违规"项，该作品将被直接取消参赛资格。此操作不可撤销，确认继续吗？',
+        confirmText: '确认取消资格',
+        cancelText: '返回修改',
+        success: (res) => {
+          if (res.confirm) {
+            // 确认取消资格，设置qualification为false
+            this.setData({ deductions });
+            this.calculateTotalScore();
+            this.submitScoreWithDisqualification();
+          } else {
+            // 取消操作，不勾选内容违规
+            this.setData({
+              deductions: {
+                contentViolation: false,
+                ethicsViolation: deductions.ethicsViolation,
+                materialsIncomplete: deductions.materialsIncomplete
+              }
+            });
+          }
+        }
+      });
+      return;
+    }
+    
     this.setData({ deductions });
     this.calculateTotalScore();
   },
@@ -349,20 +378,87 @@ Page({
       return;
     }
 
+    // 检查是否有未评分的项目
     if (scores.themeFit === 0 || scores.creativity === 0 || scores.craftsmanship === 0 || scores.aesthetics === 0) {
       wx.showModal({
         title: '确认提交',
         content: '您有未评分的项目，确定要提交吗？',
         success: (res) => {
           if (res.confirm) {
-            this.doSubmitScore();
+            this.showSubmitConfirmModal();
           }
         }
       });
       return;
     }
 
-    this.doSubmitScore();
+    // 显示提交确认弹窗
+    this.showSubmitConfirmModal();
+  },
+
+  // 显示提交确认弹窗
+  showSubmitConfirmModal: function() {
+    wx.showModal({
+      title: '确认提交评分',
+      content: '提交后将无法再修改分数，确定要提交吗？',
+      confirmText: '继续提交',
+      cancelText: '返回修改',
+      success: (res) => {
+        if (res.confirm) {
+          this.doSubmitScore();
+        }
+      }
+    });
+  },
+
+  // 提交评分并取消资格
+  submitScoreWithDisqualification: function() {
+    this.setData({ submitting: true });
+    
+    wx.cloud.callFunction({
+      name: 'quickstartFunctions',
+      data: {
+        type: 'submitExpertScore',
+        submissionId: this.data.submissionId,
+        scores: this.data.scores,
+        totalScore: this.data.totalScore,
+        finalScore: this.data.finalScore,
+        deductions: this.data.deductions,
+        expertId: this.data.expertInfo.expertId,
+        expertCode: this.data.expertInfo.expertCode,
+        expertName: this.data.expertInfo.expertName,
+        disqualify: true // 标记为取消资格
+      },
+      success: res => {
+        this.setData({ submitting: false });
+        
+        if (res.result && res.result.success) {
+          wx.showToast({
+            title: '作品已取消资格',
+            icon: 'success'
+          });
+          
+          // 直接跳回到专家评选页面
+          setTimeout(() => {
+            wx.navigateTo({
+              url: '/pages/expert-evaluation/index'
+            });
+          }, 1500);
+        } else {
+          wx.showToast({
+            title: res.result ? (res.result.message || '操作失败') : '操作失败',
+            icon: 'none'
+          });
+        }
+      },
+      fail: err => {
+        this.setData({ submitting: false });
+        wx.showToast({
+          title: '网络异常，请重试',
+          icon: 'none'
+        });
+      }
+    });
   },
 
   // 执行提交评分

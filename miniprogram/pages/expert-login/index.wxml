@@ -49,7 +49,7 @@
   <!-- 评审时间提示 -->
   <view class="time-tip">
     <view class="tip-title">评审时间</view>
-    <view class="tip-content">2025年10月18日 - 22日</view>
+    <view class="tip-content">{{evaluationTime || '评审时间待定'}}</view>
     <view class="tip-note">系统将于评审结束后自动关闭</view>
   </view>
 </view>

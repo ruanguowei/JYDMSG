@@ -97,11 +97,14 @@
         <view class="pdf-section" wx:if="{{currentNotice.pdfFiles && currentNotice.pdfFiles.length > 0}}">
           <view class="section-title">📄 相关文件</view>
           <view class="pdf-list">
-            <view wx:for="{{currentNotice.pdfFiles}}" wx:key="index" class="pdf-item" bindtap="previewPDF" data-url="{{item.url}}" data-name="{{item.name}}">
+            <view wx:for="{{currentNotice.pdfFiles}}" wx:key="index" class="pdf-item" bindtap="previewPDF" data-url="{{item.url}}" data-name="{{item.name}}" data-size="{{item.size}}">
               <view class="pdf-icon">📄</view>
               <view class="pdf-info">
                 <view class="pdf-name">{{item.name || 'PDF文件'}}</view>
                 <view class="pdf-size" wx:if="{{item.size}}">{{item.size}}</view>
+                <view class="pdf-warning" wx:if="{{item.size && item.size.includes('MB') && parseFloat(item.size) > 10}}">
+                  ⚠️ 大文件，下载时间较长
+                </view>
               </view>
               <view class="pdf-action">预览</view>
             </view>

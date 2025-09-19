@@ -24,9 +24,9 @@ function getLastEvaluationTime(evaluations) {
 exports.main = async (event, context) => {
   console.log('=== 专家评分提交 ===');
   
-  const { submissionId, scores, totalScore, finalScore, deductions, expertId, expertName, expertCode } = event
+  const { submissionId, scores, totalScore, finalScore, deductions, expertId, expertName, expertCode, disqualify } = event
   
-  console.log('作品ID:', submissionId, '专家:', expertName, '专家Code:', expertCode, '总分:', totalScore);
+  console.log('作品ID:', submissionId, '专家:', expertName, '专家Code:', expertCode, '总分:', totalScore, '取消资格:', disqualify);
   
   try {
     // 验证评分数据
@@ -114,14 +114,26 @@ exports.main = async (event, context) => {
       evaluations.push(evaluationRecord)
     }
     
+    // 准备更新数据
+    const updateData = {
+      evaluations: evaluations
+    }
+    
+    // 如果标记为取消资格，更新作品的qualification字段
+    if (disqualify) {
+      updateData.qualification = false;
+      updateData.disqualifyReason = '内容违规';
+      updateData.disqualifyTime = new Date();
+      updateData.disqualifyExpert = expertName;
+      console.log('⚠️ 作品将被取消资格');
+    }
+    
     // 更新数据库
     try {
       const updateResult = await db.collection('pottery_submissions')
         .doc(submissionId)
         .update({
-          data: {
-            evaluations: evaluations
-          }
+          data: updateData
         });
       
       const updatedCount = updateResult.stats.updated;
@@ -153,7 +165,8 @@ exports.main = async (event, context) => {
           finalScore: finalScore || totalScore,
           deductions: deductions || {}, // 扣分项为空对象，支持动态添加
           evaluationTime: new Date(),
-          ip: context.CLIENTIP || 'unknown'
+          ip: context.CLIENTIP || 'unknown',
+          disqualify: disqualify || false // 记录是否取消资格
         }
       })
     } catch (logError) {
@@ -167,10 +180,11 @@ exports.main = async (event, context) => {
     
     return {
       success: true,
-      message: '评分提交成功',
+      message: disqualify ? '作品已取消资格' : '评分提交成功',
       data: {
         lastEvaluationTime: lastEvaluationTime,
-        totalEvaluations: evaluations.length
+        totalEvaluations: evaluations.length,
+        disqualify: disqualify || false
       }
     }
     

@@ -27,18 +27,6 @@ exports.main = async (event, context) => {
     
     const expert = expertResult.data[0]
     
-    // 检查评审时间是否在有效期内
-    const now = new Date()
-    const startTime = new Date('2025-9-8')
-    const endTime = new Date('2025-10-22')
-    
-    if (now < startTime || now > endTime) {
-      return {
-        success: false,
-        message: '评审时间未到或已结束（评审时间：2025年10月18日-22日）'
-      }
-    }
-    
     // 记录登录日志
     await db.collection('expertLoginLogs').add({
       data: {

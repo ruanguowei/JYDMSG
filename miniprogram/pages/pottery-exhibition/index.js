@@ -35,8 +35,86 @@ Page({
   
   // 导航到参展提交页面
   navigateToSubmission: function() {
-    // 先检查用户是否已经报名
-    this.checkSubmissionStatus();
+    // 先校验提交时间窗口
+    wx.showLoading({ title: '校验提交时间...', mask: true })
+    wx.cloud.callFunction({
+      name: 'quickstartFunctions',
+      data: { type: 'getDeliveryTimeLimit' },
+      success: res => {
+        wx.hideLoading()
+        if (!res.result || !res.result.success) {
+          wx.showToast({ title: '无法获取提交时间配置', icon: 'none' })
+          return
+        }
+        const cfg = res.result.data
+        if (!cfg || !cfg.submissionBeginDeadline || !cfg.submissionEndDeadline) {
+          wx.showModal({
+            title: '提示',
+            content: '尚未配置作品提交时间，请稍后再试。',
+            showCancel: false
+          })
+          return
+        }
+        
+        // 使用相同的时间解析逻辑
+        const parseTimeToMs = (timeStr, isEndTime = false) => {
+          if (!timeStr) return NaN
+          const date = new Date(timeStr)
+          let time = date.getTime()
+          
+          // 如果是结束时间且只有日期没有时间（时间为00:00:00）
+          if (isEndTime && date.getHours() === 0 && date.getMinutes() === 0 && date.getSeconds() === 0) {
+            // 设置为当天的23:59:59
+            time = time + 24 * 60 * 60 * 1000 - 1000 // 加一天减1毫秒
+          }
+          
+          return time
+        }
+        
+        const now = Date.now()
+        const start = parseTimeToMs(cfg.submissionBeginDeadline, false)
+        const end = parseTimeToMs(cfg.submissionEndDeadline, true)
+        
+        console.log('[submission_time_limit] raw:', cfg, 'parsed:', { start, end, now })
+        
+        if (isNaN(start) || isNaN(end)) {
+          wx.showModal({
+            title: '提示',
+            content: '提交时间配置格式错误，请联系管理员。',
+            showCancel: false
+          })
+          return
+        }
+        
+        if (now < start) {
+          const startDate = new Date(start).toLocaleDateString('zh-CN')
+          wx.showModal({
+            title: '提示',
+            content: `作品提交尚未开始，开始时间：${startDate}`,
+            showCancel: false
+          })
+          return
+        }
+        
+        if (now > end) {
+          const endDate = new Date(end).toLocaleDateString('zh-CN')
+          wx.showModal({
+            title: '提示',
+            content: `作品提交已结束，结束时间：${endDate}`,
+            showCancel: false
+          })
+          return
+        }
+        
+        // 时间验证通过后，检查是否已提交
+        this.checkSubmissionStatus()
+      },
+      fail: err => {
+        wx.hideLoading()
+        console.error('获取提交时间配置失败', err)
+        wx.showToast({ title: '网络异常，请重试', icon: 'none' })
+      }
+    })
   },
   
   
@@ -131,15 +209,23 @@ Page({
         }
         
         // 解析时间配置
-        const parseTimeToMs = (timeStr) => {
+        const parseTimeToMs = (timeStr, isEndTime = false) => {
           if (!timeStr) return NaN
           const date = new Date(timeStr)
-          return date.getTime()
+          let time = date.getTime()
+          
+          // 如果是结束时间且只有日期没有时间（时间为00:00:00）
+          if (isEndTime && date.getHours() === 0 && date.getMinutes() === 0 && date.getSeconds() === 0) {
+            // 设置为当天的23:59:59
+            time = time + 24 * 60 * 60 * 1000 - 1000 // 加一天减1毫秒
+          }
+          
+          return time
         }
         
         const now = Date.now()
-        const start = parseTimeToMs(cfg.deliveryBeginTime)
-        const end = parseTimeToMs(cfg.deliveryEndTime)
+        const start = parseTimeToMs(cfg.deliveryBeginTime, false)
+        const end = parseTimeToMs(cfg.deliveryEndTime, true)
         
         console.log('[delivery_time_limit] raw:', cfg, 'parsed:', { start, end, now })
         
@@ -207,31 +293,30 @@ Page({
           })
           return
         }
-        // 前端严格按 YYYYMMDD 数字解析为本地时间（00:00 与 23:59）
-        const parseYmdToMs = (n, isEnd) => {
-          if (n == null) return NaN
-          // 兼容数字/字符串，去除非数字字符与空白
-          const s = String(n).replace(/[^\d]/g, '').slice(0, 8)
-          if (s.length !== 8) return NaN
-          const y = parseInt(s.slice(0,4), 10)
-          const m = parseInt(s.slice(4,6), 10) - 1
-          const d = parseInt(s.slice(6,8), 10)
-          const dt = new Date(y, m, d)
-          if (isEnd) {
-            dt.setHours(23,59,59,999)
-          } else {
-            dt.setHours(0,0,0,0)
+        // 使用与推选入口、作品运送相同的时间解析逻辑
+        const parseTimeToMs = (timeStr, isEndTime = false) => {
+          if (!timeStr) return NaN
+          const date = new Date(timeStr)
+          let time = date.getTime()
+          
+          // 如果是结束时间且只有日期没有时间（时间为00:00:00）
+          if (isEndTime && date.getHours() === 0 && date.getMinutes() === 0 && date.getSeconds() === 0) {
+            // 设置为当天的23:59:59
+            time = time + 24 * 60 * 60 * 1000 - 1000 // 加一天减1毫秒
           }
-          return dt.getTime()
+          
+          return time
         }
+        
         const now = Date.now()
-        const start = parseYmdToMs(cfg.startTime, false)
-        const end = parseYmdToMs(cfg.endTime, true)
+        const start = parseTimeToMs(cfg.startTime, false)
+        const end = parseTimeToMs(cfg.endTime, true)
         console.log('[evaluation_settings] raw:', cfg, 'parsed:', { start, end, now })
+        
         if (isNaN(start) || isNaN(end)) {
           wx.showModal({
-            title: '配置有误',
-            content: `评审时间格式需为8位数字 YYYYMMDD。当前: startTime=${cfg.startTime}, endTime=${cfg.endTime}`,
+            title: '提示',
+            content: '评审时间配置格式错误，请联系管理员。',
             showCancel: false
           })
           return

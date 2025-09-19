@@ -355,6 +355,17 @@ page {
   color: #7f8c8d;
 }
 
+.pdf-warning {
+  font-size: 22rpx;
+  color: #e67e22;
+  margin-top: 6rpx;
+  padding: 4rpx 8rpx;
+  background-color: #fdf2e9;
+  border-radius: 6rpx;
+  border-left: 3rpx solid #e67e22;
+  display: inline-block;
+}
+
 .pdf-action {
   font-size: 26rpx;
   color: #3498db;

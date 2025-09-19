@@ -6,11 +6,51 @@ Page({
     expertCode: '', // 专家验证码
     expertName: '', // 专家姓名
     loading: false,
-    showRules: false // 是否显示评审规则
+    showRules: false, // 是否显示评审规则
+    evaluationTime: '' // 评审时间提示
   },
 
   onLoad: function() {
     // 强制每次进入都要求输入并验证，不再自动跳过
+    // 获取评审时间配置
+    this.fetchEvaluationTime();
+  },
+
+  // 获取评审时间配置
+  fetchEvaluationTime: function() {
+    wx.cloud.callFunction({
+      name: 'quickstartFunctions',
+      data: { type: 'getEvaluationSettings' },
+      success: res => {
+        if (res.result && res.result.success && res.result.data) {
+          const cfg = res.result.data;
+          if (cfg.startTime && cfg.endTime) {
+            // 格式化时间显示
+            const startDate = this.formatDate(cfg.startTime);
+            const endDate = this.formatDate(cfg.endTime);
+            this.setData({
+              evaluationTime: `${startDate} - ${endDate}`
+            });
+          }
+        }
+      },
+      fail: err => {
+        console.error('获取评审时间配置失败', err);
+        // 失败时使用默认提示
+        this.setData({
+          evaluationTime: '评审时间待定'
+        });
+      }
+    });
+  },
+
+  // 格式化日期显示
+  formatDate: function(dateStr) {
+    const date = new Date(dateStr);
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    return `${year}年${month}月${day}日`;
   },
 
   // 检查登录状态

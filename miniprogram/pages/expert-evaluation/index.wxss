@@ -336,6 +336,7 @@
 
 .admin-form-input {
   width: 100%;
+  max-width: 400rpx;
   height: 80rpx;
   background: #f8f9fa;
   border: 2rpx solid #e0e0e0;
@@ -343,6 +344,7 @@
   padding: 0 20rpx;
   font-size: 28rpx;
   color: #333333;
+  box-sizing: border-box;
 }
 
 .admin-form-input:focus {
