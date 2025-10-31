@@ -147,6 +147,12 @@
   border-left: 1rpx solid #eee;
 }
 
+.edit-btn.disabled {
+  color: #ccc;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
 /* 无数据提示 */
 .no-records {
   display: flex;

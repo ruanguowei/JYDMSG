@@ -481,3 +481,66 @@
   margin-bottom: 0;
 }
 
+/* ⚠️ 取消资格项样式 */
+.disqualify-section {
+  background: #fff3f0;
+  border-radius: 15rpx;
+  padding: 30rpx;
+  margin-bottom: 20rpx;
+  border: 2rpx solid #e74c3c;
+  box-shadow: 0 2rpx 10rpx rgba(231, 76, 60, 0.1);
+}
+
+.disqualify-header {
+  margin-bottom: 20rpx;
+}
+
+.disqualify-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #e74c3c;
+  margin-bottom: 10rpx;
+  display: flex;
+  align-items: center;
+}
+
+.disqualify-warning {
+  font-size: 24rpx;
+  color: #e74c3c;
+  background: #fee;
+  padding: 10rpx 15rpx;
+  border-radius: 8rpx;
+  margin-top: 10rpx;
+}
+
+.disqualify-item {
+  display: flex;
+  align-items: flex-start;
+  padding: 20rpx;
+  background: #ffffff;
+  border-radius: 10rpx;
+  border: 2rpx solid #ffcccc;
+}
+
+.disqualify-item checkbox {
+  margin-right: 15rpx;
+  margin-top: 5rpx;
+}
+
+.disqualify-text {
+  flex: 1;
+}
+
+.disqualify-main {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #e74c3c;
+  margin-bottom: 8rpx;
+}
+
+.disqualify-desc {
+  font-size: 24rpx;
+  color: #999999;
+  line-height: 1.5;
+}
+

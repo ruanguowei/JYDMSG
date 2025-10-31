@@ -1,0 +1,31 @@
+{
+  "type": "swapEvaluations",
+  "targetTable": "pottery_submissions_clean",
+  "mode": "best-effort",
+  "swaps": [
+    {
+      "workId1": "def9fa8468face4500715bab1c170617",
+      "workName1": "《浮生前眼录》",
+      "workId2": "7433728468face3b0071b5c91380b7af",
+      "workName2": "赤林灵跃"
+    },
+    {
+      "workId1": "7f4b671368face3900727f9e2785916a",
+      "workName1": "兰时",
+      "workId2": "e18d057968face3c007b8a4138fefab0",
+      "workName2": "无首揖客"
+    },
+    {
+      "workId1": "a235246468face42007102d352792568",
+      "workName1": "彩花蝶锦簇图",
+      "workId2": "ab92778668face3d007230cbb547bc97",
+      "workName2": "生命的韵律"
+    },
+    {
+      "workId1": "e18d057968face3c007b8a444d7d848e",
+      "workName1": "《古今砂韵》",
+      "workId2": "8f6c3a6368face3d007b12a12bf6d643",
+      "workName2": "丝路古垣"
+    }
+  ]
+}

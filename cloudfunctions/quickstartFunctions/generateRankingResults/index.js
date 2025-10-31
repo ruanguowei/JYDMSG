@@ -16,6 +16,15 @@ const categoryMap = {
   'vision': '视界类'
 }
 
+/**
+ * 判断是否为港澳台作品
+ */
+function isHkMacauTaiwan(schoolProvinces) {
+  const province = schoolProvinces || '';
+  return province === '香港' || province === '澳门' || province === '台湾' ||
+         province === '香港特别行政区' || province === '澳门特别行政区' || province === '台湾省';
+}
+
 // 分类目标数量（用于参考，实际不筛选）
 const categoryTargets = {
   'technique': 100,

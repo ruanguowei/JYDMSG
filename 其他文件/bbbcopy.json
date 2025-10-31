@@ -1,0 +1,33 @@
+{
+    "type": "swapEvaluationsByName",
+    "targetTable": "pottery_submissions_clean",
+    "mode": "best-effort",
+    "swaps": [
+      {
+        "workName1": "入海",
+        "workName2": "四季藻井·数字纹章"
+      },
+      {
+        "workName1": "绽放",
+        "workName2": "我们睡在词的背面"
+      },
+      {
+        "workName1": "《憩》",
+        "workName2": "草木星鱼"
+      },
+      {
+        "workName1": "雪山瓷韵",
+        "workName2": "筇竹茶具"
+      },
+      {
+        "workName1": "常青",
+        "workName2": "《古韵新姿——单耳几何纹彩陶罐的数字化演绎》"
+      },
+      {
+        "workName1": "星藏",
+        "workName2": "《雪域驮歌》"
+      }
+      
+      
+    ]
+  }

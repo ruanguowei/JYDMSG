@@ -6,6 +6,13 @@ Page({
     expertInfo: null, // 专家信息
     submissions: [], // 待评选作品列表（只包含未评分的）
     loading: true,
+    // 评委角色信息
+    expertRoleInfo: null,
+    showPhaseInfo: false,
+    // 评分统计信息
+    statistics: null,
+    // 刷新标记
+    needRefresh: false,
     // 管理员相关
     showAdminModal: false,
     adminAccount: '',
@@ -23,8 +30,11 @@ Page({
   },
 
   onShow: function() {
-    // 页面显示时刷新数据
-    this.fetchSubmissions();
+    // 每次页面显示时自动刷新作品列表
+    console.log('页面显示，自动刷新作品列表');
+    if (this.data.expertInfo) {
+      this.fetchSubmissions();
+    }
   },
 
   // 检查登录状态
@@ -75,20 +85,24 @@ Page({
         
         if (res.result && res.result.success) {
           const allSubmissions = res.result.data || [];
+          const expertInfo = res.result.expertInfo || null;
+          const statistics = res.result.statistics || null;
           
-          // 只显示未评分的作品
-          const unevaluatedSubmissions = allSubmissions.filter(item => !item.isEvaluated);
+          // 直接显示返回的作品（云函数已过滤为未评分的前10件）
+          const submissionsToShow = allSubmissions;
           
           // 调试信息：输出专家信息和作品列表
           console.log('=== 专家评审页面调试信息 ===');
           console.log('当前专家信息:', this.data.expertInfo);
           console.log('专家Code:', this.data.expertInfo ? this.data.expertInfo.expertCode : '未获取到');
-          console.log('全部作品数量:', allSubmissions.length);
-          console.log('未评分作品数量:', unevaluatedSubmissions.length);
+          console.log('评委角色信息:', expertInfo);
+          console.log('统计信息:', statistics);
+          console.log('本次显示作品数量:', submissionsToShow.length);
+          console.log('剩余未评分:', statistics ? statistics.unevaluated : 0);
           
-          // 调试信息：输出每个未评分作品的信息
-          unevaluatedSubmissions.forEach((submission, index) => {
-            console.log(`未评分作品${index + 1}:`, {
+          // 调试信息：输出每个作品的信息
+          submissionsToShow.forEach((submission, index) => {
+            console.log(`作品${index + 1}:`, {
               id: submission.id,
               title: submission.title,
               category: submission.categoryName
@@ -97,8 +111,21 @@ Page({
           console.log('========================');
           
           this.setData({
-            submissions: unevaluatedSubmissions
+            submissions: submissionsToShow,
+            expertRoleInfo: expertInfo,
+            statistics: statistics,
+            showPhaseInfo: true
           });
+          
+          // 如果所有作品都评完了，显示提示
+          if (statistics && statistics.unevaluated === 0) {
+            wx.showModal({
+              title: '🎉 评分完成',
+              content: `您已完成所有作品的评分！\n\n总计评分：${statistics.evaluated}件`,
+              showCancel: false,
+              confirmText: '知道了'
+            });
+          }
         } else {
           console.error('获取作品列表失败', res);
           wx.showToast({
@@ -200,14 +227,31 @@ Page({
         this.setData({ adminLoading: false });
         
         if (res.result && res.result.success) {
-          // 验证成功，隐藏登录弹窗，显示进度弹窗
-          this.setData({
-            showAdminModal: false,
-            showProgressModal: true
+          // 验证成功
+          wx.showToast({
+            title: '验证成功',
+            icon: 'success',
+            duration: 1500
           });
           
-          // 调用生成排名结果云函数
-          this.generateRankingResults(adminAccount.trim(), adminPassword.trim());
+          // 保存管理员信息到本地
+          wx.setStorageSync('adminInfo', {
+            account: adminAccount.trim(),
+            id: res.result.adminInfo.id,
+            isLoggedIn: true
+          });
+          
+          // 隐藏登录弹窗
+          this.setData({
+            showAdminModal: false
+          });
+          
+          // 跳转到管理员面板
+          setTimeout(() => {
+            wx.navigateTo({
+              url: '/pages/admin-panel/index'
+            });
+          }, 1500);
         } else {
           wx.showToast({
             title: res.result ? res.result.message : '验证失败',

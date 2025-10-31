@@ -8,14 +8,36 @@ cloud.init({
 const db = cloud.database()
 
 exports.main = async (event, context) => {
-  const { submissionId } = event
+  const { submissionId, expertCode } = event
   const expertId = event.expertId || context.OPENID
   
   try {
-    // 获取作品详情
-    const submissionResult = await db.collection('pottery_submissions')
-      .doc(submissionId)
-      .get()
+    // 获取专家信息，判断评委类型
+    let expertType = '';
+    if (expertCode) {
+      const expertResult = await db.collection('experts')
+        .where({ expertCode: expertCode })
+        .get();
+      
+      if (expertResult.data.length > 0) {
+        expertType = expertResult.data[0].expertType || '';
+      }
+    }
+    
+    // 获取作品详情 - 根据评委类型从不同表读取
+    let submissionResult;
+    
+    if (expertType === 'final') {
+      // 终评评委：从终评评分表读取
+      submissionResult = await db.collection('pottery_submissions_for_final')
+        .doc(submissionId)
+        .get();
+    } else {
+      // 初评评委：从清洗表读取
+      submissionResult = await db.collection('pottery_submissions_clean')
+        .doc(submissionId)
+        .get();
+    }
     
     if (!submissionResult.data) {
       return {
@@ -105,7 +127,9 @@ exports.main = async (event, context) => {
         description: submission.artworkDescription || submission.description || '',
         artworkDescription: submission.artworkDescription || submission.description || '',
         submitTime: submission.submissionTime || submission.submitTime || null,
-        existingScores: existingScores
+        existingScores: existingScores,
+        // 视频作品固定编号
+        videoNumber: submission.videoNumber || ''
       }
     }
     

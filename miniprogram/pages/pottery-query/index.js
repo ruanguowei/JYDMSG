@@ -14,13 +14,16 @@ Page({
       'pending': '审核中',
       'approved': '已通过',
       'rejected': '未通过'
-    }
+    },
+    submissionClosed: false,  // 申报是否已截止
+    deadline: ''  // 截止时间（用于显示）
   },
 
   /**
    * 生命周期函数--监听页面加载
    */
   onLoad(options) {
+    this.checkSubmissionDeadline();  // 检查申报截止时间
     this.fetchAllSubmissions();
   },
 
@@ -208,6 +211,18 @@ Page({
   },
 
   /**
+   * 显示申报已截止提示
+   */
+  showClosedTip() {
+    wx.showModal({
+      title: '申报已截止',
+      content: `申报时间已于 ${this.data.deadline} 截止。\n\n已提交的作品无法再修改。`,
+      showCancel: false,
+      confirmText: '知道了'
+    });
+  },
+
+  /**
    * 显示修改选项弹窗
    */
   showEditOptions(e) {
@@ -234,6 +249,46 @@ Page({
         }
       }
     });
+  },
+
+  /**
+   * 检查申报截止时间
+   */
+  checkSubmissionDeadline() {
+    wx.cloud.database().collection('timeLimit')
+      .limit(1)
+      .get({
+        success: res => {
+          if (res.data.length > 0) {
+            const timeLimit = res.data[0];
+            const now = new Date();
+            const submissionEndDeadline = new Date(timeLimit.submissionEndDeadline);
+            
+            const isClosed = now > submissionEndDeadline;
+            
+            console.log('===== 申报时间状态 =====');
+            console.log('当前时间:', now);
+            console.log('截止时间:', submissionEndDeadline);
+            console.log('是否已截止:', isClosed);
+            
+            this.setData({
+              submissionClosed: isClosed,
+              deadline: submissionEndDeadline.toLocaleString('zh-CN')
+            });
+            
+            if (isClosed) {
+              console.log('申报已截止，修改按钮将被禁用');
+            }
+          } else {
+            console.log('timeLimit 表为空，修改按钮保持可用');
+          }
+        },
+        fail: err => {
+          console.error('检查截止时间失败', err);
+          // 检查失败，默认不禁用（避免影响用户）
+          this.setData({ submissionClosed: false });
+        }
+      });
   },
 
   /**

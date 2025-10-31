@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>专家登录诊断 - 一键检查修复</title>
+    <script src="https://res.wx.qq.com/open/js/jweixin-1.6.0.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            padding: 30px;
+        }
+        
+        h1 {
+            color: #2d3748;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .subtitle {
+            color: #718096;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-weight: 500;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+        }
+        
+        .test-section {
+            background: #f7fafc;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .test-title {
+            font-size: 18px;
+            color: #2d3748;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .input-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #4a5568;
+            font-weight: 500;
+        }
+        
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        #results {
+            margin-top: 20px;
+        }
+        
+        .result-card {
+            background: white;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .expert-card {
+            background: white;
+            padding: 15px;
+            margin-bottom: 12px;
+            border-radius: 8px;
+            border: 2px solid #e2e8f0;
+        }
+        
+        .expert-card.success {
+            border-color: #48bb78;
+            background: #f0fff4;
+        }
+        
+        .expert-card.error {
+            border-color: #f56565;
+            background: #fff5f5;
+        }
+        
+        .expert-name {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #2d3748;
+        }
+        
+        .expert-info {
+            font-size: 13px;
+            color: #4a5568;
+            margin-bottom: 5px;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+        
+        .status-badge.success {
+            background: #48bb78;
+            color: white;
+        }
+        
+        .status-badge.error {
+            background: #f56565;
+            color: white;
+        }
+        
+        .issue-list {
+            margin-top: 8px;
+            padding-left: 20px;
+            font-size: 12px;
+            color: #e53e3e;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            border: 2px solid #e2e8f0;
+        }
+        
+        .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            color: #2d3748;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: #718096;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #718096;
+        }
+        
+        pre {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 专家登录诊断工具</h1>
+        <p class="subtitle">一键检查和修复专家登录问题（请在小程序中打开此页面）</p>
+        
+        <div class="actions">
+            <button class="btn" onclick="checkExperts()">
+                📋 检查所有专家账号
+            </button>
+            <button class="btn btn-success" onclick="fixExperts()">
+                🔧 自动修复问题
+            </button>
+        </div>
+        
+        <div class="test-section">
+            <div class="test-title">🧪 测试单个专家登录</div>
+            <div class="input-group">
+                <label>专家姓名：</label>
+                <input type="text" id="testName" placeholder="请输入专家姓名（如：王琦）">
+            </div>
+            <div class="input-group">
+                <label>专家验证码：</label>
+                <input type="text" id="testCode" placeholder="请输入验证码（如：fin006）">
+            </div>
+            <button class="btn" onclick="testLogin()">测试登录</button>
+        </div>
+        
+        <div id="results"></div>
+    </div>
+
+    <script>
+        // 检查所有专家账号
+        async function checkExperts() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<div class="loading">正在检查...</div>';
+            
+            try {
+                const res = await wx.cloud.callFunction({
+                    name: 'quickstartFunctions',
+                    data: {
+                        type: 'diagnoseExpertLogin',
+                        action: 'check'
+                    }
+                });
+                
+                if (res.result && res.result.success) {
+                    displayCheckResults(res.result.data);
+                } else {
+                    resultsDiv.innerHTML = `<div class="result-card">❌ ${res.result.message || '检查失败'}</div>`;
+                }
+            } catch (error) {
+                console.error(error);
+                resultsDiv.innerHTML = `<div class="result-card">❌ 调用失败：${error.message}</div>`;
+            }
+        }
+        
+        // 显示检查结果
+        function displayCheckResults(data) {
+            const resultsDiv = document.getElementById('results');
+            
+            let html = `
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-number">${data.total}</div>
+                        <div class="stat-label">专家总数</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" style="color: #48bb78;">${data.canLogin}</div>
+                        <div class="stat-label">可以登录</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" style="color: #f56565;">${data.hasIssues}</div>
+                        <div class="stat-label">有问题</div>
+                    </div>
+                </div>
+                
+                <div class="result-card">
+                    <h3 style="margin-bottom: 15px;">专家账号详情</h3>
+            `;
+            
+            data.experts.forEach(expert => {
+                const cardClass = expert.canLogin ? 'success' : 'error';
+                const statusText = expert.canLogin ? '✅ 可以登录' : '❌ 无法登录';
+                const statusClass = expert.canLogin ? 'success' : 'error';
+                
+                html += `
+                    <div class="expert-card ${cardClass}">
+                        <div class="expert-name">${expert.expertName || '【无姓名】'}</div>
+                        <div class="expert-info">验证码：${expert.expertCode || '【空】'}</div>
+                        <div class="expert-info">类型：${expert.expertType || '未设置'}</div>
+                        <div class="expert-info">状态：${expert.status || '【空】'}</div>
+                        <div class="status-badge ${statusClass}">${statusText}</div>
+                        ${expert.issues.length > 0 ? `
+                            <ul class="issue-list">
+                                ${expert.issues.map(issue => `<li>${issue}</li>`).join('')}
+                            </ul>
+                        ` : ''}
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            resultsDiv.innerHTML = html;
+        }
+        
+        // 自动修复问题
+        async function fixExperts() {
+            if (!confirm('确定要自动修复所有专家账号吗？\n\n修复内容：\n- 去除姓名和验证码中的多余空格\n- 设置status为active')) {
+                return;
+            }
+            
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<div class="loading">正在修复...</div>';
+            
+            try {
+                const res = await wx.cloud.callFunction({
+                    name: 'quickstartFunctions',
+                    data: {
+                        type: 'diagnoseExpertLogin',
+                        action: 'fix'
+                    }
+                });
+                
+                if (res.result && res.result.success) {
+                    let html = `<div class="result-card">
+                        <h3>✅ ${res.result.message}</h3>
+                    `;
+                    
+                    if (res.result.data.fixes.length > 0) {
+                        html += '<h4 style="margin-top: 15px;">修复详情：</h4>';
+                        res.result.data.fixes.forEach(fix => {
+                            html += `
+                                <div style="margin: 10px 0; padding: 10px; background: #f0fff4; border-radius: 4px;">
+                                    <strong>${fix.expertName} (${fix.expertCode})</strong>
+                                    <ul style="margin-top: 5px; padding-left: 20px; font-size: 13px;">
+                                        ${fix.fixes.map(f => `<li>${f}</li>`).join('')}
+                                    </ul>
+                                </div>
+                            `;
+                        });
+                    } else {
+                        html += '<p style="margin-top: 10px;">所有账号都正常，无需修复。</p>';
+                    }
+                    
+                    html += '</div>';
+                    resultsDiv.innerHTML = html;
+                    
+                    // 修复后自动检查一次
+                    setTimeout(checkExperts, 2000);
+                } else {
+                    resultsDiv.innerHTML = `<div class="result-card">❌ ${res.result.message || '修复失败'}</div>`;
+                }
+            } catch (error) {
+                console.error(error);
+                resultsDiv.innerHTML = `<div class="result-card">❌ 调用失败：${error.message}</div>`;
+            }
+        }
+        
+        // 测试单个专家登录
+        async function testLogin() {
+            const expertName = document.getElementById('testName').value.trim();
+            const expertCode = document.getElementById('testCode').value.trim();
+            
+            if (!expertName || !expertCode) {
+                alert('请输入专家姓名和验证码');
+                return;
+            }
+            
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<div class="loading">正在测试...</div>';
+            
+            try {
+                const res = await wx.cloud.callFunction({
+                    name: 'quickstartFunctions',
+                    data: {
+                        type: 'diagnoseExpertLogin',
+                        action: 'test',
+                        expertName: expertName,
+                        expertCode: expertCode
+                    }
+                });
+                
+                if (res.result && res.result.success) {
+                    const data = res.result.data;
+                    
+                    let html = `
+                        <div class="result-card">
+                            <h3>${data.suggestion}</h3>
+                            <div style="margin-top: 15px;">
+                                <p><strong>输入信息：</strong></p>
+                                <p>姓名：${expertName}</p>
+                                <p>验证码：${expertCode}</p>
+                            </div>
+                            <div style="margin-top: 15px;">
+                                <p><strong>匹配结果：</strong></p>
+                                <p>严格匹配（可登录）：${data.strictMatch > 0 ? '✅ 是' : '❌ 否'}</p>
+                                <p>验证码匹配：${data.codeMatch > 0 ? '✅ 是' : '❌ 否'}</p>
+                                <p>姓名匹配：${data.nameMatch > 0 ? '✅ 是' : '❌ 否'}</p>
+                            </div>
+                    `;
+                    
+                    if (data.strictResult) {
+                        html += `
+                            <div style="margin-top: 15px;">
+                                <p><strong>✅ 找到匹配的专家：</strong></p>
+                                <pre>${JSON.stringify(data.strictResult, null, 2)}</pre>
+                            </div>
+                        `;
+                    } else if (data.codeOnlyResult) {
+                        html += `
+                            <div style="margin-top: 15px;">
+                                <p><strong>⚠️ 验证码正确，但姓名不匹配：</strong></p>
+                                <p>数据库中的姓名：<code>${data.codeOnlyResult.expertName}</code></p>
+                                <p>您输入的姓名：<code>${expertName}</code></p>
+                            </div>
+                        `;
+                    } else if (data.nameOnlyResult) {
+                        html += `
+                            <div style="margin-top: 15px;">
+                                <p><strong>⚠️ 姓名正确，但验证码不匹配：</strong></p>
+                                <p>数据库中的验证码：<code>${data.nameOnlyResult.expertCode}</code></p>
+                                <p>您输入的验证码：<code>${expertCode}</code></p>
+                            </div>
+                        `;
+                    }
+                    
+                    html += '</div>';
+                    resultsDiv.innerHTML = html;
+                } else {
+                    resultsDiv.innerHTML = `<div class="result-card">❌ ${res.result.message || '测试失败'}</div>`;
+                }
+            } catch (error) {
+                console.error(error);
+                resultsDiv.innerHTML = `<div class="result-card">❌ 调用失败：${error.message}</div>`;
+            }
+        }
+        
+        // 页面加载时初始化微信云开发
+        wx.cloud.init({
+            // 使用当前环境
+            traceUser: true
+        });
+    </script>
+</body>
+</html>
+
+
+
+
+
+

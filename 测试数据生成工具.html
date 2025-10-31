@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>评选系统测试数据生成工具</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: #ffffff;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+    }
+    
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 40px;
+      text-align: center;
+    }
+    
+    .header h1 {
+      font-size: 32px;
+      margin-bottom: 10px;
+    }
+    
+    .header p {
+      font-size: 16px;
+      opacity: 0.9;
+    }
+    
+    .content {
+      padding: 40px;
+    }
+    
+    .section {
+      margin-bottom: 40px;
+      padding: 30px;
+      background: #f8f9fa;
+      border-radius: 15px;
+      border: 2px solid #e9ecef;
+    }
+    
+    .section-title {
+      font-size: 24px;
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 3px solid #667eea;
+    }
+    
+    .scenario {
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      border-left: 5px solid #667eea;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+    
+    .scenario:last-child {
+      margin-bottom: 0;
+    }
+    
+    .scenario-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    
+    .scenario-icon {
+      font-size: 28px;
+      margin-right: 12px;
+    }
+    
+    .scenario-name {
+      font-size: 20px;
+      font-weight: bold;
+      color: #333;
+    }
+    
+    .scenario-desc {
+      color: #666;
+      margin-bottom: 15px;
+      line-height: 1.6;
+    }
+    
+    .code-box {
+      background: #2d3748;
+      color: #a0aec0;
+      padding: 20px;
+      border-radius: 8px;
+      font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+      font-size: 14px;
+      line-height: 1.6;
+      overflow-x: auto;
+      margin: 15px 0;
+      border: 1px solid #4a5568;
+    }
+    
+    .code-box code {
+      color: #48bb78;
+    }
+    
+    .code-box .comment {
+      color: #718096;
+    }
+    
+    .button-group {
+      display: flex;
+      gap: 15px;
+      margin-top: 20px;
+    }
+    
+    .btn {
+      flex: 1;
+      padding: 15px 25px;
+      font-size: 16px;
+      font-weight: bold;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-align: center;
+    }
+    
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    
+    .btn-success {
+      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+      color: white;
+    }
+    
+    .btn-warning {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      color: white;
+    }
+    
+    .btn-danger {
+      background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+      color: #333;
+    }
+    
+    .info-box {
+      background: #e3f2fd;
+      border-left: 5px solid #2196f3;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+    
+    .warning-box {
+      background: #fff3e0;
+      border-left: 5px solid #ff9800;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+    
+    .success-box {
+      background: #e8f5e9;
+      border-left: 5px solid #4caf50;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+    
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 15px;
+      margin: 20px 0;
+    }
+    
+    .stat-item {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+    
+    .stat-value {
+      font-size: 32px;
+      font-weight: bold;
+      color: #667eea;
+      margin-bottom: 8px;
+    }
+    
+    .stat-label {
+      font-size: 14px;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🧪 评选系统测试数据生成工具</h1>
+      <p>快速生成测试数据，模拟不同评选阶段</p>
+    </div>
+    
+    <div class="content">
+      <!-- 说明 -->
+      <div class="info-box">
+        <strong>📌 使用说明：</strong><br>
+        1. 在微信开发者工具中打开此HTML文件（或在浏览器中打开）<br>
+        2. 复制对应场景的代码<br>
+        3. 在云开发控制台执行代码<br>
+        4. 测试完成后记得清理数据
+      </div>
+      
+      <!-- 场景1：取消评选 -->
+      <div class="section">
+        <div class="section-title">场景1：测试"取消评选"（< 320件）</div>
+        
+        <div class="scenario">
+          <div class="scenario-header">
+            <div class="scenario-icon">❌</div>
+            <div class="scenario-name">生成300件作品</div>
+          </div>
+          <div class="scenario-desc">
+            生成300件普通作品（含港澳台20件 + 视界类30件），参赛作品数为250件，触发"取消评选"
+          </div>
+          
+          <div class="code-box">
+<span class="comment">// 在微信开发者工具 → 云开发 → 云函数 → 测试调用</span>
+wx.cloud.callFunction({
+  name: 'quickstartFunctions',
+  data: {
+    type: 'generateTestData',
+    <code>totalCount: 300</code>,
+    includeHkMacauTaiwan: true,
+    includeVision: true
+  }
+}).then(res => {
+  console.log('生成结果:', res);
+});
+          </div>
+          
+          <div class="stats">
+            <div class="stat-item">
+              <div class="stat-value">300</div>
+              <div class="stat-label">总作品数</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">250</div>
+              <div class="stat-label">参赛作品</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">20</div>
+              <div class="stat-label">港澳台</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">30</div>
+              <div class="stat-label">视界类</div>
+            </div>
+          </div>
+          
+          <div class="success-box">
+            <strong>✅ 预期结果：</strong><br>
+            专家登录后看到 "ℹ️ 取消评选" 提示，不允许评分
+          </div>
+        </div>
+      </div>
+      
+      <!-- 场景2：直接终评 -->
+      <div class="section">
+        <div class="section-title">场景2：测试"直接终评"（320-639件）</div>
+        
+        <div class="scenario">
+          <div class="scenario-header">
+            <div class="scenario-icon">🏆</div>
+            <div class="scenario-name">生成450件作品</div>
+          </div>
+          <div class="scenario-desc">
+            生成450件作品（含港澳台20件 + 视界类30件），参赛作品数为400件，触发"直接终评"
+          </div>
+          
+          <div class="code-box">
+wx.cloud.callFunction({
+  name: 'quickstartFunctions',
+  data: {
+    type: 'generateTestData',
+    <code>totalCount: 450</code>,
+    includeHkMacauTaiwan: true,
+    includeVision: true
+  }
+});
+          </div>
+          
+          <div class="stats">
+            <div class="stat-item">
+              <div class="stat-value">450</div>
+              <div class="stat-label">总作品数</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">400</div>
+              <div class="stat-label">参赛作品</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">20</div>
+              <div class="stat-label">港澳台</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">30</div>
+              <div class="stat-label">视界类</div>
+            </div>
+          </div>
+          
+          <div class="success-box">
+            <strong>✅ 预期结果：</strong><br>
+            专家登录后看到 "🏆 直接终评" 提示，评分记录到 finalEvaluation 字段
+          </div>
+        </div>
+      </div>
+      
+      <!-- 场景3：初评+终评 -->
+      <div class="section">
+        <div class="section-title">场景3：测试"初评+终评"（≥ 640件）</div>
+        
+        <div class="scenario">
+          <div class="scenario-header">
+            <div class="scenario-icon">📝</div>
+            <div class="scenario-name">生成700件作品</div>
+          </div>
+          <div class="scenario-desc">
+            生成700件作品（含港澳台20件 + 视界类30件），参赛作品数为650件，触发"初评+终评"
+          </div>
+          
+          <div class="code-box">
+wx.cloud.callFunction({
+  name: 'quickstartFunctions',
+  data: {
+    type: 'generateTestData',
+    <code>totalCount: 700</code>,
+    includeHkMacauTaiwan: true,
+    includeVision: true
+  }
+});
+          </div>
+          
+          <div class="stats">
+            <div class="stat-item">
+              <div class="stat-value">700</div>
+              <div class="stat-label">总作品数</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">650</div>
+              <div class="stat-label">参赛作品</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">20</div>
+              <div class="stat-label">港澳台</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">30</div>
+              <div class="stat-label">视界类</div>
+            </div>
+          </div>
+          
+          <div class="success-box">
+            <strong>✅ 预期结果：</strong><br>
+            专家登录后看到 "📝 初评阶段" 提示，评分记录到 evaluations 字段
+          </div>
+        </div>
+      </div>
+      
+      <!-- 清理数据 -->
+      <div class="section">
+        <div class="section-title">清理测试数据</div>
+        
+        <div class="scenario">
+          <div class="scenario-header">
+            <div class="scenario-icon">🗑️</div>
+            <div class="scenario-name">删除所有测试数据</div>
+          </div>
+          <div class="scenario-desc">
+            测试完成后，清理所有标记为 _isTestData: true 的作品
+          </div>
+          
+          <div class="code-box">
+wx.cloud.callFunction({
+  name: 'quickstartFunctions',
+  data: {
+    type: 'clearTestData'
+  }
+}).then(res => {
+  console.log('清理结果:', res);
+  <span class="comment">// 会删除所有 _isTestData: true 的作品</span>
+});
+          </div>
+          
+          <div class="warning-box">
+            <strong>⚠️ 注意：</strong><br>
+            此操作会删除所有测试数据，请确保测试完成后再执行！
+          </div>
+        </div>
+      </div>
+      
+      <!-- 快捷测试流程 -->
+      <div class="section">
+        <div class="section-title">🚀 快捷测试流程</div>
+        
+        <div class="scenario">
+          <h3 style="margin-bottom: 15px; color: #667eea;">推荐测试步骤：</h3>
+          
+          <ol style="line-height: 2; color: #333; padding-left: 20px;">
+            <li><strong>生成300件作品</strong> → 测试"取消评选"</li>
+            <li><strong>清理数据</strong></li>
+            <li><strong>生成450件作品</strong> → 测试"直接终评"</li>
+            <li><strong>清理数据</strong></li>
+            <li><strong>生成700件作品</strong> → 测试"初评+终评"</li>
+            <li><strong>清理数据</strong></li>
+          </ol>
+          
+          <div style="margin-top: 20px; padding: 15px; background: #f0f4ff; border-radius: 8px;">
+            <strong>💡 提示：</strong><br>
+            每次测试完一个场景后，建议先清理数据，再生成下一个场景的数据，避免数据混乱。
+          </div>
+        </div>
+      </div>
+      
+      <!-- 自定义数量 -->
+      <div class="section">
+        <div class="section-title">🎨 自定义生成</div>
+        
+        <div class="scenario">
+          <div class="scenario-desc">
+            根据需要自定义作品数量
+          </div>
+          
+          <div class="code-box">
+wx.cloud.callFunction({
+  name: 'quickstartFunctions',
+  data: {
+    type: 'generateTestData',
+    <code>totalCount: 600</code>,              <span class="comment">// 自定义总数</span>
+    <code>includeHkMacauTaiwan: true</code>,   <span class="comment">// 是否包含港澳台（20件）</span>
+    <code>includeVision: true</code>           <span class="comment">// 是否包含视界类（30件）</span>
+  }
+});
+          </div>
+          
+          <div class="info-box">
+            <strong>📊 参数说明：</strong><br>
+            • <strong>totalCount</strong>: 总作品数量<br>
+            • <strong>includeHkMacauTaiwan</strong>: 是否生成20件港澳台作品<br>
+            • <strong>includeVision</strong>: 是否生成30件视界类作品<br><br>
+            
+            <strong>实际参赛数量计算：</strong><br>
+            参赛数 = totalCount - 港澳台数 - 视界类数<br>
+            例如：totalCount=700, 则参赛数=700-20-30=650件
+          </div>
+        </div>
+      </div>
+      
+      <!-- 注意事项 -->
+      <div class="warning-box">
+        <h3 style="margin-bottom: 10px; color: #ff9800;">⚠️ 重要提示</h3>
+        <ul style="line-height: 2; padding-left: 20px;">
+          <li>所有生成的数据都会标记 <code>_isTestData: true</code></li>
+          <li>清理时只会删除测试数据，不影响真实数据</li>
+          <li>建议在测试环境中使用，不要在生产环境生成大量测试数据</li>
+          <li>每次生成可能需要几秒到几十秒，请耐心等待</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  
+  <div style="text-align: center; color: white; margin-top: 30px; font-size: 14px; opacity: 0.8;">
+    第二届全国大学生陶艺作品展评选系统 · 测试工具 v1.0
+  </div>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

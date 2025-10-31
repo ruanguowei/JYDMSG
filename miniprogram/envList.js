@@ -27,6 +27,13 @@ function getCloudEnv() {
     // develop: 开发版 → 测试环境
     
     let targetEnv;
+    
+    // ⭐ 临时强制使用生产环境（用于所有版本测试生产环境）
+    // ⚠️ 测试完成后记得恢复自动切换！
+    // targetEnv = envList.find(env => env.type === 'production');
+    // console.log(`[云环境] 🔴 临时强制使用生产环境（所有版本）`);
+    
+    // 正常自动切换逻辑
     if (envVersion === 'release') {
       // 正式版使用生产环境
       targetEnv = envList.find(env => env.type === 'production');

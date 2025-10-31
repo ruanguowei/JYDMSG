@@ -252,6 +252,11 @@
   border: 2rpx solid #e0e0e0;
 }
 
+.action-btn.admin-btn {
+  background: #ff9800;
+  color: #ffffff;
+}
+
 .action-btn::after {
   border: none;
 }

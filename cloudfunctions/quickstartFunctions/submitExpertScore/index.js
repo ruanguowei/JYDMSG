@@ -10,6 +10,9 @@ const db = cloud.database()
 // 使用管理员权限进行数据库操作
 const _ = db.command
 
+// 引入获取评选阶段的函数
+const getEvaluationPhase = require('../getEvaluationPhase/index')
+
 // 获取最后评分时间的辅助函数
 function getLastEvaluationTime(evaluations) {
   if (!evaluations || evaluations.length === 0) {
@@ -24,11 +27,33 @@ function getLastEvaluationTime(evaluations) {
 exports.main = async (event, context) => {
   console.log('=== 专家评分提交 ===');
   
-  const { submissionId, scores, totalScore, finalScore, deductions, expertId, expertName, expertCode, disqualify } = event
+  const { submissionId, scores, totalScore, finalScore, deductions, expertId, expertName, expertCode, disqualify, disqualifyReason } = event
   
-  console.log('作品ID:', submissionId, '专家:', expertName, '专家Code:', expertCode, '总分:', totalScore, '取消资格:', disqualify);
+  console.log('作品ID:', submissionId, '专家:', expertName, '专家Code:', expertCode, '总分:', totalScore, '取消资格:', disqualify, '取消原因:', disqualifyReason);
   
   try {
+    // 获取专家信息，判断评委类型
+    const expertResult = await db.collection('experts')
+      .where({ expertCode: expertCode })
+      .get();
+    
+    if (expertResult.data.length === 0) {
+      console.error('❌ 专家信息不存在');
+      return {
+        success: false,
+        message: '专家信息不存在'
+      };
+    }
+    
+    const expertInfo = expertResult.data[0];
+    const expertType = expertInfo.expertType || '';
+    console.log('专家类型 (expertType):', expertType);
+    
+    // 所有评委都使用 evaluations 字段
+    const targetField = 'evaluations';
+    
+    console.log('评分将写入字段:', targetField);
+    
     // 验证评分数据
     if (!submissionId || !scores || !expertId || !expertCode) {
       console.log('参数验证失败:', { 
@@ -57,10 +82,22 @@ exports.main = async (event, context) => {
     
     // 不在此处进行时间窗口校验。时间控制在入口页面进行。
     
-    // 获取作品信息
-    const submissionResult = await db.collection('pottery_submissions')
-      .doc(submissionId)
-      .get()
+    // 获取作品信息 - 根据评委类型从不同表读取
+    let submissionResult;
+    
+    if (expertType === 'final') {
+      // 终评评委：从终评评分表读取
+      submissionResult = await db.collection('pottery_submissions_for_final')
+        .doc(submissionId)
+        .get();
+      console.log('终评评委：从终评评分表读取作品');
+    } else {
+      // 初评评委：从清洗表读取
+      submissionResult = await db.collection('pottery_submissions_clean')
+        .doc(submissionId)
+        .get();
+      console.log('初评评委：从清洗表读取作品');
+    }
     
     if (!submissionResult.data) {
       console.error('❌ 作品不存在:', submissionId);
@@ -98,8 +135,8 @@ exports.main = async (event, context) => {
     console.log('totalScore:', evaluationRecord.totalScore);
     console.log('==================');
     
-    // 更新作品评分记录
-    let evaluations = submission.evaluations || []
+    // 更新作品评分记录（统一使用 evaluations 字段）
+    let evaluations = submission.evaluations || [];
     
     // 检查是否已有该专家的评分记录（只使用expertCode）
     const existingIndex = evaluations.findIndex(eval => 
@@ -109,32 +146,49 @@ exports.main = async (event, context) => {
     if (existingIndex >= 0) {
       // 更新现有评分
       evaluations[existingIndex] = evaluationRecord
+      console.log('✏️ 更新现有评分记录');
     } else {
       // 添加新评分
       evaluations.push(evaluationRecord)
+      console.log('➕ 添加新评分记录');
     }
     
-    // 准备更新数据
+    // 准备更新数据（统一使用 evaluations 字段）
     const updateData = {
       evaluations: evaluations
-    }
+    };
     
     // 如果标记为取消资格，更新作品的qualification字段
     if (disqualify) {
       updateData.qualification = false;
-      updateData.disqualifyReason = '内容违规';
+      updateData.disqualifyReason = disqualifyReason || '内容违规或侵权抄袭';
       updateData.disqualifyTime = new Date();
       updateData.disqualifyExpert = expertName;
-      console.log('⚠️ 作品将被取消资格');
+      updateData.disqualifyExpertCode = expertCode;
+      console.log('⚠️ 作品将被取消资格，原因:', updateData.disqualifyReason);
     }
     
-    // 更新数据库
+    // 更新数据库 - 根据评委类型写入不同表
     try {
-      const updateResult = await db.collection('pottery_submissions')
-        .doc(submissionId)
-        .update({
-          data: updateData
-        });
+      let updateResult;
+      
+      if (expertType === 'final') {
+        // 终评评委：写入终评评分表
+        updateResult = await db.collection('pottery_submissions_for_final')
+          .doc(submissionId)
+          .update({
+            data: updateData
+          });
+        console.log('终评评委：评分写入终评评分表');
+      } else {
+        // 初评评委：写入清洗表
+        updateResult = await db.collection('pottery_submissions_clean')
+          .doc(submissionId)
+          .update({
+            data: updateData
+          });
+        console.log('初评评委：评分写入清洗表');
+      }
       
       const updatedCount = updateResult.stats.updated;
       console.log('✅ 数据库更新成功，更新记录数:', updatedCount);
@@ -184,7 +238,8 @@ exports.main = async (event, context) => {
       data: {
         lastEvaluationTime: lastEvaluationTime,
         totalEvaluations: evaluations.length,
-        disqualify: disqualify || false
+        disqualify: disqualify || false,
+        expertType: expertType
       }
     }
     

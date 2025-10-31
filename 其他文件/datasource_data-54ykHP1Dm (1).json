@@ -3,7 +3,7 @@
     "publishCacheStatus": "ready",
     "subType": "database",
     "schema": {
-        "x-primary-column": "name",
+        "x-primary-column": "artworkName",
         "x-kind": "tcb",
         "x-defaultMethods": [
             "wedaCreate",
@@ -20,6 +20,7 @@
         "x-relatedType": "exist",
         "x-viewId": "view-6ufo35mbtc",
         "required": [
+            "schoolProvinces",
             "gender",
             "school",
             "name",
@@ -28,7 +29,7 @@
         "properties": {
             "_mainDep": {
                 "x-system": true,
-                "x-id": "0c80b14",
+                "x-id": "1308e8f",
                 "format": "father-son",
                 "name": "_mainDep",
                 "x-hidden": true,
@@ -138,7 +139,7 @@
             "createdAt": {
                 "default": 0,
                 "x-system": true,
-                "x-id": "ed8ec07",
+                "x-id": "1ae7099",
                 "format": "datetime",
                 "x-index": 2,
                 "type": "number",
@@ -256,7 +257,7 @@
             "updatedAt": {
                 "default": 0,
                 "x-system": true,
-                "x-id": "065dda1",
+                "x-id": "72a1379",
                 "format": "datetime",
                 "x-index": 3,
                 "title": "更新时间",
@@ -266,7 +267,7 @@
             "owner": {
                 "default": "",
                 "x-system": true,
-                "x-id": "6a92526",
+                "x-id": "1755684",
                 "name": "owner",
                 "format": "father-son",
                 "pattern": "",
@@ -280,6 +281,17 @@
                     "type": "father-son",
                     "parentDataSourceName": "sys_user"
                 }
+            },
+            "schoolProvinces": {
+                "x-required": true,
+                "x-keyPath": "",
+                "x-id": "f32be236",
+                "format": "",
+                "description": "",
+                "type": "string",
+                "x-index": 104,
+                "title": "学校省份",
+                "x-unique": false
             },
             "address": {
                 "x-required": false,
@@ -302,6 +314,19 @@
                 "x-index": 94,
                 "title": "专家评分记录",
                 "list": [
+                    {
+                        "x-required": true,
+                        "x-keyPath": "",
+                        "x-id": "92dde145",
+                        "format": "",
+                        "name": "expertCode",
+                        "description": "",
+                        "pId": "evaluations",
+                        "type": "string",
+                        "x-index": 2,
+                        "title": "专家验证码",
+                        "x-unique": false
+                    },
                     {
                         "x-id": "wptzsd0r",
                         "name": "themeFit",
@@ -439,6 +464,19 @@
                             "type": "string",
                             "title": "专家姓名"
                         },
+                        "expertCode": {
+                            "x-required": true,
+                            "x-keyPath": "",
+                            "x-id": "92dde145",
+                            "format": "",
+                            "name": "expertCode",
+                            "description": "",
+                            "pId": "evaluations",
+                            "type": "string",
+                            "x-index": 2,
+                            "title": "专家验证码",
+                            "x-unique": false
+                        },
                         "ip": {
                             "x-id": "wz6ljc1r",
                             "pId": "evaluations",
@@ -516,7 +554,9 @@
                     }
                 },
                 "x-unique": false,
-                "required": []
+                "required": [
+                    "expertCode"
+                ]
             },
             "baiduCloudLink": {
                 "x-required": false,
@@ -551,6 +591,28 @@
                 "title": "百度云密码",
                 "x-unique": false
             },
+            "finalEvaluation": {
+                "x-required": false,
+                "x-keyPath": "",
+                "x-id": "fe36388b",
+                "format": "",
+                "description": "",
+                "type": "array",
+                "x-index": 108,
+                "title": "最终评审",
+                "list": [
+                    {
+                        "x-id": "errorTips",
+                        "pid": "fe36388b",
+                        "title": "字段"
+                    }
+                ],
+                "items": {
+                    "format": "",
+                    "type": "object"
+                },
+                "x-unique": false
+            },
             "specialDisplay": {
                 "x-required": false,
                 "x-keyPath": "",
@@ -578,16 +640,30 @@
                 "x-keyPath": "",
                 "x-id": "d611f24d",
                 "format": "",
+                "name": "artworkName",
                 "description": "",
+                "isEnum": false,
                 "type": "string",
                 "x-index": 71,
                 "title": "参展作品名称",
                 "x-unique": false
             },
+            "qualification": {
+                "x-required": false,
+                "default": true,
+                "x-keyPath": "",
+                "x-id": "8b3b3e59",
+                "format": "",
+                "description": "",
+                "type": "boolean",
+                "x-index": 106,
+                "title": "参赛资格",
+                "x-unique": false
+            },
             "createBy": {
                 "default": "",
                 "x-system": true,
-                "x-id": "ac19f1c",
+                "x-id": "1a4ae51",
                 "name": "createBy",
                 "format": "father-son",
                 "pattern": "",
@@ -627,7 +703,7 @@
             "_openid": {
                 "default": "",
                 "x-system": true,
-                "x-id": "3af43c1",
+                "x-id": "7679e58",
                 "name": "_openid",
                 "format": "",
                 "pattern": "",
@@ -691,7 +767,7 @@
             "_id": {
                 "default": "",
                 "x-system": true,
-                "x-id": "bb00727",
+                "x-id": "18ef7cd",
                 "format": "",
                 "pattern": "",
                 "x-index": 1,
@@ -800,12 +876,12 @@
     "tableNameRule": "only_name",
     "type": "database",
     "previewDbInfo": null,
-    "updateTime": "2025-09-13T06:49:56",
+    "updateTime": "2025-10-07T06:23:01",
     "publishedTableName": "pottery_submissions",
-    "id": "data-50Ji0m8bz",
+    "id": "data-54ykHP1Dm",
     "dbSourceType": "internal_flexdb",
     "methods": [],
-    "fun": "{\"onlineVersion\": 20, \"previewVersion\": 19, \"onlinePublishAt\": 1757746196282, \"prviewPublishAt\": 1757746196012}",
+    "fun": "{\"onlineVersion\": 4, \"previewVersion\": 3, \"onlinePublishAt\": 1759818181335, \"prviewPublishAt\": 1759818181151}",
     "publishStatus": 1,
     "configuration": {}
 }

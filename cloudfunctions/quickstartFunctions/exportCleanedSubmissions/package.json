@@ -1,0 +1,20 @@
+{
+  "name": "exportCleanedSubmissions",
+  "version": "1.0.0",
+  "description": "导出清洗后的报名数据",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}
+
+
+
+
+
+
+
+
+
+
+

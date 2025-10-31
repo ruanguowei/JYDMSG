@@ -1,0 +1,11 @@
+{
+  "name": "swapEvaluations",
+  "version": "1.0.0",
+  "description": "交换作品的评分数据",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}
+
+

@@ -1,0 +1,157 @@
+<!--pages/admin-panel/index.wxml-->
+<view class="admin-container">
+  <!-- 头部信息 -->
+  <view class="admin-header">
+    <view class="header-title">系统管理员面板</view>
+    <view class="admin-account">当前账号：{{adminAccount}}</view>
+  </view>
+
+  <!-- 功能卡片区域 -->
+  <view class="function-cards">
+    <!-- 数据清洗（危险操作） -->
+    <view class="function-card danger-card">
+      <view class="card-icon danger-icon">
+        <text class="icon">⚠️</text>
+      </view>
+      <view class="card-content">
+        <view class="card-title">数据清洗</view>
+        <view class="card-desc">去重并生成评分表（会清空已有评分数据）</view>
+      </view>
+      <button class="card-btn danger-btn" bindtap="cleanData" loading="{{cleaning}}" disabled="{{cleaning}}">
+        {{cleaning ? '清洗中...' : '清洗数据'}}
+      </button>
+    </view>
+
+    <!-- 导出报名数据 -->
+    <view class="function-card">
+      <view class="card-icon">
+        <text class="icon">📋</text>
+      </view>
+      <view class="card-content">
+        <view class="card-title">导出报名表</view>
+        <view class="card-desc">从评分表导出CSV（不影响评分数据）</view>
+      </view>
+      <button class="card-btn" bindtap="exportSubmissions" loading="{{exporting.submissions}}">
+        {{exporting.submissions ? '导出中...' : '导出'}}
+      </button>
+    </view>
+
+    <!-- 生成初评结果表（危险操作） -->
+    <view class="function-card danger-card">
+      <view class="card-icon danger-icon">
+        <text class="icon">🔄</text>
+      </view>
+      <view class="card-content">
+        <view class="card-title">生成初评结果表</view>
+        <view class="card-desc">筛选前480件+港澳台（会清空终评评分数据）</view>
+      </view>
+      <button class="card-btn danger-btn" bindtap="generatePreliminaryTable" loading="{{generating.preliminary}}" disabled="{{generating.preliminary}}">
+        {{generating.preliminary ? '生成中...' : '生成结果表'}}
+      </button>
+    </view>
+
+    <!-- 导出初评结果 -->
+    <view class="function-card">
+      <view class="card-icon">
+        <text class="icon">📊</text>
+      </view>
+      <view class="card-content">
+        <view class="card-title">导出初评结果</view>
+        <view class="card-desc">从初评结果表导出CSV（已排序）</view>
+      </view>
+      <button class="card-btn" bindtap="exportPreliminaryResults" loading="{{exporting.preliminary}}">
+        {{exporting.preliminary ? '导出中...' : '导出'}}
+      </button>
+    </view>
+
+    <!-- 开始终评（危险操作） -->
+    <view class="function-card danger-card">
+      <view class="card-icon danger-icon">
+        <text class="icon">🚀</text>
+      </view>
+      <view class="card-content">
+        <view class="card-title">开始终评</view>
+        <view class="card-desc">生成终评评分表（不含评分记录）</view>
+      </view>
+      <button class="card-btn danger-btn" bindtap="startFinalEvaluation" loading="{{generating.startFinal}}" disabled="{{generating.startFinal}}">
+        {{generating.startFinal ? '准备中...' : '开始终评'}}
+      </button>
+    </view>
+
+    <!-- 生成终评结果表（危险操作） -->
+    <view class="function-card danger-card">
+      <view class="card-icon danger-icon">
+        <text class="icon">🎯</text>
+      </view>
+      <view class="card-content">
+        <view class="card-title">生成终评结果表</view>
+        <view class="card-desc">筛选前300件+地域均衡+港澳台</view>
+      </view>
+      <button class="card-btn danger-btn" bindtap="generateFinalTable" loading="{{generating.final}}" disabled="{{generating.final}}">
+        {{generating.final ? '生成中...' : '生成结果表'}}
+      </button>
+    </view>
+
+    <!-- 导出终评结果 -->
+    <view class="function-card">
+      <view class="card-icon">
+        <text class="icon">🏆</text>
+      </view>
+      <view class="card-content">
+        <view class="card-title">导出终评结果</view>
+        <view class="card-desc">从终评结果表导出CSV（最终320件）</view>
+      </view>
+      <button class="card-btn" bindtap="exportFinalResults" loading="{{exporting.final}}">
+        {{exporting.final ? '导出中...' : '导出'}}
+      </button>
+    </view>
+  </view>
+
+  <!-- 统计信息 -->
+  <view class="stats-section">
+    <view class="stats-title">数据统计</view>
+    <view class="stats-grid">
+      <view class="stat-item">
+        <view class="stat-number">{{stats.totalSubmissions}}</view>
+        <view class="stat-label">总报名数</view>
+      </view>
+      <view class="stat-item">
+        <view class="stat-number">{{stats.preliminaryCount}}</view>
+        <view class="stat-label">初评作品数</view>
+      </view>
+      <view class="stat-item">
+        <view class="stat-number">{{stats.finalCount}}</view>
+        <view class="stat-label">终评作品数</view>
+      </view>
+      <view class="stat-item">
+        <view class="stat-number">{{stats.expertCount}}</view>
+        <view class="stat-label">专家评委数</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 导出历史 -->
+  <view class="export-history" wx:if="{{exportHistory.length > 0}}">
+    <view class="history-title">最近导出记录</view>
+    <view class="history-list">
+      <view class="history-item" wx:for="{{exportHistory}}" wx:key="index">
+        <view class="history-info">
+          <view class="history-name">{{item.name}}</view>
+          <view class="history-time">{{item.time}}</view>
+        </view>
+        <view class="history-status history-status-{{item.status === '成功' ? 'success' : 'fail'}}">{{item.status}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部按钮 -->
+  <view class="bottom-actions">
+    <button class="action-btn secondary" bindtap="logout">
+      退出登录
+    </button>
+    <button class="action-btn primary" bindtap="backToResults">
+      返回结果页
+    </button>
+  </view>
+</view>
+

@@ -211,5 +211,91 @@ Page({
     this.fetchEvaluationResults(() => {
       wx.stopPullDownRefresh();
     });
+  },
+
+  // 打开管理员登录
+  openAdminLogin: function() {
+    wx.showModal({
+      title: '管理员登录',
+      editable: true,
+      placeholderText: '请输入管理员账号',
+      success: (res) => {
+        if (res.confirm && res.content) {
+          const account = res.content.trim();
+          this.showPasswordInput(account);
+        }
+      }
+    });
+  },
+
+  // 显示密码输入框
+  showPasswordInput: function(account) {
+    wx.showModal({
+      title: '输入密码',
+      editable: true,
+      placeholderText: '请输入管理员密码',
+      success: (res) => {
+        if (res.confirm && res.content) {
+          const password = res.content.trim();
+          this.verifyAdmin(account, password);
+        }
+      }
+    });
+  },
+
+  // 验证管理员
+  verifyAdmin: function(account, password) {
+    wx.showLoading({
+      title: '验证中...',
+      mask: true
+    });
+
+    wx.cloud.callFunction({
+      name: 'quickstartFunctions',
+      data: {
+        type: 'verifyAdmin',
+        account: account,
+        password: password
+      },
+      success: res => {
+        wx.hideLoading();
+        
+        if (res.result && res.result.success) {
+          wx.showToast({
+            title: '验证成功',
+            icon: 'success',
+            duration: 1500
+          });
+          
+          // 保存管理员信息到本地
+          wx.setStorageSync('adminInfo', {
+            account: account,
+            id: res.result.adminInfo.id,
+            isLoggedIn: true
+          });
+          
+          // 跳转到管理员面板
+          setTimeout(() => {
+            wx.navigateTo({
+              url: '/pages/admin-panel/index'
+            });
+          }, 1500);
+        } else {
+          wx.showToast({
+            title: res.result.message || '账号或密码错误',
+            icon: 'none',
+            duration: 2000
+          });
+        }
+      },
+      fail: err => {
+        wx.hideLoading();
+        console.error('验证管理员失败', err);
+        wx.showToast({
+          title: '网络异常，请重试',
+          icon: 'none'
+        });
+      }
+    });
   }
 })

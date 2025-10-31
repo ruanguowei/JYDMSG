@@ -112,11 +112,12 @@ Page({
         this.setData({ loading: false });
         
         if (res.result && res.result.success) {
-          // 登录成功，保存专家信息
+          // 登录成功，保存专家信息（包含expertType）
           const expertInfo = {
             expertId: res.result.expertId,
             expertName: expertName.trim(),
             expertCode: expertCode.trim(),
+            expertType: res.result.expertType || '',  // 保存评委类型
             isLoggedIn: true,
             loginTime: new Date().getTime()
           };
@@ -132,11 +133,9 @@ Page({
             icon: 'success'
           });
 
-          // 跳转到评选主页
+          // 检查是否已签署承诺书
           setTimeout(() => {
-            wx.redirectTo({
-              url: '/pages/expert-evaluation/index'
-            });
+            this.checkPledgeStatus(expertInfo);
           }, 1500);
         } else {
           wx.showToast({
@@ -174,5 +173,43 @@ Page({
   agreeRulesAndLogin: function() {
     this.hideRules();
     this.expertLogin();
+  },
+
+  // 检查承诺书签署状态
+  checkPledgeStatus: function(expertInfo) {
+    wx.cloud.callFunction({
+      name: 'quickstartFunctions',
+      data: {
+        type: 'checkPledge',
+        expertCode: expertInfo.expertCode
+      },
+      success: res => {
+        if (res.result && res.result.success) {
+          if (res.result.data.hasSigned) {
+            // 已签署，直接进入评分页面
+            wx.redirectTo({
+              url: '/pages/expert-evaluation/index'
+            });
+          } else {
+            // 未签署，跳转到承诺书页面
+            wx.redirectTo({
+              url: '/pages/expert-pledge/index'
+            });
+          }
+        } else {
+          // 检查失败，默认跳转到承诺书页面
+          wx.redirectTo({
+            url: '/pages/expert-pledge/index'
+          });
+        }
+      },
+      fail: err => {
+        console.error('检查承诺书失败', err);
+        // 检查失败，默认跳转到承诺书页面
+        wx.redirectTo({
+          url: '/pages/expert-pledge/index'
+        });
+      }
+    });
   }
 })

@@ -11,6 +11,27 @@ exports.main = async (event, context) => {
   const db = cloud.database()
   
   try {
+    // 检查申报时间限制
+    const timeLimitResult = await db.collection('timeLimit')
+      .limit(1)
+      .get();
+    
+    if (timeLimitResult.data.length > 0) {
+      const timeLimit = timeLimitResult.data[0];
+      const now = new Date();
+      const submissionEndDeadline = new Date(timeLimit.submissionEndDeadline);
+      
+      if (now > submissionEndDeadline) {
+        console.log('申报已截止，不允许修改');
+        console.log('当前时间:', now);
+        console.log('截止时间:', submissionEndDeadline);
+        return {
+          success: false,
+          errMsg: '申报时间已截止，无法修改作品信息'
+        };
+      }
+    }
+    
     // 获取提交的申请数据
     const submissionData = event.data || {}
     

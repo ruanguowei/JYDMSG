@@ -3,5 +3,6 @@
     "openapi": [
       "wxacode.get"
     ]
-  }
+  },
+  "timeout": 180
 }

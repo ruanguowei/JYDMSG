@@ -25,6 +25,10 @@
     <image class="action-icon" src="/images/icons/报名.png" mode="aspectFit"></image>
     <text class="action-text">推选入口</text>
   </view>
+  <view class="action-btn" bindtap="navigateToInvitation">
+    <image class="action-icon" src="/images/icons/推送.png" mode="aspectFit"></image>
+    <text class="action-text">邀约入口</text>
+  </view>
   <view class="action-btn" bindtap="navigateToQuery">
     <image class="action-icon" src="/images/icons/查询.png" mode="aspectFit"></image>
     <text class="action-text">参展查询</text>

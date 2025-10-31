@@ -1,0 +1,20 @@
+{
+  "name": "exportPreliminaryResults",
+  "version": "1.0.0",
+  "description": "导出初评结果",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}
+
+
+
+
+
+
+
+
+
+
+

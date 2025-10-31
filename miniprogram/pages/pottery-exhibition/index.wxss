@@ -83,6 +83,7 @@ page {
   gap: 40rpx;
   padding: 48rpx;
   margin-top: 24rpx;
+  /* 注意：现在有5个按钮，会自动换行显示 */
 }
 
 .action-btn.expert-btn {

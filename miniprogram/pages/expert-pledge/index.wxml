@@ -1,0 +1,70 @@
+<!--pages/expert-pledge/index.wxml-->
+<view class="pledge-container">
+  <!-- 标题 -->
+  <view class="pledge-title">
+    第二届全国大学生陶艺作品展优秀作品<br/>评选承诺书
+  </view>
+  
+  <!-- 正文内容 -->
+  <scroll-view class="pledge-content" scroll-y>
+    <view class="pledge-inner">
+    <view class="pledge-text">
+      本人于<text class="highlight">{{dateRange}}</text>参加第二届全国大学生陶艺作品展优秀作品评选工作。现作如下承诺。
+    </view>
+    
+    <view class="pledge-item">
+      <text class="item-number">1. </text>
+      <text class="item-text">遵守保密规定，不向外泄露专家信息、评选结果等相关信息，不复制保留或向他人扩散评选材料，不对其他组别的材料发表影响评选公正性的言论，也不打听其他专家的评选情况。</text>
+    </view>
+    
+    <view class="pledge-item">
+      <text class="item-number">2. </text>
+      <text class="item-text">在所承担的评选范围内，没有本人直系亲属参入本次活动。若有，主动提出，予以回避。</text>
+    </view>
+    
+    <view class="pledge-item">
+      <text class="item-number">3. </text>
+      <text class="item-text">评选工作期间，认真履行职责，廉洁自律，不擅自联系或通过其他方式接触申报人及参与者，杜绝贿赂腐败及其他违规违纪行为。</text>
+    </view>
+    
+    <view class="pledge-item">
+      <text class="item-number">4. </text>
+      <text class="item-text">自觉遵守评选工作责任追究制度，考违反评选工作纪律，自愿接受有关部门的处理。</text>
+    </view>
+    
+    <view class="pledge-footer">
+      特此郑重承诺。
+    </view>
+    
+    <view class="pledge-signature">
+      <view class="signature-item">
+        <text class="signature-label">承诺人：</text>
+        <text class="signature-value">{{expertInfo.expertName}}</text>
+      </view>
+      <view class="signature-item">
+        <text class="signature-label">日期：</text>
+        <text class="signature-value">{{currentDate}}</text>
+      </view>
+    </view>
+    </view>
+  </scroll-view>
+  
+  <!-- 同意选项 -->
+  <view class="pledge-agree">
+    <checkbox-group bindchange="onAgreeChange">
+      <label class="agree-label">
+        <checkbox value="agree" checked="{{agreed}}" color="#667eea"/>
+        <text class="agree-text">我已认真阅读并同意遵守以上承诺</text>
+      </label>
+    </checkbox-group>
+  </view>
+  
+  <!-- 按钮 -->
+  <view class="pledge-actions">
+    <button class="btn-cancel" bindtap="onCancel">退出</button>
+    <button class="btn-confirm" bindtap="onConfirm" disabled="{{!agreed}}">
+      同意并继续
+    </button>
+  </view>
+</view>
+

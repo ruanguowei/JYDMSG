@@ -1,6 +1,28 @@
 <!--pages/expert-evaluation/index.wxml-->
 <view class="evaluation-container">
 
+  <!-- 评委身份提示 -->
+  <view wx:if="{{showPhaseInfo && expertRoleInfo}}" class="phase-info-bar phase-{{expertRoleInfo.expertType}}">
+    <view class="phase-icon">
+      <text wx:if="{{expertRoleInfo.expertType === 'preliminary'}}">📝</text>
+      <text wx:elif="{{expertRoleInfo.expertType === 'final'}}">🏆</text>
+      <text wx:else>📋</text>
+    </view>
+    <view class="phase-content">
+      <view class="phase-title">{{expertRoleInfo.role}}</view>
+      <view class="phase-desc">
+        <text wx:if="{{expertRoleInfo.expertType === 'preliminary'}}">您正在进行初评工作，从所有作品中遴选520件进入终评</text>
+        <text wx:elif="{{expertRoleInfo.expertType === 'final'}}">您正在进行终评工作，从初评520件中遴选291件入围</text>
+        <text wx:else>您正在进行评审工作</text>
+      </view>
+      <view class="phase-stats" wx:if="{{statistics}}">
+        <text class="stats-text">已评分：{{statistics.evaluated}}件 / {{statistics.total}}件</text>
+        <text class="stats-divider">|</text>
+        <text class="stats-text">剩余：{{statistics.unevaluated}}件</text>
+      </view>
+    </view>
+  </view>
+
   <!-- 作品列表 -->
   <view class="submissions-list">
     <view wx:if="{{loading}}" class="loading">
@@ -17,12 +39,18 @@
       <view 
         wx:for="{{submissions}}" 
         wx:key="id"
-        class="submission-item"
+        class="submission-item {{item.workType === 'video' ? 'video-work' : ''}}"
         data-id="{{item.id}}"
         bindtap="navigateToScoring"
       >
         <view class="submission-image">
-          <image src="{{item.imageUrl}}" mode="aspectFill"></image>
+          <!-- 视频作品：显示视频占位符 -->
+          <view wx:if="{{item.workType === 'video'}}" class="video-placeholder">
+            <text class="video-icon">📹</text>
+            <text class="video-text">视频作品</text>
+          </view>
+          <!-- 普通作品：显示图片 -->
+          <image wx:else src="{{item.imageUrl}}" mode="aspectFill"></image>
         </view>
         
         <view class="submission-info">

@@ -1,0 +1,162 @@
+/* pages/expert-pledge/index.wxss */
+.pledge-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 40rpx 30rpx 140rpx 30rpx;
+  box-sizing: border-box;
+}
+
+.pledge-title {
+  font-size: 38rpx;
+  font-weight: bold;
+  text-align: center;
+  color: #fff;
+  margin: 20rpx 0 40rpx;
+  line-height: 1.6;
+  text-shadow: 0 2rpx 4rpx rgba(0,0,0,0.1);
+}
+
+.pledge-content {
+  background: #fff;
+  border-radius: 20rpx;
+  margin-bottom: 30rpx;
+  max-height: 900rpx;
+  box-shadow: 0 8rpx 20rpx rgba(0,0,0,0.1);
+}
+
+.pledge-inner {
+  padding: 40rpx 40rpx 40rpx 40rpx;
+  word-wrap: break-word;
+}
+
+.pledge-text {
+  font-size: 28rpx;
+  color: #333;
+  line-height: 2;
+  margin-bottom: 30rpx;
+  text-indent: 0;
+}
+
+.highlight {
+  color: #667eea;
+  font-weight: bold;
+  padding: 0 4rpx;
+}
+
+.pledge-item {
+  display: flex;
+  margin-bottom: 30rpx;
+  line-height: 1.8;
+}
+
+.item-number {
+  font-size: 28rpx;
+  color: #333;
+  font-weight: bold;
+  flex-shrink: 0;
+  margin-right: 8rpx;
+}
+
+.item-text {
+  flex: 1;
+  font-size: 28rpx;
+  color: #555;
+  line-height: 2;
+}
+
+.pledge-footer {
+  font-size: 28rpx;
+  color: #333;
+  text-align: center;
+  margin-top: 50rpx;
+  margin-bottom: 30rpx;
+  font-weight: bold;
+}
+
+.pledge-signature {
+  margin-top: 40rpx;
+  padding-top: 30rpx;
+  border-top: 2rpx dashed #e0e0e0;
+}
+
+.signature-item {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-bottom: 15rpx;
+  font-size: 28rpx;
+  flex-wrap: wrap;
+}
+
+.signature-label {
+  color: #999;
+  flex-shrink: 0;
+}
+
+.signature-value {
+  color: #333;
+  font-weight: bold;
+  margin-left: 10rpx;
+  word-break: keep-all;
+  white-space: nowrap;
+}
+
+.pledge-agree {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 20rpx;
+  padding: 30rpx;
+  margin-bottom: 30rpx;
+  box-shadow: 0 4rpx 15rpx rgba(0,0,0,0.1);
+}
+
+.agree-label {
+  display: flex;
+  align-items: center;
+}
+
+.agree-text {
+  font-size: 28rpx;
+  color: #333;
+  margin-left: 20rpx;
+  font-weight: 500;
+}
+
+.pledge-actions {
+  display: flex;
+  gap: 20rpx;
+}
+
+.btn-cancel,
+.btn-confirm {
+  flex: 1;
+  height: 90rpx !important;
+  line-height: 90rpx;
+  border-radius: 45rpx;
+  font-size: 30rpx;
+  font-weight: bold;
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+.btn-cancel {
+  background: rgba(255, 255, 255, 0.9);
+  color: #666;
+}
+
+.btn-confirm {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+}
+
+.btn-confirm[disabled] {
+  opacity: 0.5;
+  background: #d0d0d0;
+  color: #999;
+}
+
+.btn-cancel::after,
+.btn-confirm::after {
+  border: none;
+}
+

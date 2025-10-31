@@ -30,8 +30,8 @@
           <view class="action-btn details-btn" catchtap="showDetails" data-index="{{index}}">
             <text>查看详情</text>
           </view>
-          <view class="action-btn edit-btn" catchtap="showEditOptions" data-id="{{item._id}}" data-name="{{item.artworkName || '未命名作品'}}" data-index="{{index}}">
-            <text>修改</text>
+          <view class="action-btn edit-btn {{submissionClosed ? 'disabled' : ''}}" catchtap="{{submissionClosed ? 'showClosedTip' : 'showEditOptions'}}" data-id="{{item._id}}" data-name="{{item.artworkName || '未命名作品'}}" data-index="{{index}}">
+            <text>{{submissionClosed ? '已截止' : '修改'}}</text>
           </view>
         </view>
       </view>

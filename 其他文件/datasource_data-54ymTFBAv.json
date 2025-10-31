@@ -1,0 +1,205 @@
+{
+    "previewTableName": "experts-preview",
+    "publishCacheStatus": "notready",
+    "subType": "database",
+    "schema": {
+        "x-primary-column": "expertName",
+        "x-kind": "tcb",
+        "x-defaultMethods": [
+            "wedaCreate",
+            "wedaUpdate",
+            "wedaDelete",
+            "wedaGetItem",
+            "wedaGetRecords",
+            "wedaGetList",
+            "wedaBatchCreate",
+            "wedaBatchUpdate",
+            "wedaBatchDelete"
+        ],
+        "type": "object",
+        "x-relatedType": "exist",
+        "x-viewId": "view-78rvjt055s",
+        "required": [
+            "expertCode",
+            "expertName",
+            "expertType",
+            "status"
+        ],
+        "properties": {
+            "owner": {
+                "default": "",
+                "x-system": true,
+                "x-id": "b981c4b",
+                "name": "owner",
+                "format": "father-son",
+                "pattern": "",
+                "x-hidden": true,
+                "x-index": 4,
+                "title": "所有人",
+                "type": "string",
+                "x-unique": false,
+                "x-parent": {
+                    "fatherAction": "judge",
+                    "type": "father-son",
+                    "parentDataSourceName": "sys_user"
+                }
+            },
+            "_mainDep": {
+                "x-system": true,
+                "x-id": "b44c0df",
+                "format": "father-son",
+                "name": "_mainDep",
+                "x-hidden": true,
+                "title": "所属主管部门",
+                "type": "string",
+                "x-index": 7,
+                "x-unique": false,
+                "x-parent": {
+                    "fatherAction": "judge",
+                    "type": "father-son",
+                    "parentDataSourceName": "sys_department"
+                }
+            },
+            "createdAt": {
+                "default": 0,
+                "x-system": true,
+                "x-id": "8b7d7a9",
+                "format": "datetime",
+                "x-index": 2,
+                "type": "number",
+                "title": "创建时间",
+                "x-unique": false
+            },
+            "createBy": {
+                "default": "",
+                "x-system": true,
+                "x-id": "6856dd3",
+                "name": "createBy",
+                "format": "father-son",
+                "pattern": "",
+                "x-hidden": true,
+                "x-index": 5,
+                "type": "string",
+                "title": "创建人",
+                "x-unique": false,
+                "x-parent": {
+                    "fatherAction": "judge",
+                    "type": "father-son",
+                    "parentDataSourceName": "sys_user"
+                }
+            },
+            "expertName": {
+                "x-required": true,
+                "x-keyPath": "",
+                "x-id": "31b82139",
+                "format": "",
+                "description": "",
+                "type": "string",
+                "x-index": 49,
+                "title": "专家名称",
+                "x-unique": false
+            },
+            "updateBy": {
+                "default": "",
+                "x-system": true,
+                "x-id": "93a079a",
+                "name": "updateBy",
+                "format": "father-son",
+                "pattern": "",
+                "x-hidden": true,
+                "x-index": 6,
+                "type": "string",
+                "title": "修改人",
+                "x-unique": false,
+                "x-parent": {
+                    "fatherAction": "judge",
+                    "type": "father-son",
+                    "parentDataSourceName": "sys_user"
+                }
+            },
+            "expertCode": {
+                "x-required": true,
+                "x-keyPath": "",
+                "x-id": "535f9c79",
+                "format": "",
+                "description": "",
+                "type": "string",
+                "x-index": 47,
+                "title": "专家代码",
+                "x-unique": true
+            },
+            "_openid": {
+                "default": "",
+                "x-system": true,
+                "x-id": "530fcfa",
+                "name": "_openid",
+                "format": "",
+                "pattern": "",
+                "description": "仅微信云开发下使用",
+                "x-index": 45,
+                "title": "记录创建者",
+                "type": "string",
+                "x-unique": false
+            },
+            "_id": {
+                "x-system": true,
+                "x-id": "f6e86f2",
+                "format": "",
+                "x-index": 1,
+                "type": "string",
+                "title": "数据标识",
+                "x-unique": true
+            },
+            "updatedAt": {
+                "default": 0,
+                "x-system": true,
+                "x-id": "179411e",
+                "format": "datetime",
+                "x-index": 3,
+                "title": "更新时间",
+                "type": "number",
+                "x-unique": false
+            },
+            "status": {
+                "x-required": true,
+                "default": "active",
+                "x-keyPath": "",
+                "x-id": "q7w8e9r0",
+                "format": "",
+                "description": "账号状态，必须填写：active（激活）或 inactive（未激活）。只有 active 状态的专家才能登录",
+                "type": "string",
+                "x-index": 51,
+                "title": "状态",
+                "x-unique": false
+            },
+            "expertType": {
+                "x-required": true,
+                "default": "preliminary",
+                "x-keyPath": "",
+                "x-id": "a1b2c3d4",
+                "format": "",
+                "description": "专家类型，必须填写：preliminary（初评专家）或 final（终评专家）",
+                "type": "string",
+                "x-index": 48,
+                "title": "专家类型",
+                "x-unique": false
+            }
+        }
+    },
+    "dbInstanceType": "FLEXDB",
+    "title": "专家数据库",
+    "prodDbInfo": null,
+    "name": "experts",
+    "dbLinkType": "internal",
+    "tableNameRule": "only_name",
+    "type": "database",
+    "previewDbInfo": null,
+    "updateTime": "2025-10-07T08:00:00",
+    "publishedTableName": "experts",
+    "id": "data-54ymTFBAv",
+    "dbSourceType": "internal_flexdb",
+    "methods": [],
+    "fun": "{\"onlineVersion\": 8, \"previewVersion\": 7, \"onlinePublishAt\": 1759821658841, \"prviewPublishAt\": 1759821658659}",
+    "publishStatus": 1,
+    "configuration": {}
+}

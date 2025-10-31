@@ -1,0 +1,161 @@
+{
+    "type": "swapEvaluationsByName",
+    "targetTable": "pottery_submissions_clean",
+    "mode": "best-effort",
+    "swaps": [
+      {
+        "workName1": "《浮生前眼录》",
+        "workName2": "赤林灵跃"
+      },
+      {
+        "workName1": "兰时",
+        "workName2": "无首揖客"
+      },
+      {
+        "workName1": "彩花蝶锦簇图",
+        "workName2": "生命的韵律"
+      },
+      {
+        "workName1": "《古今砂韵》",
+        "workName2": "丝路古垣"
+      },
+      {
+        "workName1": "赤瓷之旅",
+        "workName2": "凤鸣"
+      },
+      {
+        "workName1": "《彼岸之蛇》",
+        "workName2": "瓷火流裳"
+      },
+      {
+        "workName1": "《秋山窑影》",
+        "workName2": "寻梦邯郸--人工智能和3D打印技术助力磁州窑白酒酒具设计"
+      },
+      {
+        "workName1": "飞羽青蓝",
+        "workName2": "《筑影花插》"
+      },
+      {
+        "workName1": "《时间的秩序》",
+        "workName2": "家国磁枕"
+      },
+      {
+        "workName1": "《融》",
+        "workName2": "梦蝶"
+      },
+      {
+        "workName1": "釉光.薪火",
+        "workName2": "《素节问天》"
+      },
+      {
+        "workName1": "生命之舞",
+        "workName2": "枯木生花"
+      },
+      {
+        "workName1": "《数字匠心，千年焕新》",
+        "workName2": "绚殇"
+      },
+      {
+        "workName1": "高原礼赞",
+        "workName2": "琇灵"
+      },
+      {
+        "workName1": "星空幻想",
+        "workName2": "玉兔拌嫦娥"
+      },
+      {
+        "workName1": "未竟之岸",
+        "workName2": "斗牛"
+      },
+      {
+        "workName1": "向生",
+        "workName2": "《瘦子》"
+      },
+      {
+        "workName1": "渔悦集",
+        "workName2": "小怪物系列作品"
+      },
+      {
+        "workName1": "华韵",
+        "workName2": "生辉"
+      },
+      {
+        "workName1": "希望",
+        "workName2": "《青韵牧灵》系列"
+      },
+      {
+        "workName1": "莲台观音·慈云妙相",
+        "workName2": "珐彩陶韵"
+      },
+      {
+        "workName1": "小白熊",
+        "workName2": "《牧马人》"
+      },
+      {
+        "workName1": "金狐一跌惊梦醒",
+        "workName2": "蒙古马"
+      },
+      {
+        "workName1": "众生之相",
+        "workName2": "《息脉青丘·植》"
+      },
+      {
+        "workName1": "《城鱼》",
+        "workName2": "羽翼"
+      },
+      {
+        "workName1": "《泥泥》",
+        "workName2": "壶中幻梦"
+      },
+      {
+        "workName1": "厝顶英魂跃潮音",
+        "workName2": "流"
+      },
+      {
+        "workName1": "岁月凝筑",
+        "workName2": "非遗叶染青瓷韵"
+      },
+      {
+        "workName1": "入海",
+        "workName2": "四季藻井·数字纹章"
+      },
+      {
+        "workName1": "《兔吻》",
+        "workName2": "稚子鲲鹏"
+      },
+      {
+        "workName1": "绽放",
+        "workName2": "我们睡在词的背面"
+      },
+      {
+        "workName1": "《憩》",
+        "workName2": "草木星鱼"
+      },
+      {
+        "workName1": "器灵五禽",
+        "workName2": "花狮呈瑞·瓷韵新章"
+      },
+      {
+        "workName1": "《颜神孝水》",
+        "workName2": "廿四窑·时令赋"
+      },
+      {
+        "workName1": "基因石髓：衍异",
+        "workName2": "印象敦煌系列"
+      },
+      {
+        "workName1": "雪山瓷韵",
+        "workName2": "筇竹茶具"
+      },
+      {
+        "workName1": "常青",
+        "workName2": "《古韵新姿——单耳几何纹彩陶罐的数字化演绎》"
+      },
+      {
+        "workName1": "星藏",
+        "workName2": "《雪域驮歌》"
+      }
+      
+      
+    ]
+  }

@@ -28,21 +28,179 @@ Page({
   },
 
   /**
-   * 查看参展页面
+   * 查看参展页面（带时间限制）
    */
   viewSubmissions() {
-    wx.navigateTo({
-      url: '/pages/pottery-submission/index'
-    });
+    // 先校验提交时间窗口
+    wx.showLoading({ title: '校验提交时间...', mask: true })
+    wx.cloud.callFunction({
+      name: 'quickstartFunctions',
+      data: { type: 'getDeliveryTimeLimit' },
+      success: res => {
+        wx.hideLoading()
+        if (!res.result || !res.result.success) {
+          wx.showToast({ title: '无法获取提交时间配置', icon: 'none' })
+          return
+        }
+        const cfg = res.result.data
+        if (!cfg || !cfg.submissionBeginDeadline || !cfg.submissionEndDeadline) {
+          wx.showModal({
+            title: '提示',
+            content: '尚未配置作品提交时间，请稍后再试。',
+            showCancel: false
+          })
+          return
+        }
+        
+        // 使用相同的时间解析逻辑
+        const parseTimeToMs = (timeStr, isEndTime = false) => {
+          if (!timeStr) return NaN
+          const date = new Date(timeStr)
+          let time = date.getTime()
+          
+          // 如果是结束时间且只有日期没有时间（时间为00:00:00）
+          if (isEndTime && date.getHours() === 0 && date.getMinutes() === 0 && date.getSeconds() === 0) {
+            // 设置为当天的23:59:59
+            time = time + 24 * 60 * 60 * 1000 - 1000 // 加一天减1毫秒
+          }
+          
+          return time
+        }
+        
+        const now = Date.now()
+        const start = parseTimeToMs(cfg.submissionBeginDeadline, false)
+        const end = parseTimeToMs(cfg.submissionEndDeadline, true)
+        
+        console.log('[submission_time_limit] raw:', cfg, 'parsed:', { start, end, now })
+        
+        if (isNaN(start) || isNaN(end)) {
+          wx.showModal({
+            title: '提示',
+            content: '提交时间配置格式错误，请联系管理员。',
+            showCancel: false
+          })
+          return
+        }
+        
+        if (now < start) {
+          const startDate = new Date(start).toLocaleDateString('zh-CN')
+          wx.showModal({
+            title: '提示',
+            content: `作品提交尚未开始，开始时间：${startDate}`,
+            showCancel: false
+          })
+          return
+        }
+        
+        if (now > end) {
+          const endDate = new Date(end).toLocaleDateString('zh-CN')
+          wx.showModal({
+            title: '提示',
+            content: `作品提交已结束，结束时间：${endDate}`,
+            showCancel: false
+          })
+          return
+        }
+        
+        // 时间验证通过，跳转到提交页面
+        wx.navigateTo({
+          url: '/pages/pottery-submission/index'
+        });
+      },
+      fail: err => {
+        wx.hideLoading()
+        console.error('获取提交时间配置失败', err)
+        wx.showToast({ title: '网络异常，请重试', icon: 'none' })
+      }
+    })
   },
 
   /**
-   * 跳转到参展查询页面
+   * 跳转到参展查询页面（带时间限制）
    */
   navigateToQuery() {
-    wx.navigateTo({
-      url: '/pages/pottery-query/index'
-    });
+    // 先校验提交时间窗口
+    wx.showLoading({ title: '校验提交时间...', mask: true })
+    wx.cloud.callFunction({
+      name: 'quickstartFunctions',
+      data: { type: 'getDeliveryTimeLimit' },
+      success: res => {
+        wx.hideLoading()
+        if (!res.result || !res.result.success) {
+          wx.showToast({ title: '无法获取提交时间配置', icon: 'none' })
+          return
+        }
+        const cfg = res.result.data
+        if (!cfg || !cfg.submissionBeginDeadline || !cfg.submissionEndDeadline) {
+          wx.showModal({
+            title: '提示',
+            content: '尚未配置作品提交时间，请稍后再试。',
+            showCancel: false
+          })
+          return
+        }
+        
+        // 使用相同的时间解析逻辑
+        const parseTimeToMs = (timeStr, isEndTime = false) => {
+          if (!timeStr) return NaN
+          const date = new Date(timeStr)
+          let time = date.getTime()
+          
+          // 如果是结束时间且只有日期没有时间（时间为00:00:00）
+          if (isEndTime && date.getHours() === 0 && date.getMinutes() === 0 && date.getSeconds() === 0) {
+            // 设置为当天的23:59:59
+            time = time + 24 * 60 * 60 * 1000 - 1000 // 加一天减1毫秒
+          }
+          
+          return time
+        }
+        
+        const now = Date.now()
+        const start = parseTimeToMs(cfg.submissionBeginDeadline, false)
+        const end = parseTimeToMs(cfg.submissionEndDeadline, true)
+        
+        console.log('[query_time_limit] raw:', cfg, 'parsed:', { start, end, now })
+        
+        if (isNaN(start) || isNaN(end)) {
+          wx.showModal({
+            title: '提示',
+            content: '提交时间配置格式错误，请联系管理员。',
+            showCancel: false
+          })
+          return
+        }
+        
+        if (now < start) {
+          const startDate = new Date(start).toLocaleDateString('zh-CN')
+          wx.showModal({
+            title: '提示',
+            content: `作品提交尚未开始，开始时间：${startDate}`,
+            showCancel: false
+          })
+          return
+        }
+        
+        if (now > end) {
+          const endDate = new Date(end).toLocaleDateString('zh-CN')
+          wx.showModal({
+            title: '提示',
+            content: `作品提交已结束，结束时间：${endDate}`,
+            showCancel: false
+          })
+          return
+        }
+        
+        // 时间验证通过，跳转到查询页面
+        wx.navigateTo({
+          url: '/pages/pottery-query/index'
+        });
+      },
+      fail: err => {
+        wx.hideLoading()
+        console.error('获取提交时间配置失败', err)
+        wx.showToast({ title: '网络异常，请重试', icon: 'none' })
+      }
+    })
   },
 
   /**

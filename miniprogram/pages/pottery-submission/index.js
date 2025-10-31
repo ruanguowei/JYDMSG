@@ -635,6 +635,12 @@ Page({
   
   // 提交申请
   submitApplication() {
+    // 防止重复提交：先检查是否正在提交中
+    if (this.data.submitting) {
+      console.log('正在提交中，忽略重复点击');
+      return;
+    }
+
     if (!this.validateForm()) {
       return;
     }
@@ -873,9 +879,10 @@ Page({
       },
       success: result => {
         wx.hideLoading();
-        this.setData({ submitting: false });
         
         if (result.result && result.result.success) {
+          this.setData({ submitting: false });
+          
           wx.showToast({
             title: this.data.isEditMode ? '更新成功' : '提交成功',
             icon: 'success',
@@ -887,7 +894,10 @@ Page({
             wx.navigateBack();
           }, 2000);
         } else {
-          this.showToast(this.data.isEditMode ? '更新失败，请重试' : '提交失败，请重试');
+          // 提交失败，重置状态并提示用户
+          this.setData({ submitting: false });
+          const errorMsg = result.result?.errMsg || (this.data.isEditMode ? '更新失败，请重试' : '提交失败，请重试');
+          this.showToast(errorMsg);
         }
       },
       fail: err => {

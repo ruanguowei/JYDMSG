@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>日期格式修复工具</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .container {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      padding: 40px;
+      max-width: 800px;
+      width: 100%;
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+      font-size: 28px;
+      text-align: center;
+    }
+
+    .subtitle {
+      color: #666;
+      margin-bottom: 30px;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    .section {
+      margin-bottom: 25px;
+    }
+
+    .section-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 15px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #667eea;
+    }
+
+    .info-box {
+      background: #f8f9fa;
+      border-left: 4px solid #ffc107;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 4px;
+    }
+
+    .info-box h3 {
+      color: #856404;
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+
+    .info-box p {
+      color: #666;
+      font-size: 13px;
+      line-height: 1.6;
+      margin-bottom: 5px;
+    }
+
+    .error-box {
+      background: #fee;
+      border-left: 4px solid #dc3545;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 4px;
+    }
+
+    .error-box h3 {
+      color: #c82333;
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+
+    .success-box {
+      background: #d4edda;
+      border-left: 4px solid #28a745;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 4px;
+    }
+
+    .success-box h3 {
+      color: #155724;
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+
+    .input-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #555;
+      font-weight: 500;
+      font-size: 14px;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 12px 15px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: border-color 0.3s;
+    }
+
+    input[type="text"]:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 15px;
+      margin-top: 30px;
+    }
+
+    button {
+      flex: 1;
+      padding: 15px 30px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-secondary {
+      background: #6c757d;
+      color: white;
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      background: #5a6268;
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .loading {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    #result {
+      margin-top: 25px;
+      padding: 20px;
+      border-radius: 8px;
+      display: none;
+      font-size: 14px;
+      line-height: 1.8;
+    }
+
+    #result.show {
+      display: block;
+    }
+
+    .result-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    .result-item:last-child {
+      border-bottom: none;
+    }
+
+    .result-label {
+      font-weight: 600;
+      color: #555;
+    }
+
+    .result-value {
+      color: #667eea;
+      font-weight: 600;
+    }
+
+    code {
+      background: #f4f4f4;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Monaco', 'Menlo', monospace;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔧 日期格式修复工具</h1>
+    <p class="subtitle">修复 pottery_submissions 集合中的日期格式问题</p>
+
+    <div class="error-box">
+      <h3>⚠️ 问题说明</h3>
+      <p><strong>错误信息：</strong>数据导出失败，数据不符合时间格式</p>
+      <p><strong>原因：</strong>云数据库中的日期字段存储为 Date 对象格式 <code>{$date=1759838109971}</code>，CMS 导出不支持</p>
+      <p><strong>解决：</strong>此工具将把所有 Date 对象转换为 13 位数字时间戳</p>
+    </div>
+
+    <div class="info-box">
+      <h3>📋 修复说明</h3>
+      <p>• 会自动扫描 pottery_submissions 集合中的所有数据</p>
+      <p>• 将 <code>createdAt</code> 和 <code>updatedAt</code> 字段转换为时间戳格式</p>
+      <p>• 修复后即可在 CMS 中正常导出 Excel</p>
+      <p>• 操作安全，不会删除或破坏数据</p>
+    </div>
+
+    <div class="section">
+      <div class="section-title">云环境配置</div>
+      <div class="input-group">
+        <label for="envId">云环境 ID</label>
+        <input 
+          type="text" 
+          id="envId" 
+          placeholder="例如: test-4gx2v0bw182a"
+          value="test-4gx2v0bw182a"
+        >
+      </div>
+    </div>
+
+    <div class="button-group">
+      <button class="btn-secondary" onclick="checkData()">
+        <span>📊 检查数据</span>
+      </button>
+      <button class="btn-primary" onclick="fixDateFormat()">
+        <span>🔧 开始修复</span>
+      </button>
+    </div>
+
+    <div id="result"></div>
+  </div>
+
+  <script>
+    // 云开发配置
+    let cloudEnv = '';
+
+    // 显示结果
+    function showResult(html, type = 'info') {
+      const resultDiv = document.getElementById('result');
+      resultDiv.className = `show ${type}-box`;
+      resultDiv.innerHTML = html;
+    }
+
+    // 检查数据
+    async function checkData() {
+      const envId = document.getElementById('envId').value.trim();
+      
+      if (!envId) {
+        alert('请输入云环境 ID');
+        return;
+      }
+
+      showResult(`
+        <h3>📊 正在检查数据...</h3>
+        <p>请稍候...</p>
+      `, 'info');
+
+      try {
+        // 这里需要使用云开发 API 来查询数据
+        showResult(`
+          <h3>📊 数据检查</h3>
+          <p>请在微信开发者工具中查看云数据库 pottery_submissions 集合</p>
+          <p>检查是否存在格式为 <code>{$date: xxx}</code> 的日期字段</p>
+          <p>如果存在此类字段，点击"开始修复"按钮进行修复</p>
+        `, 'info');
+      } catch (error) {
+        showResult(`
+          <h3>❌ 检查失败</h3>
+          <p>${error.message}</p>
+        `, 'error');
+      }
+    }
+
+    // 修复日期格式
+    async function fixDateFormat() {
+      const envId = document.getElementById('envId').value.trim();
+      
+      if (!envId) {
+        alert('请输入云环境 ID');
+        return;
+      }
+
+      if (!confirm('确定要修复日期格式吗？\n\n此操作会将所有 Date 对象转换为时间戳格式。')) {
+        return;
+      }
+
+      const btn = event.target.closest('button');
+      const originalHTML = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<div class="loading"></div><span>修复中...</span>';
+
+      showResult(`
+        <h3>🔧 正在修复...</h3>
+        <p>请在微信开发者工具的云函数控制台执行以下操作：</p>
+        <ol style="margin-left: 20px; margin-top: 10px;">
+          <li style="margin-bottom: 8px;">打开云函数 quickstartFunctions</li>
+          <li style="margin-bottom: 8px;">右键点击 fixDateFormat 文件夹</li>
+          <li style="margin-bottom: 8px;">选择"云端测试"</li>
+          <li style="margin-bottom: 8px;">点击"云端测试"按钮</li>
+          <li style="margin-bottom: 8px;">查看执行结果</li>
+        </ol>
+        <p style="margin-top: 15px;"><strong>或者运行以下命令：</strong></p>
+        <div style="background: #f4f4f4; padding: 10px; border-radius: 5px; margin-top: 10px;">
+          <code>node fix-date-format.js</code>
+        </div>
+      `, 'info');
+
+      setTimeout(() => {
+        btn.disabled = false;
+        btn.innerHTML = originalHTML;
+      }, 2000);
+    }
+
+    // 页面加载完成
+    window.onload = function() {
+      console.log('日期格式修复工具已加载');
+      console.log('请确保已经部署了 fixDateFormat 云函数');
+    };
+  </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

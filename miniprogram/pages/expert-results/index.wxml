@@ -106,5 +106,8 @@
     <button class="action-btn secondary" bindtap="backToEvaluation">
       返回评选
     </button>
+    <button class="action-btn admin-btn" bindtap="openAdminLogin">
+      管理员登录
+    </button>
   </view>
 </view>

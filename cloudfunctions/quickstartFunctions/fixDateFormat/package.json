@@ -1,0 +1,38 @@
+{
+  "name": "fixDateFormat",
+  "version": "1.0.0",
+  "description": "修复数据库中的日期格式",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

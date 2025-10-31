@@ -12,10 +12,12 @@ Page({
       craftsmanship: 2, // 工艺与材料 (0-2分) - 默认满分
       aesthetics: 2 // 美感与实用性 (0-2分) - 默认满分
     },
+    // 取消资格项（与打分分离）
+    disqualify: false, // 是否取消资格（内容违规/侵权抄袭）
+    // 扣分项（只扣分，不取消资格）
     deductions: {
-      contentViolation: false, // 内容违规 扣3分并可能取消资格
-      ethicsViolation: false, // 技术伦理失范 扣2分
-      materialsIncomplete: false // 提交材料不全 扣1分
+      aiNotLabeled: false, // AI生成作品未标注技术来源 扣2分
+      missingCreativeStatement: false // 未提供创作说明或技术应用报告 扣1分
     },
     totalScore: 0, // 总分（扣分前）
     finalScore: 0, // 扣分后
@@ -83,7 +85,8 @@ Page({
       data: {
         type: 'fetchSubmissionDetail',
         submissionId: this.data.submissionId,
-        expertId: expertInfo.expertId
+        expertId: expertInfo.expertId,
+        expertCode: expertInfo.expertCode  // 添加 expertCode，用于判断评委类型
       },
       success: res => {
         this.setData({ loading: false });
@@ -184,42 +187,55 @@ Page({
     this.calculateTotalScore();
   },
 
+  // 取消资格项切换
+  onDisqualifyChange: function(e) {
+    console.log('===== onDisqualifyChange 被触发 =====');
+    console.log('e.detail.value:', e.detail.value);
+    
+    const values = e.detail.value;
+    const checked = values.includes('disqualify');
+    
+    console.log('取消资格勾选变化:', { values, checked });
+    
+    if (checked) {
+      console.log('检测到勾选，准备弹出确认弹窗');
+      const that = this;
+      
+      // 勾选取消资格，立即弹出确认弹窗
+      wx.showModal({
+        title: '⚠️ 取消资格确认',
+        content: '您确认该作品存在以下问题吗？\n\n• 涉及国家象征/宗教敏感/负面舆论等内容\n• 侵犯他人知识产权或抄袭\n\n确认后该作品将被直接取消参赛资格，其他评委也将无法看到该作品。此操作不可撤销！',
+        confirmText: '确认',
+        confirmColor: '#e74c3c',
+        cancelText: '取消',
+        success: function(res) {
+          console.log('弹窗回调触发，用户选择:', res);
+          if (res.confirm) {
+            console.log('用户确认取消资格');
+            // 确认取消资格
+            that.setData({ disqualify: true });
+            // 立即提交取消资格（不需要再点提交按钮）
+            that.submitScoreWithDisqualification();
+          } else {
+            console.log('用户取消操作');
+            // 取消操作，不勾选
+            that.setData({ disqualify: false });
+          }
+        }
+      });
+    } else {
+      console.log('检测到取消勾选');
+      this.setData({ disqualify: false });
+    }
+  },
+
   // 扣分项切换
   onDeductionGroupChange: function(e) {
     const values = e.detail.value;
     const deductions = {
-      contentViolation: values.includes('contentViolation'),
-      ethicsViolation: values.includes('ethicsViolation'),
-      materialsIncomplete: values.includes('materialsIncomplete')
+      aiNotLabeled: values.includes('aiNotLabeled'),
+      missingCreativeStatement: values.includes('missingCreativeStatement')
     };
-    
-    // 检查内容违规，如果勾选则弹出确认弹窗
-    if (deductions.contentViolation && !this.data.deductions.contentViolation) {
-      wx.showModal({
-        title: '取消资格确认',
-        content: '您勾选了"内容违规"项，该作品将被直接取消参赛资格。此操作不可撤销，确认继续吗？',
-        confirmText: '确认取消资格',
-        cancelText: '返回修改',
-        success: (res) => {
-          if (res.confirm) {
-            // 确认取消资格，设置qualification为false
-            this.setData({ deductions });
-            this.calculateTotalScore();
-            this.submitScoreWithDisqualification();
-          } else {
-            // 取消操作，不勾选内容违规
-            this.setData({
-              deductions: {
-                contentViolation: false,
-                ethicsViolation: deductions.ethicsViolation,
-                materialsIncomplete: deductions.materialsIncomplete
-              }
-            });
-          }
-        }
-      });
-      return;
-    }
     
     this.setData({ deductions });
     this.calculateTotalScore();
@@ -229,11 +245,13 @@ Page({
   calculateTotalScore: function() {
     const { themeFit, creativity, craftsmanship, aesthetics } = this.data.scores;
     const totalScore = themeFit + creativity + craftsmanship + aesthetics;
-    const { contentViolation, ethicsViolation, materialsIncomplete } = this.data.deductions;
+    const { aiNotLabeled, missingCreativeStatement } = this.data.deductions;
+    
+    // 计算扣分
     let deductionPoints = 0;
-    if (contentViolation) deductionPoints += 3;
-    if (ethicsViolation) deductionPoints += 2;
-    if (materialsIncomplete) deductionPoints += 1;
+    if (aiNotLabeled) deductionPoints += 2;
+    if (missingCreativeStatement) deductionPoints += 1;
+    
     const finalScore = Math.max(0, totalScore - deductionPoints);
 
     this.setData({ totalScore, finalScore });
@@ -367,31 +385,17 @@ Page({
 
   // 提交评分
   submitScore: function() {
-    const { scores, totalScore, finalScore, deductions } = this.data;
+    const { scores, totalScore, finalScore, deductions, disqualify } = this.data;
     
-    // 验证评分
-    if (totalScore === 0) {
+    // 如果已经勾选取消资格，提示不需要重复提交
+    if (disqualify) {
       wx.showToast({
-        title: '请完成评分',
+        title: '该作品已取消资格',
         icon: 'none'
       });
       return;
     }
-
-    // 检查是否有未评分的项目
-    if (scores.themeFit === 0 || scores.creativity === 0 || scores.craftsmanship === 0 || scores.aesthetics === 0) {
-      wx.showModal({
-        title: '确认提交',
-        content: '您有未评分的项目，确定要提交吗？',
-        success: (res) => {
-          if (res.confirm) {
-            this.showSubmitConfirmModal();
-          }
-        }
-      });
-      return;
-    }
-
+    
     // 显示提交确认弹窗
     this.showSubmitConfirmModal();
   },
@@ -411,7 +415,7 @@ Page({
     });
   },
 
-  // 提交评分并取消资格
+  // 提交评分并取消资格（不需要评分，直接取消资格）
   submitScoreWithDisqualification: function() {
     this.setData({ submitting: true });
     
@@ -420,35 +424,37 @@ Page({
       data: {
         type: 'submitExpertScore',
         submissionId: this.data.submissionId,
-        scores: this.data.scores,
-        totalScore: this.data.totalScore,
-        finalScore: this.data.finalScore,
-        deductions: this.data.deductions,
+        scores: { themeFit: 0, creativity: 0, craftsmanship: 0, aesthetics: 0 }, // 取消资格不记分
+        totalScore: 0,
+        finalScore: 0,
+        deductions: {}, // 取消资格不记录扣分项
         expertId: this.data.expertInfo.expertId,
         expertCode: this.data.expertInfo.expertCode,
         expertName: this.data.expertInfo.expertName,
-        disqualify: true // 标记为取消资格
+        disqualify: true, // 标记为取消资格
+        disqualifyReason: '内容违规或侵权抄袭' // 取消资格原因
       },
       success: res => {
         this.setData({ submitting: false });
         
         if (res.result && res.result.success) {
-          wx.showToast({
-            title: '作品已取消资格',
-            icon: 'success'
+          wx.showModal({
+            title: '✅ 取消资格成功',
+            content: '该作品已被取消参赛资格，其他评委将无法看到该作品。',
+            showCancel: false,
+            confirmText: '返回',
+            success: () => {
+              // 返回到专家评选页面
+              wx.navigateBack();
+            }
           });
-          
-          // 直接跳回到专家评选页面
-          setTimeout(() => {
-            wx.navigateTo({
-              url: '/pages/expert-evaluation/index'
-            });
-          }, 1500);
         } else {
           wx.showToast({
             title: res.result ? (res.result.message || '操作失败') : '操作失败',
             icon: 'none'
           });
+          // 操作失败，取消勾选状态
+          this.setData({ disqualify: false });
         }
       },
       fail: err => {
@@ -457,6 +463,8 @@ Page({
           title: '网络异常，请重试',
           icon: 'none'
         });
+        // 操作失败，取消勾选状态
+        this.setData({ disqualify: false });
       }
     });
   },
@@ -473,6 +481,7 @@ Page({
     console.log('最终分数 (finalScore):', this.data.finalScore);
     console.log('扣分项 (deductions):', this.data.deductions);
     console.log('专家ID (expertId):', this.data.expertInfo.expertId);
+    console.log('专家Code (expertCode):', this.data.expertInfo.expertCode);
     console.log('专家姓名 (expertName):', this.data.expertInfo.expertName);
     console.log('========================');
     
@@ -487,7 +496,8 @@ Page({
         deductions: this.data.deductions,
         expertId: this.data.expertInfo.expertId,
         expertCode: this.data.expertInfo.expertCode,
-        expertName: this.data.expertInfo.expertName
+        expertName: this.data.expertInfo.expertName,
+        disqualify: false // 正常评分不取消资格
       },
       success: res => {
         this.setData({ submitting: false });

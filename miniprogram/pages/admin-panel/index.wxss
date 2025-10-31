@@ -1,0 +1,257 @@
+/* pages/admin-panel/index.wxss */
+.admin-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 40rpx 30rpx 140rpx;
+}
+
+.admin-header {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 20rpx;
+  padding: 40rpx 30rpx;
+  margin-bottom: 30rpx;
+  box-shadow: 0 8rpx 20rpx rgba(0, 0, 0, 0.1);
+}
+
+.header-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #333333;
+  text-align: center;
+  margin-bottom: 20rpx;
+}
+
+.admin-account {
+  font-size: 26rpx;
+  color: #666666;
+  text-align: center;
+}
+
+.function-cards {
+  margin-bottom: 30rpx;
+}
+
+.function-card {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 20rpx;
+  padding: 30rpx;
+  margin-bottom: 20rpx;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 4rpx 15rpx rgba(0, 0, 0, 0.1);
+  transition: all 0.3s;
+}
+
+.function-card:active {
+  transform: scale(0.98);
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1);
+}
+
+.card-icon {
+  width: 80rpx;
+  height: 80rpx;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 15rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 25rpx;
+}
+
+.card-icon .icon {
+  font-size: 40rpx;
+}
+
+.card-content {
+  flex: 1;
+}
+
+.card-title {
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #333333;
+  margin-bottom: 8rpx;
+}
+
+.card-desc {
+  font-size: 24rpx;
+  color: #999999;
+}
+
+.card-btn {
+  min-width: 120rpx;
+  height: 60rpx;
+  line-height: 60rpx;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #ffffff;
+  font-size: 26rpx;
+  border-radius: 30rpx;
+  border: none;
+  padding: 0 25rpx;
+  font-weight: bold;
+}
+
+.card-btn::after {
+  border: none;
+}
+
+/* 危险操作样式 */
+.danger-card {
+  border: 2rpx solid #ffcdd2;
+  background: linear-gradient(135deg, rgba(255, 235, 238, 0.95) 0%, rgba(255, 255, 255, 0.95) 100%);
+}
+
+.danger-icon {
+  background: linear-gradient(135deg, #ef5350 0%, #e74c3c 100%);
+}
+
+.danger-btn {
+  background: linear-gradient(135deg, #ef5350 0%, #e74c3c 100%);
+}
+
+.danger-btn[disabled] {
+  opacity: 0.6;
+}
+
+.stats-section {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 20rpx;
+  padding: 30rpx;
+  margin-bottom: 30rpx;
+  box-shadow: 0 4rpx 15rpx rgba(0, 0, 0, 0.1);
+}
+
+.stats-title {
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #333333;
+  margin-bottom: 25rpx;
+  text-align: center;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20rpx;
+}
+
+.stat-item {
+  text-align: center;
+  padding: 20rpx;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  border-radius: 15rpx;
+}
+
+.stat-number {
+  font-size: 40rpx;
+  font-weight: bold;
+  color: #667eea;
+  margin-bottom: 10rpx;
+}
+
+.stat-label {
+  font-size: 24rpx;
+  color: #666666;
+}
+
+.export-history {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 20rpx;
+  padding: 30rpx;
+  box-shadow: 0 4rpx 15rpx rgba(0, 0, 0, 0.1);
+}
+
+.history-title {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #333333;
+  margin-bottom: 20rpx;
+}
+
+.history-list {
+  max-height: 400rpx;
+  overflow-y: auto;
+}
+
+.history-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx;
+  margin-bottom: 15rpx;
+  background: #f8f9fa;
+  border-radius: 10rpx;
+}
+
+.history-info {
+  flex: 1;
+}
+
+.history-name {
+  font-size: 26rpx;
+  color: #333333;
+  margin-bottom: 8rpx;
+  font-weight: 500;
+}
+
+.history-time {
+  font-size: 22rpx;
+  color: #999999;
+}
+
+.history-status {
+  font-size: 24rpx;
+  padding: 8rpx 20rpx;
+  border-radius: 20rpx;
+  font-weight: bold;
+}
+
+.history-status-success {
+  background: #e8f5e9;
+  color: #4caf50;
+}
+
+.history-status-fail {
+  background: #ffebee;
+  color: #f44336;
+}
+
+.bottom-actions {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 20rpx 30rpx;
+  display: flex;
+  gap: 20rpx;
+  box-shadow: 0 -2rpx 10rpx rgba(0, 0, 0, 0.1);
+}
+
+.action-btn {
+  flex: 1;
+  height: 80rpx;
+  border-radius: 40rpx;
+  font-size: 28rpx;
+  font-weight: bold;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.action-btn.primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #ffffff;
+}
+
+.action-btn.secondary {
+  background: #f8f9fa;
+  color: #666666;
+  border: 2rpx solid #e0e0e0;
+}
+
+.action-btn::after {
+  border: none;
+}
+

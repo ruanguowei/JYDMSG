@@ -27,16 +27,20 @@ exports.main = async (event, context) => {
     
     const expert = expertResult.data[0]
     
-    // 记录登录日志
-    await db.collection('expertLoginLogs').add({
-      data: {
-        expertId: expert._id,
-        expertCode: expert.expertCode,
-        expertName: expert.expertName,
-        loginTime: new Date(),
-        ip: context.CLIENTIP || 'unknown'
-      }
-    })
+    // 记录登录日志（暂时注释，避免集合不存在导致失败）
+    try {
+      await db.collection('expertLoginLogs').add({
+        data: {
+          expertId: expert._id,
+          expertCode: expert.expertCode,
+          expertName: expert.expertName,
+          loginTime: new Date(),
+          ip: context.CLIENTIP || 'unknown'
+        }
+      })
+    } catch (logError) {
+      console.log('记录登录日志失败，但不影响登录:', logError)
+    }
     
     return {
       success: true,

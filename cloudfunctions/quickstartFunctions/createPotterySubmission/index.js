@@ -11,6 +11,19 @@ exports.main = async (event, context) => {
   const db = cloud.database()
   
   try {
+    // 防止重复提交：先检查用户是否已经提交过
+    const existingSubmissions = await db.collection('pottery_submissions')
+      .where({ _openid: wxContext.OPENID })
+      .count()
+    
+    if (existingSubmissions.total > 0) {
+      console.log(`用户 ${wxContext.OPENID} 已有 ${existingSubmissions.total} 条提交记录，拒绝重复创建`)
+      return {
+        success: false,
+        errMsg: '您已经提交过作品申请，如需修改请使用修改功能。如有疑问请联系管理员。'
+      }
+    }
+    
     // 获取提交的申请数据
     const submissionData = event.data || {}
     

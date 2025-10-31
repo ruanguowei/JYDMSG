@@ -8,6 +8,15 @@
 
   <!-- 作品信息 -->
   <view wx:elif="{{submission}}" class="submission-detail">
+    <!-- 视频作品提示 -->
+    <view wx:if="{{submission.workType === 'video'}}" class="video-notice">
+      <view class="notice-icon">📹</view>
+      <view class="notice-content">
+        <view class="notice-title">这是一件视频作品</view>
+        <view class="notice-desc">管理员会按固定顺序另行发送视频给您，请查收后再评分</view>
+      </view>
+    </view>
+    
     <!-- 作品图片展示区域（仅常规作品显示） -->
     <view class="images-section" wx:if="{{submission.workType === 'regular'}}">
       <!-- 透视图 -->
@@ -84,8 +93,8 @@
         </view>
       </view>
 
-      <!-- 工艺材料 -->
-      <view class="info-section" wx:if="{{submission.craftMaterial}}">
+      <!-- 工艺材料（仅常规作品显示） -->
+      <view class="info-section" wx:if="{{submission.workType === 'regular' && submission.craftMaterial}}">
         <view class="section-title">工艺材料</view>
         <view class="info-content">
           <text class="content-text">{{submission.craftMaterial}}</text>
@@ -179,21 +188,34 @@
         </view>
       </view>
 
+      <!-- ⚠️ 取消资格项（与评分分离） -->
+      <view class="disqualify-section">
+        <view class="disqualify-header">
+          <view class="disqualify-title">⚠️ 取消资格项</view>
+          <view class="disqualify-warning">勾选后作品将被直接取消参赛资格</view>
+        </view>
+        <checkbox-group bindchange="onDisqualifyChange">
+          <label class="disqualify-item">
+            <checkbox value="disqualify" checked="{{disqualify}}" color="#e74c3c"/>
+            <view class="disqualify-text">
+              <view class="disqualify-main">内容违规或侵权抄袭</view>
+              <view class="disqualify-desc">涉及国家象征/宗教敏感/负面舆论，或侵犯知识产权/抄袭</view>
+            </view>
+          </label>
+        </checkbox-group>
+      </view>
+
       <!-- 扣分项（依据评审纪律） -->
       <view class="deductions">
         <view class="deductions-title">扣分项</view>
         <checkbox-group bindchange="onDeductionGroupChange">
           <label class="deduction-item">
-            <checkbox value="contentViolation" checked="{{deductions.contentViolation}}"/>
-            <view class="deduction-text">内容违规（国家象征/宗教敏感/负面舆论等） -3分</view>
+            <checkbox value="aiNotLabeled" checked="{{deductions.aiNotLabeled}}"/>
+            <view class="deduction-text">AI生成作品未标注技术来源 -2分</view>
           </label>
           <label class="deduction-item">
-            <checkbox value="ethicsViolation" checked="{{deductions.ethicsViolation}}"/>
-            <view class="deduction-text">技术伦理失范（AI未标注、侵权等） -2分</view>
-          </label>
-          <label class="deduction-item">
-            <checkbox value="materialsIncomplete" checked="{{deductions.materialsIncomplete}}"/>
-            <view class="deduction-text">提交材料不全（缺创作说明/技术报告） -1分</view>
+            <checkbox value="missingCreativeStatement" checked="{{deductions.missingCreativeStatement}}"/>
+            <view class="deduction-text">未提供创作说明或技术应用报告 -1分</view>
           </label>
         </checkbox-group>
       </view>

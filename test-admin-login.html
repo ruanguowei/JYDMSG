@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>管理员登录测试工具</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    
+    .container {
+      background: white;
+      border-radius: 20px;
+      padding: 40px;
+      max-width: 600px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+    
+    h1 {
+      color: #667eea;
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 28px;
+    }
+    
+    .section {
+      margin-bottom: 30px;
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 10px;
+    }
+    
+    .section-title {
+      font-size: 18px;
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+    }
+    
+    .section-title::before {
+      content: '📋';
+      margin-right: 10px;
+      font-size: 24px;
+    }
+    
+    .info-item {
+      margin-bottom: 10px;
+      padding: 10px;
+      background: white;
+      border-radius: 5px;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    
+    .info-item strong {
+      color: #667eea;
+      display: inline-block;
+      width: 120px;
+    }
+    
+    .status {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: bold;
+    }
+    
+    .status.success {
+      background: #d4edda;
+      color: #155724;
+    }
+    
+    .status.error {
+      background: #f8d7da;
+      color: #721c24;
+    }
+    
+    .status.warning {
+      background: #fff3cd;
+      color: #856404;
+    }
+    
+    .checklist {
+      list-style: none;
+    }
+    
+    .checklist li {
+      padding: 12px;
+      margin-bottom: 10px;
+      background: white;
+      border-radius: 5px;
+      border-left: 4px solid #667eea;
+    }
+    
+    .checklist li::before {
+      content: '✓';
+      color: #28a745;
+      font-weight: bold;
+      margin-right: 10px;
+    }
+    
+    code {
+      background: #2d3748;
+      color: #68d391;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+    }
+    
+    .sql-block {
+      background: #2d3748;
+      color: #e2e8f0;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 10px 0;
+      overflow-x: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    
+    .sql-block .key {
+      color: #fbbf24;
+    }
+    
+    .sql-block .string {
+      color: #68d391;
+    }
+    
+    .steps {
+      counter-reset: step;
+      list-style: none;
+    }
+    
+    .steps li {
+      padding: 15px 15px 15px 50px;
+      margin-bottom: 15px;
+      background: white;
+      border-radius: 8px;
+      position: relative;
+    }
+    
+    .steps li::before {
+      counter-increment: step;
+      content: counter(step);
+      position: absolute;
+      left: 15px;
+      top: 15px;
+      width: 30px;
+      height: 30px;
+      background: #667eea;
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+    }
+    
+    .note {
+      background: #fff3cd;
+      border-left: 4px solid #ffc107;
+      padding: 15px;
+      margin: 15px 0;
+      border-radius: 5px;
+    }
+    
+    .note::before {
+      content: '⚠️ ';
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔧 管理员登录问题排查</h1>
+    
+    <div class="section">
+      <div class="section-title">问题诊断清单</div>
+      <ul class="checklist">
+        <li>检查云函数是否已部署</li>
+        <li>检查数据库中是否有 admin 集合</li>
+        <li>检查 admin 集合中是否有账号数据</li>
+        <li>检查账号密码是否正确</li>
+        <li>检查页面路由是否正确注册</li>
+      </ul>
+    </div>
+    
+    <div class="section">
+      <div class="section-title">第一步：部署云函数</div>
+      <ol class="steps">
+        <li>
+          打开<strong>微信开发者工具</strong>
+        </li>
+        <li>
+          找到左侧文件树中的 <code>cloudfunctions</code> 文件夹
+        </li>
+        <li>
+          右键点击 <code>quickstartFunctions</code> 文件夹
+        </li>
+        <li>
+          选择 <strong>"上传并部署：云端安装依赖"</strong>
+        </li>
+        <li>
+          等待部署完成（可能需要几分钟）
+        </li>
+      </ol>
+      <div class="note">
+        注意：新增的云函数必须重新部署才能生效！
+      </div>
+    </div>
+    
+    <div class="section">
+      <div class="section-title">第二步：配置管理员账号</div>
+      <ol class="steps">
+        <li>
+          打开<strong>云开发控制台</strong>（点击微信开发者工具顶部的"云开发"按钮）
+        </li>
+        <li>
+          进入左侧<strong>"数据库"</strong>菜单
+        </li>
+        <li>
+          查找是否有 <code>admin</code> 集合
+          <ul style="margin-top: 10px; padding-left: 20px;">
+            <li>如果没有：点击"+"号创建新集合，命名为 <code>admin</code></li>
+            <li>如果有：继续下一步</li>
+          </ul>
+        </li>
+        <li>
+          点击 <code>admin</code> 集合，然后点击<strong>"添加记录"</strong>
+        </li>
+        <li>
+          在 JSON 编辑器中输入以下内容：
+          <div class="sql-block">
+{<br>
+  <span class="key">"account"</span>: <span class="string">"admin"</span>,<br>
+  <span class="key">"password"</span>: <span class="string">"123456"</span><br>
+}
+          </div>
+        </li>
+        <li>
+          点击<strong>"确定"</strong>保存
+        </li>
+      </ol>
+      <div class="note">
+        请根据需要修改账号和密码。部署到生产环境时请使用强密码！
+      </div>
+    </div>
+    
+    <div class="section">
+      <div class="section-title">第三步：测试登录</div>
+      <ol class="steps">
+        <li>
+          在微信开发者工具中<strong>重新编译</strong>小程序（点击"编译"按钮或按 Ctrl+B）
+        </li>
+        <li>
+          打开小程序，进入<strong>专家评选</strong> → <strong>获取结果</strong>页面
+        </li>
+        <li>
+          点击底部的<strong>"管理员登录"</strong>按钮（橙色按钮）
+        </li>
+        <li>
+          输入账号：<code>admin</code>
+        </li>
+        <li>
+          输入密码：<code>123456</code>（或你设置的密码）
+        </li>
+        <li>
+          如果验证成功，会显示"验证成功"并自动跳转到管理员面板
+        </li>
+      </ol>
+    </div>
+    
+    <div class="section">
+      <div class="section-title">第四步：查看调试日志</div>
+      <div class="info-item">
+        如果登录失败，请查看控制台输出：
+      </div>
+      <ol class="steps">
+        <li>
+          打开微信开发者工具的<strong>"控制台"</strong>选项卡
+        </li>
+        <li>
+          查看是否有错误信息
+        </li>
+        <li>
+          特别关注以下几种错误：
+          <ul style="margin-top: 10px; padding-left: 20px; line-height: 1.8;">
+            <li><code>账号或密码错误</code> - 检查数据库中的账号密码</li>
+            <li><code>网络异常</code> - 检查云函数是否部署成功</li>
+            <li><code>未知的云函数类型</code> - 检查云函数是否正确注册</li>
+            <li><code>navigateTo fail</code> - 检查 app.json 中是否注册了 admin-panel 页面</li>
+          </ul>
+        </li>
+      </ol>
+    </div>
+    
+    <div class="section">
+      <div class="section-title">常见问题解决</div>
+      
+      <div class="info-item">
+        <strong>问题1：</strong>点击"管理员登录"没有反应
+        <br>
+        <strong>解决：</strong>检查 <code>pages/expert-results/index.js</code> 是否正确添加了 <code>openAdminLogin</code> 方法
+      </div>
+      
+      <div class="info-item">
+        <strong>问题2：</strong>提示"账号或密码错误"
+        <br>
+        <strong>解决：</strong>
+        <ol style="margin-top: 5px; padding-left: 20px;">
+          <li>检查数据库 <code>admin</code> 集合中是否有数据</li>
+          <li>确认输入的账号密码与数据库中完全一致（区分大小写）</li>
+        </ol>
+      </div>
+      
+      <div class="info-item">
+        <strong>问题3：</strong>验证成功但没有跳转
+        <br>
+        <strong>解决：</strong>检查 <code>app.json</code> 的 pages 数组中是否包含 <code>"pages/admin-panel/index"</code>
+      </div>
+      
+      <div class="info-item">
+        <strong>问题4：</strong>提示"网络异常"
+        <br>
+        <strong>解决：</strong>
+        <ol style="margin-top: 5px; padding-left: 20px;">
+          <li>检查云函数是否部署成功</li>
+          <li>在云开发控制台查看云函数日志</li>
+          <li>确认云开发环境已初始化</li>
+        </ol>
+      </div>
+    </div>
+    
+    <div class="section">
+      <div class="section-title">验证清单</div>
+      <div class="info-item">
+        <strong>✓ 云函数状态：</strong> 
+        <span class="status warning">需要手动检查</span>
+        <br>
+        <small>在云开发控制台 → 云函数中查看 quickstartFunctions 的部署时间</small>
+      </div>
+      
+      <div class="info-item">
+        <strong>✓ 数据库配置：</strong> 
+        <span class="status warning">需要手动检查</span>
+        <br>
+        <small>在云开发控制台 → 数据库中查看 admin 集合</small>
+      </div>
+      
+      <div class="info-item">
+        <strong>✓ 页面注册：</strong> 
+        <span class="status success">已自动配置</span>
+        <br>
+        <small>admin-panel 页面已在 app.json 中注册</small>
+      </div>
+      
+      <div class="info-item">
+        <strong>✓ 云函数路由：</strong> 
+        <span class="status success">已自动配置</span>
+        <br>
+        <small>verifyAdmin 已在 index.js 中注册</small>
+      </div>
+    </div>
+    
+    <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 2px solid #e0e0e0; color: #666;">
+      <p>如果按照以上步骤操作后仍有问题，请查看控制台的具体错误信息</p>
+      <p style="margin-top: 10px; font-size: 14px;">💡 提示：最常见的原因是忘记部署云函数</p>
+    </div>
+  </div>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
