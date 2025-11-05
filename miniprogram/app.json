@@ -17,7 +17,8 @@
     "pages/expert-evaluation/index",
     "pages/expert-scoring/index",
     "pages/expert-results/index",
-    "pages/admin-panel/index"
+    "pages/admin-panel/index",
+    "pages/work-query/index"
   ],
   "window": {
     "backgroundColor": "#F6F6F6",

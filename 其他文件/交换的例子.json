@@ -1,0 +1,98 @@
+
+
+  {
+    "swaps": [
+      {
+      "workName1": "飞寰逐瑞-飞天系列岩矿陶泥茶具系列茶具",
+      "table1": "pottery_submissions_for_final",
+      "workName2": "霞光",
+      "table2": "pottery_submissions_final"
+     },
+     {
+      "workName1": "风起丝路绞胎杯",
+      "table1": "pottery_submissions_for_final",
+      "workName2": "《粉墨文心·陈妙常》",
+      "table2": "pottery_submissions_final"
+     },
+     {
+      "workName1": "萌宠趣事",
+      "table1": "pottery_submissions_for_final",
+      "workName2": "《西域邮票》",
+      "table2": "pottery_submissions_final"
+     },
+     {
+      "workName1": "赤林灵跃",
+      "table1": "pottery_submissions_for_final",
+      "workName2": "罗汉",
+      "table2": "pottery_submissions_final"
+     },
+     {
+      "workName1": "瓷火流裳",
+      "table1": "pottery_submissions_for_final",
+      "workName2": "归燕",
+      "table2": "pottery_submissions_final"
+     }
+  
+  ]
+  }
+
+
+  {
+    "type": "exportFinalResults",
+    "sourceTable": "pottery_submissions_final"
+  }
+
+  {
+    "type": "exportFinalResults",
+    "sourceTable": "pottery_submissions_for_final"
+  }
+
+  {
+    "sourceTable": "pottery_submissions_for_final",
+    "targetTable": "pottery_submissions_final",
+    "mode": "best-effort",
+    "overwrite": false,
+    "works": [
+      "The slow corner and beak",
+      "Aerial天繫",
+      "煩花"
+    ]
+  }
+
+  {
+    "targetTable": "pottery_submissions_final",
+    "mode": "disqualified",
+    "dryRun": false
+  }
+
+  
+
+  {
+    "swaps": [
+      {
+      "workName1": "万物共生",
+      "table1": "pottery_submissions_for_final",
+      "workName2": "当窑火遇见算法",
+      "table2": "pottery_submissions_final"
+     },
+     {
+      "workName1": "破界之思",
+      "table1": "pottery_submissions_for_final",
+      "workName2": "《代码上的“雨过天青”》",
+      "table2": "pottery_submissions_final"
+     },
+     {
+      "workName1": "寻迹II",
+      "table1": "pottery_submissions_for_final",
+      "workName2": "泥火里的路",
+      "table2": "pottery_submissions_final"
+     },
+     {
+      "workName1": "莫比乌斯环链",
+      "table1": "pottery_submissions_for_final",
+      "workName2": "瓷相幻影",
+      "table2": "pottery_submissions_final"
+     }
+  
+  ]
+  }

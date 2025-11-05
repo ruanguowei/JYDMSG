@@ -30,10 +30,27 @@ Page({
   },
 
   onShow: function() {
-    // 每次页面显示时自动刷新作品列表
-    console.log('页面显示，自动刷新作品列表');
-    if (this.data.expertInfo) {
+    // 智能刷新：只有当前列表为空或作品很少时，才自动刷新
+    if (!this.data.expertInfo) {
+      return;
+    }
+    
+    const currentSubmissions = this.data.submissions || [];
+    
+    console.log('=== 页面显示，检查是否需要刷新 ===');
+    console.log('当前列表作品数:', currentSubmissions.length);
+    
+    if (currentSubmissions.length === 0) {
+      // 列表为空（全部评完或首次加载），刷新
+      console.log('✅ 列表为空，自动刷新获取新作品');
       this.fetchSubmissions();
+    } else if (currentSubmissions.length < 3) {
+      // 作品少于3件，提前刷新，避免专家等待
+      console.log('✅ 列表作品较少（<3件），提前刷新');
+      this.fetchSubmissions();
+    } else {
+      // 还有足够的作品，不刷新
+      console.log(`⏭️ 当前列表还有 ${currentSubmissions.length} 件作品，不刷新（节省请求）`);
     }
   },
 
@@ -60,7 +77,7 @@ Page({
   },
 
   // 获取待评选作品
-  fetchSubmissions: function() {
+  fetchSubmissions: function(retryCount = 0) {
     this.setData({ loading: true });
     
     // 获取专家信息
@@ -74,14 +91,16 @@ Page({
       return;
     }
     
+    const that = this;
+    
     wx.cloud.callFunction({
-      name: 'quickstartFunctions',
+      name: 'fetchSubmissionsForEvaluation',
       data: {
-        type: 'fetchSubmissionsForEvaluation',
         expertCode: expertInfo.expertCode
       },
+      timeout: 60000,  // 超时时间设置为60秒
       success: res => {
-        this.setData({ loading: false });
+        that.setData({ loading: false });
         
         if (res.result && res.result.success) {
           const allSubmissions = res.result.data || [];
@@ -93,8 +112,8 @@ Page({
           
           // 调试信息：输出专家信息和作品列表
           console.log('=== 专家评审页面调试信息 ===');
-          console.log('当前专家信息:', this.data.expertInfo);
-          console.log('专家Code:', this.data.expertInfo ? this.data.expertInfo.expertCode : '未获取到');
+          console.log('当前专家信息:', that.data.expertInfo);
+          console.log('专家Code:', that.data.expertInfo ? that.data.expertInfo.expertCode : '未获取到');
           console.log('评委角色信息:', expertInfo);
           console.log('统计信息:', statistics);
           console.log('本次显示作品数量:', submissionsToShow.length);
@@ -110,7 +129,7 @@ Page({
           });
           console.log('========================');
           
-          this.setData({
+          that.setData({
             submissions: submissionsToShow,
             expertRoleInfo: expertInfo,
             statistics: statistics,
@@ -135,12 +154,45 @@ Page({
         }
       },
       fail: err => {
-        this.setData({ loading: false });
-        console.error('调用云函数失败', err);
-        wx.showToast({
-          title: '网络异常',
-          icon: 'none'
-        });
+        console.error('=== 获取作品列表失败 ===');
+        console.error('错误信息:', err.errMsg || err.message);
+        console.error('重试次数:', retryCount);
+        
+        // 重试机制（最多重试3次）
+        if (retryCount < 3) {
+          const retryDelay = Math.pow(2, retryCount) * 1000; // 1秒、2秒、4秒
+          console.log(`🔄 ${retryDelay / 1000}秒后进行第${retryCount + 1}次重试...`);
+          
+          wx.showToast({
+            title: `网络繁忙，${retryDelay / 1000}秒后重试...`,
+            icon: 'loading',
+            duration: retryDelay
+          });
+          
+          setTimeout(() => {
+            that.fetchSubmissions(retryCount + 1);
+          }, retryDelay);
+          
+        } else {
+          // 重试3次后仍失败，降级处理
+          that.setData({ loading: false });
+          
+          console.error('❌ 重试3次后仍失败');
+          
+          wx.showModal({
+            title: '加载失败',
+            content: '作品列表加载失败。\n\n可能是网络繁忙或系统维护中。',
+            confirmText: '手动重试',
+            confirmColor: '#667eea',
+            cancelText: '稍后再试',
+            success: (res) => {
+              if (res.confirm) {
+                // 手动重试
+                that.fetchSubmissions(0);
+              }
+            }
+          });
+        }
       }
     });
   },

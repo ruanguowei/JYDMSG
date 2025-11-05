@@ -28,21 +28,21 @@ function getCloudEnv() {
     
     let targetEnv;
     
-    // ⭐ 临时强制使用生产环境（用于所有版本测试生产环境）
-    // ⚠️ 测试完成后记得恢复自动切换！
-    // targetEnv = envList.find(env => env.type === 'production');
-    // console.log(`[云环境] 🔴 临时强制使用生产环境（所有版本）`);
+    // ⭐ 【正式上线】强制使用生产环境（所有版本都使用生产环境）
+    // ⚠️ 当前已正式上线，所有版本使用生产环境
+    targetEnv = envList.find(env => env.type === 'production');
+    console.log(`[云环境] 🔴 【正式上线】强制使用生产环境（所有版本） - 当前版本: ${envVersion}`);
     
-    // 正常自动切换逻辑
-    if (envVersion === 'release') {
-      // 正式版使用生产环境
-      targetEnv = envList.find(env => env.type === 'production');
-      console.log('[云环境] 正式版 - 使用生产环境');
-    } else {
-      // 开发版和体验版使用测试环境
-      targetEnv = envList.find(env => env.type === 'test');
-      console.log(`[云环境] ${envVersion === 'trial' ? '体验版' : '开发版'} - 使用测试环境`);
-    }
+    // 正常自动切换逻辑（已注释，正式上线期间使用上方的强制生产环境）
+    // if (envVersion === 'release') {
+    //   // 正式版使用生产环境
+    //   targetEnv = envList.find(env => env.type === 'production');
+    //   console.log('[云环境] 正式版 - 使用生产环境');
+    // } else {
+    //   // 开发版和体验版使用测试环境
+    //   targetEnv = envList.find(env => env.type === 'test');
+    //   console.log(`[云环境] ${envVersion === 'trial' ? '体验版' : '开发版'} - 使用测试环境`);
+    // }
     
     console.log(`[云环境] 当前版本: ${envVersion}, 环境: ${targetEnv.envName}, ID: ${targetEnv.envId}`);
     return targetEnv.envId;

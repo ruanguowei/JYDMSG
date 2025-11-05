@@ -1,0 +1,11 @@
+{
+  "name": "replaceQualifiedWorks",
+  "version": "1.0.0",
+  "description": "用未入围作品完全替换已入围作品",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}
+
+

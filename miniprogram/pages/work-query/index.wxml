@@ -1,0 +1,116 @@
+<!--pages/work-query/index.wxml-->
+<view class="query-container">
+  
+  <!-- 未查询或重新查询时显示输入表单 -->
+  <view wx:if="{{!showResult}}" class="query-form">
+    <view class="page-title">查询入围结果</view>
+    <view class="page-desc">请输入您在报名时填写的信息</view>
+    
+    <view class="form-section">
+      <view class="form-item">
+        <view class="label">手机号</view>
+        <input 
+          class="input" 
+          type="number"
+          maxlength="11"
+          placeholder="请输入报名时的手机号" 
+          value="{{phone}}"
+          bindinput="onPhoneInput"
+        />
+      </view>
+      
+      <view class="form-item">
+        <view class="label">学生姓名</view>
+        <input 
+          class="input" 
+          type="text"
+          placeholder="请输入学生姓名" 
+          value="{{name}}"
+          bindinput="onNameInput"
+        />
+      </view>
+    </view>
+    
+    <button 
+      class="query-btn" 
+      bindtap="queryStatus"
+      loading="{{loading}}"
+      disabled="{{loading}}"
+    >
+      {{loading ? '查询中...' : '查询'}}
+    </button>
+    
+    <view class="tips">
+      <view class="tips-title">温馨提示</view>
+      <view class="tips-item">• 请输入您在报名时填写的手机号和姓名</view>
+      <view class="tips-item">• 手机号和姓名必须与报名信息完全一致</view>
+      <view class="tips-item">• 如有疑问，请联系组委会</view>
+    </view>
+  </view>
+  
+  <!-- 查询结果 -->
+  <view wx:if="{{showResult}}" class="result-container">
+    
+    <!-- 入围结果 -->
+    <view wx:if="{{qualified}}" class="result-card success">
+      <view class="result-icon">🎉</view>
+      <view class="result-title">恭喜！您的作品已入围</view>
+      
+      <view class="work-info">
+        <view class="info-item">
+          <text class="info-label">作品名称</text>
+          <text class="info-value">{{resultData.artworkName}}</text>
+        </view>
+        <view class="info-item">
+          <text class="info-label">作品类别</text>
+          <text class="info-value">{{resultData.category}}</text>
+        </view>
+        <view class="info-item">
+          <text class="info-label">学校</text>
+          <text class="info-value">{{resultData.school}}</text>
+        </view>
+        <view class="info-item" wx:if="{{resultData.teacher}}">
+          <text class="info-label">指导教师</text>
+          <text class="info-value">{{resultData.teacher}}</text>
+        </view>
+      </view>
+      
+      <!-- 入围通知图片 -->
+      <view class="notice-images">
+        <view class="notice-title">📢 入围通知</view>
+        <image 
+          class="notice-image" 
+          src="cloud://jdzyzdmsg-5g4rgrjl2008796f.6a64-jdzyzdmsg-5g4rgrjl2008796f-1378111268/首页资料/第二届全国大学生陶艺作品展入围通知_01.png"
+          mode="widthFix"
+          show-menu-by-longpress
+        />
+        <image 
+          class="notice-image" 
+          src="cloud://jdzyzdmsg-5g4rgrjl2008796f.6a64-jdzyzdmsg-5g4rgrjl2008796f-1378111268/首页资料/第二届全国大学生陶艺作品展入围通知_02.png"
+          mode="widthFix"
+          show-menu-by-longpress
+        />
+      </view>
+      
+      <view class="congrats-text">
+        感谢您的精彩作品！<br/>
+        请关注后续获奖公示通知
+      </view>
+    </view>
+    
+    <!-- 未入围结果 -->
+    <view wx:else class="result-card fail">
+      <view class="result-icon">📝</view>
+      <view class="result-title">很遗憾，您的作品未入围</view>
+      
+      <view class="fail-text">
+        感谢您对本次活动的参与和支持！<br/>
+        期待您在未来的活动中继续参与
+      </view>
+    </view>
+    
+    <button class="retry-btn" bindtap="resetQuery">重新查询</button>
+  </view>
+  
+</view>
+

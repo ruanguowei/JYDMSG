@@ -30,18 +30,23 @@ function calculateAdjustedScore(scores) {
 }
 
 exports.main = async (event, context) => {
+  const {
+    sourceTable = 'pottery_submissions_for_final'  // 可选：pottery_submissions_for_final（评分表） | pottery_submissions_final（结果表）
+  } = event;
+  
   try {
     console.log('=== 开始导出终评结果（所有参评作品，按排序）===')
+    console.log('数据来源表:', sourceTable);
     console.log('评分统计方式：使用所有评分（不限制专家类型）');
     
-    // 从终评评分表读取所有作品（分批读取）
+    // 从指定表读取所有作品（分批读取）
     const MAX_LIMIT = 100;
     let allData = [];
     let skip = 0;
     let hasMore = true;
     
     while (hasMore) {
-      const result = await db.collection('pottery_submissions_for_final')
+      const result = await db.collection(sourceTable)
         .where({
           qualification: db.command.neq(false)
         })
@@ -61,7 +66,7 @@ exports.main = async (event, context) => {
     if (allData.length === 0) {
       return {
         success: false,
-        message: '暂无终评数据。请先执行"生成终评结果表"。'
+        message: `表 ${sourceTable} 中暂无数据。请先执行相应的生成操作。`
       }
     }
     
@@ -186,7 +191,8 @@ exports.main = async (event, context) => {
     // 上传到云存储
     const now = new Date()
     const dateStr = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}`
-    const fileName = `终评结果_${dateStr}.csv`
+    const tableLabel = sourceTable === 'pottery_submissions_for_final' ? '评分表' : '结果表';
+    const fileName = `终评结果_${tableLabel}_${dateStr}.csv`
     
     const uploadResult = await cloud.uploadFile({
       cloudPath: `admin_exports/final/${fileName}`,
@@ -194,20 +200,30 @@ exports.main = async (event, context) => {
     })
     
     console.log('导出成功，文件:', fileName)
+    console.log('数据来源:', sourceTable)
     console.log('导出作品数:', results.length)
-    console.log('评分统计方式: 所有评分（终评评分表中的所有评分）');
+    console.log('评分统计方式: 所有评分（去最高最低分后的平均分）');
     
     // 统计视频作品数量
     const videoCount = results.filter(r => r.作品类型 === '视频作品').length;
     console.log('其中视频作品:', videoCount, '件');
     
+    // 获取临时下载链接
+    const tempFileResult = await cloud.getTempFileURL({
+      fileList: [uploadResult.fileID]
+    });
+    
+    const downloadUrl = tempFileResult.fileList[0].tempFileURL;
+    
     return {
       success: true,
-      downloadUrl: uploadResult.fileID,
+      downloadUrl: downloadUrl,
+      fileID: uploadResult.fileID,
       fileName: fileName,
+      sourceTable: sourceTable,
       recordCount: results.length,
       videoCount: videoCount,
-      message: `成功导出 ${results.length} 条终评结果（含${videoCount}件视频作品）`
+      message: `成功导出 ${results.length} 条终评结果（来自${tableLabel}，含${videoCount}件视频作品）`
     }
     
   } catch (error) {

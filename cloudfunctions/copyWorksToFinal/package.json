@@ -1,0 +1,13 @@
+{
+  "name": "copyWorksToFinal",
+  "version": "1.0.0",
+  "description": "将作品从评分表复制到结果表",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}
+
+
+
+

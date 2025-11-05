@@ -56,6 +56,8 @@ const checkPledge = require('./checkPledge/index');
 
 // 数据修复相关云函数
 const fixDateFormat = require('./fixDateFormat/index');
+const diagnoseExpertLogin = require('./diagnoseExpertLogin/index');
+const swapEvaluations = require('./swapEvaluations/index');
 
 // 云函数入口函数
 exports.main = async (event, context) => {
@@ -185,6 +187,16 @@ exports.main = async (event, context) => {
     // 数据修复相关路由
     case 'fixDateFormat':
       return await fixDateFormat.main(event, context);
+    case 'diagnoseExpertLogin':
+      return await diagnoseExpertLogin.main(event, context);
+    case 'swapEvaluations':
+      return await swapEvaluations.main(event, context);
+    case 'assignVideoNumbers':
+      const assignVideoNumbers = require('./assignVideoNumbers/index');
+      return await assignVideoNumbers.main(event, context);
+    case 'convertImageLinks':
+      const convertImageLinks = require('./convertImageLinks/index');
+      return await convertImageLinks.main(event, context);
     default:
       console.error('未知的云函数类型:', event.type);
       return {

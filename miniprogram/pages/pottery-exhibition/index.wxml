@@ -41,4 +41,8 @@
     <image class="action-icon" src="/images/icons/专家课堂-激活.png" mode="aspectFit"></image>
     <text class="action-text">专家评选</text>
   </view>
+  <view class="action-btn" bindtap="navigateToWorkQuery">
+    <image class="action-icon" src="/images/icons/查询.png" mode="aspectFit"></image>
+    <text class="action-text">查询入围</text>
+  </view>
 </view> 

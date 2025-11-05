@@ -63,7 +63,7 @@ Page({
   },
 
   // 获取作品详情
-  fetchSubmissionDetail: function() {
+  fetchSubmissionDetail: function(retryCount = 0) {
     this.setData({ loading: true });
     
     // 获取专家信息
@@ -80,16 +80,18 @@ Page({
       return;
     }
     
+    const that = this;
+    
     wx.cloud.callFunction({
-      name: 'quickstartFunctions',
+      name: 'fetchSubmissionDetail',
       data: {
-        type: 'fetchSubmissionDetail',
         submissionId: this.data.submissionId,
         expertId: expertInfo.expertId,
         expertCode: expertInfo.expertCode  // 添加 expertCode，用于判断评委类型
       },
+      timeout: 30000,  // 超时时间设置为30秒
       success: res => {
-        this.setData({ loading: false });
+        that.setData({ loading: false });
         
         if (res.result && res.result.success) {
           const submission = res.result.data;
@@ -133,13 +135,13 @@ Page({
             }
           }
           
-          this.setData({
+          that.setData({
             submission: submission,
-            scores: submission.existingScores || this.data.scores
+            scores: submission.existingScores || that.data.scores
           });
           
           // 计算总分
-          this.calculateTotalScore();
+          that.calculateTotalScore();
         } else {
           console.error('获取作品详情失败', res);
           wx.showToast({
@@ -150,13 +152,48 @@ Page({
         }
       },
       fail: err => {
-        this.setData({ loading: false });
-        console.error('调用云函数失败', err);
-        wx.showToast({
-          title: '网络异常',
-          icon: 'none'
-        });
-        wx.navigateBack();
+        console.error('=== 获取作品详情失败 ===');
+        console.error('错误信息:', err.errMsg || err.message);
+        console.error('重试次数:', retryCount);
+        
+        // 重试机制（最多重试3次）
+        if (retryCount < 3) {
+          const retryDelay = Math.pow(2, retryCount) * 1000; // 1秒、2秒、4秒
+          console.log(`🔄 ${retryDelay / 1000}秒后进行第${retryCount + 1}次重试...`);
+          
+          wx.showToast({
+            title: `网络繁忙，${retryDelay / 1000}秒后重试...`,
+            icon: 'loading',
+            duration: retryDelay
+          });
+          
+          setTimeout(() => {
+            that.fetchSubmissionDetail(retryCount + 1);
+          }, retryDelay);
+          
+        } else {
+          // 重试3次后仍失败，降级处理
+          that.setData({ loading: false });
+          
+          console.error('❌ 重试3次后仍失败');
+          
+          wx.showModal({
+            title: '加载失败',
+            content: '作品详情加载失败。\n\n请返回列表重新尝试。',
+            confirmText: '手动重试',
+            confirmColor: '#667eea',
+            cancelText: '返回列表',
+            success: (res) => {
+              if (res.confirm) {
+                // 手动重试
+                that.fetchSubmissionDetail(0);
+              } else {
+                // 返回列表
+                wx.navigateBack();
+              }
+            }
+          });
+        }
       }
     });
   },
@@ -385,7 +422,27 @@ Page({
 
   // 提交评分
   submitScore: function() {
-    const { scores, totalScore, finalScore, deductions, disqualify } = this.data;
+    const { scores, totalScore, finalScore, deductions, disqualify, submitting } = this.data;
+    
+    // 防止重复提交
+    if (submitting) {
+      wx.showToast({
+        title: '正在提交中，请稍候',
+        icon: 'none'
+      });
+      return;
+    }
+    
+    // 防止快速连续点击
+    const now = Date.now();
+    if (this.lastSubmitClickTime && (now - this.lastSubmitClickTime) < 2000) {
+      wx.showToast({
+        title: '请勿重复点击',
+        icon: 'none'
+      });
+      return;
+    }
+    this.lastSubmitClickTime = now;
     
     // 如果已经勾选取消资格，提示不需要重复提交
     if (disqualify) {
@@ -402,6 +459,11 @@ Page({
 
   // 显示提交确认弹窗
   showSubmitConfirmModal: function() {
+    // 立即设置提交状态，防止弹窗期间重复点击
+    this.setData({ submitting: true });
+    
+    const that = this;
+    
     wx.showModal({
       title: '确认提交评分',
       content: '提交后将无法再修改分数，确定要提交吗？',
@@ -409,8 +471,16 @@ Page({
       cancelText: '返回修改',
       success: (res) => {
         if (res.confirm) {
-          this.doSubmitScore();
+          // 用户确认，继续提交
+          that.doSubmitScore();
+        } else {
+          // 用户取消，解除提交状态
+          that.setData({ submitting: false });
         }
+      },
+      fail: () => {
+        // 弹窗失败，解除提交状态
+        that.setData({ submitting: false });
       }
     });
   },
@@ -420,9 +490,8 @@ Page({
     this.setData({ submitting: true });
     
     wx.cloud.callFunction({
-      name: 'quickstartFunctions',
+      name: 'submitExpertScore',
       data: {
-        type: 'submitExpertScore',
         submissionId: this.data.submissionId,
         scores: { themeFit: 0, creativity: 0, craftsmanship: 0, aesthetics: 0 }, // 取消资格不记分
         totalScore: 0,
@@ -470,8 +539,21 @@ Page({
   },
 
   // 执行提交评分
-  doSubmitScore: function() {
+  doSubmitScore: function(retryCount = 0) {
     this.setData({ submitting: true });
+    
+    // 显示加载弹窗
+    if (retryCount === 0) {
+      wx.showLoading({
+        title: '正在提交评分...',
+        mask: true  // 防止用户点击其他内容
+      });
+    } else {
+      wx.showLoading({
+        title: `正在重试(${retryCount}/3)...`,
+        mask: true
+      });
+    }
     
     // 调试：输出提交的参数
     console.log('=== 提交评分调试信息 ===');
@@ -483,12 +565,16 @@ Page({
     console.log('专家ID (expertId):', this.data.expertInfo.expertId);
     console.log('专家Code (expertCode):', this.data.expertInfo.expertCode);
     console.log('专家姓名 (expertName):', this.data.expertInfo.expertName);
+    if (retryCount > 0) {
+      console.log('🔄 第', retryCount, '次重试');
+    }
     console.log('========================');
     
+    const that = this;
+    
     wx.cloud.callFunction({
-      name: 'quickstartFunctions',
+      name: 'submitExpertScore',
       data: {
-        type: 'submitExpertScore',
         submissionId: this.data.submissionId,
         scores: this.data.scores,
         totalScore: this.data.totalScore,
@@ -499,8 +585,9 @@ Page({
         expertName: this.data.expertInfo.expertName,
         disqualify: false // 正常评分不取消资格
       },
+      timeout: 30000,  // 超时时间设置为30秒
       success: res => {
-        this.setData({ submitting: false });
+        that.setData({ submitting: false });
         
         // 调试：输出云函数返回的完整数据
         console.log('=== 云函数返回数据 ===');
@@ -517,18 +604,53 @@ Page({
         
         if (res.result && res.result.success) {
           console.log('✅ 评分提交成功');
-          wx.showToast({
-            title: '评分提交成功',
-            icon: 'success'
-          });
           
-          // 返回上一页
-          setTimeout(() => {
-            wx.navigateBack();
-          }, 1500);
+          // 关闭加载弹窗
+          wx.hideLoading();
+          
+          // 通知列表页面：从列表中移除已评分作品，并更新统计数据
+          const pages = getCurrentPages();
+          const prevPage = pages[pages.length - 2]; // 上一个页面（列表页）
+          
+          if (prevPage && prevPage.route === 'pages/expert-evaluation/index') {
+            // 1. 从列表中移除已评分的作品
+            const submissions = prevPage.data.submissions || [];
+            const updatedSubmissions = submissions.filter(item => item.id !== that.data.submissionId);
+            
+            // 2. 同步更新统计数据
+            const statistics = prevPage.data.statistics;
+            if (statistics) {
+              statistics.evaluated = (statistics.evaluated || 0) + 1;  // 已评分 +1
+              statistics.unevaluated = Math.max(0, (statistics.unevaluated || 0) - 1);  // 未评分 -1
+              
+              console.log('✅ 统计数据已更新:', {
+                已评分: statistics.evaluated,
+                未评分: statistics.unevaluated,
+                总数: statistics.total
+              });
+            }
+            
+            // 3. 更新列表页面
+            prevPage.setData({
+              submissions: updatedSubmissions,
+              statistics: statistics  // 同步更新统计
+            });
+            
+            console.log('✅ 已从列表中移除该作品，剩余:', updatedSubmissions.length, '件');
+          }
+          
+          // 直接返回列表页面，不显示成功提示
+          wx.navigateBack();
         } else {
           console.log('❌ 评分提交失败');
           console.log('失败原因:', res.result ? res.result.message || res.result.errMsg : '未知错误');
+          
+          // 关闭加载弹窗
+          wx.hideLoading();
+          
+          // 重置提交状态
+          that.setData({ submitting: false });
+          
           wx.showToast({
             title: res.result ? (res.result.message || res.result.errMsg || '提交失败') : '提交失败',
             icon: 'none'
@@ -536,20 +658,46 @@ Page({
         }
       },
       fail: err => {
-        this.setData({ submitting: false });
+        console.error('=== 云函数调用失败 ===');
+        console.error('错误信息:', err.errMsg || err.message);
+        console.error('重试次数:', retryCount);
         
-        // 调试：输出失败信息
-        console.log('=== 云函数调用失败 ===');
-        console.log('错误对象:', err);
-        console.log('错误类型:', typeof err);
-        console.log('错误信息:', err.errMsg || err.message || '未知错误');
-        console.log('错误代码:', err.errCode || '无代码');
-        console.log('====================');
-        
-        wx.showToast({
-          title: '网络异常，请重试',
-          icon: 'none'
-        });
+        // 重试机制（最多重试3次）
+        if (retryCount < 3) {
+          const retryDelay = Math.pow(2, retryCount) * 1000; // 指数退避：1秒、2秒、4秒
+          console.log(`🔄 ${retryDelay / 1000}秒后进行第${retryCount + 1}次重试...`);
+          
+          // 更新加载提示
+          wx.showLoading({
+            title: `网络繁忙，${retryDelay / 1000}秒后重试...`,
+            mask: true
+          });
+          
+          setTimeout(() => {
+            that.doSubmitScore(retryCount + 1);
+          }, retryDelay);
+          
+        } else {
+          // 重试3次后仍失败，降级处理
+          wx.hideLoading();
+          that.setData({ submitting: false });
+          
+          console.error('❌ 重试3次后仍失败，启动降级处理');
+          
+          wx.showModal({
+            title: '提交失败',
+            content: '网络繁忙，提交失败。\n\n请稍后重试，或联系管理员。',
+            confirmText: '手动重试',
+            confirmColor: '#667eea',
+            cancelText: '稍后再试',
+            success: (res) => {
+              if (res.confirm) {
+                // 用户选择手动重试，重置重试次数
+                that.doSubmitScore(0);
+              }
+            }
+          });
+        }
       }
     });
   }

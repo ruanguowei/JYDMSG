@@ -1,0 +1,12 @@
+{
+  "name": "cleanOrphanEvaluations",
+  "version": "1.0.0",
+  "description": "清理孤儿评分数据（删除专家数据库中不存在的评审信息）",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}
+
+
+

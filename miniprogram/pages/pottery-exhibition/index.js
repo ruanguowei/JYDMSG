@@ -355,6 +355,13 @@ Page({
     })
   },
 
+  // 导航到查询入围页面
+  navigateToWorkQuery: function() {
+    wx.navigateTo({
+      url: '/pages/work-query/index'
+    });
+  },
+
   // 导航到专家评选页面
   navigateToExpertEvaluation: function() {
     // 先校验评审时间窗口

@@ -1,0 +1,11 @@
+{
+  "name": "queryWorkStatus",
+  "version": "1.0.0",
+  "description": "查询作品入围状态",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}
+
+
