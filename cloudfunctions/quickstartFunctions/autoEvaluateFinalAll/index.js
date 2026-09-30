@@ -6,6 +6,7 @@ cloud.init({
 })
 
 const db = cloud.database()
+const { collectionName, publicEdition, resolveEdition } = require('../common/edition')
 
 /**
  * 一键为所有终评专家生成评分
@@ -14,6 +15,11 @@ const db = cloud.database()
  */
 exports.main = async (event, context) => {
   try {
+    if (process.env.ENABLE_TEST_DATA !== 'true') {
+      return { success: false, message: '自动评分测试入口未在当前云环境启用' };
+    }
+    const edition = await resolveEdition(db, { editionId: event.editionId, useCurrent: !event.editionId, mode: 'write' });
+    const finalScoringCollection = collectionName(edition, 'finalScoring');
     const {
       expertCount = 5,  // 模拟5位终评评委
       batchSize = 50    // 每批处理50件作品
@@ -29,7 +35,7 @@ exports.main = async (event, context) => {
     let hasMore = true;
     
     while (hasMore) {
-      const result = await db.collection('pottery_submissions_for_final')
+      const result = await db.collection(finalScoringCollection)
         .where({
           qualification: db.command.neq(false)
         })
@@ -145,7 +151,7 @@ exports.main = async (event, context) => {
         
         // 更新作品的 evaluations 字段（写入终评评分表）
         promises.push(
-          db.collection('pottery_submissions_for_final')
+          db.collection(finalScoringCollection)
             .doc(submission._id)
             .update({
               data: {
@@ -177,7 +183,8 @@ exports.main = async (event, context) => {
         totalEvaluations: allSubmissions.length * expertCount,
         videoCount: videoCount,
         hkMacauTaiwanCount: hkMacauTaiwanCount
-      }
+      },
+      edition: publicEdition(edition)
     };
     
   } catch (error) {

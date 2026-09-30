@@ -1,0 +1,84 @@
+page {
+  background: #f6f6f6;
+}
+
+.page {
+  padding: 24rpx;
+}
+
+.search-bar {
+  display: flex;
+  gap: 16rpx;
+  margin-bottom: 24rpx;
+}
+
+.search-bar input {
+  flex: 1;
+  height: 76rpx;
+  padding: 0 24rpx;
+  background: #ffffff;
+  border-radius: 8rpx;
+  font-size: 28rpx;
+}
+
+.search-bar button {
+  width: 140rpx;
+  height: 76rpx;
+  line-height: 76rpx;
+  background: #8a6a3f;
+  color: #ffffff;
+  font-size: 28rpx;
+  border-radius: 8rpx;
+}
+
+.state {
+  padding: 80rpx 0;
+  text-align: center;
+  color: #888888;
+  font-size: 28rpx;
+}
+
+.collection-item {
+  display: flex;
+  gap: 20rpx;
+  padding: 20rpx;
+  margin-bottom: 18rpx;
+  background: #ffffff;
+  border-radius: 8rpx;
+}
+
+.cover {
+  width: 180rpx;
+  height: 140rpx;
+  border-radius: 6rpx;
+  flex-shrink: 0;
+}
+
+.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #d9d2c3;
+  color: #7a6a55;
+  font-size: 24rpx;
+}
+
+.info {
+  flex: 1;
+  min-width: 0;
+}
+
+.title {
+  color: #1f1f1f;
+  font-size: 32rpx;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.meta,
+.desc {
+  margin-top: 12rpx;
+  color: #666666;
+  font-size: 26rpx;
+  line-height: 1.5;
+}

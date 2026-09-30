@@ -3,7 +3,7 @@
   <!-- 头部标题 -->
   <view class="header">
     <view class="title">专家评审系统</view>
-    <view class="subtitle">第二届全国大学生陶艺作品展</view>
+    <view class="subtitle">第三届全国大学生陶艺作品展</view>
   </view>
 
   <!-- 登录表单 -->
@@ -30,12 +30,6 @@
       />
     </view>
 
-    <!-- 评审规则提示 -->
-    <view class="rules-tip">
-      <text>登录即表示您已阅读并同意</text>
-      <text class="rules-link" bindtap="showRules">《评审纪律》</text>
-    </view>
-
     <!-- 登录按钮 -->
     <button 
       class="login-btn {{loading ? 'loading' : ''}}" 
@@ -49,14 +43,15 @@
   <!-- 评审时间提示 -->
   <view class="time-tip">
     <view class="tip-title">评审时间</view>
-    <view class="tip-content">{{evaluationTime || '评审时间待定'}}</view>
+    <view class="tip-content">初评：{{reviewDates.preliminary}}</view>
+    <view class="tip-content">终评：{{reviewDates.final}}</view>
     <view class="tip-note">系统将于评审结束后自动关闭</view>
   </view>
 </view>
 
 <!-- 评审规则弹窗 -->
 <view wx:if="{{showRules}}" class="rules-modal" bindtap="hideRules">
-  <view class="rules-content" catchtap="">
+  <view class="rules-content" catchtap="stopRulesTap">
     <view class="rules-header">
       <view class="rules-title">评审纪律</view>
       <view class="close-btn" bindtap="hideRules">×</view>

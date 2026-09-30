@@ -1,299 +1,102 @@
 <!--pages/expert-scoring/index.wxml-->
 <view class="scoring-container">
-  <!-- 加载状态 -->
   <view wx:if="{{loading}}" class="loading">
     <view class="loading-spinner"></view>
     <text>加载中...</text>
   </view>
 
-  <!-- 作品信息 -->
-  <view wx:elif="{{submission}}" class="submission-detail">
-    <!-- 视频作品提示 -->
-    <view wx:if="{{submission.workType === 'video'}}" class="video-notice">
-      <view class="notice-icon">📹</view>
-      <view class="notice-content">
-        <view class="notice-title">这是一件视频作品</view>
-        <view class="notice-desc">管理员会按固定顺序另行发送视频给您，请查收后再评分</view>
+  <view wx:elif="{{submission}}" class="review-page">
+    <view class="media-card {{submission.workType === 'video' ? 'video-card' : ''}}">
+      <video wx:if="{{submission.workType === 'video' && activeMediaUrl}}" id="review-video" class="main-video" src="{{activeMediaUrl}}" controls object-fit="contain" bindtimeupdate="onVideoTimeUpdate"></video>
+      <view wx:elif="{{submission.workType !== 'video' && mediaItems.length === 1}}" class="single-media media-slide" data-url="{{mediaItems[0].url}}" bindtap="previewImage">
+        <image wx:if="{{mediaItems[0].thumbnailUrl && !mediaItems[0].thumbnailError}}" class="main-image" src="{{mediaItems[0].thumbnailUrl}}" mode="aspectFit" data-index="0" binderror="onThumbnailError" />
+        <view wx:else class="empty-media">缩略图暂不可用 · 点击查看原图</view>
       </view>
-    </view>
-    
-    <!-- 作品图片展示区域（仅常规作品显示） -->
-    <view class="images-section" wx:if="{{submission.workType === 'regular'}}">
-      <!-- 透视图 -->
-      <view wx:if="{{submission.perspectiveImage}}" class="image-group">
-        <view class="group-title">透视图</view>
-        <view class="image-grid single">
-          <view class="submission-image perspective-image">
-            <image src="{{submission.perspectiveImage}}" 
-                   mode="aspectFit" 
-                   bindtap="previewImage" 
-                   data-url="{{submission.perspectiveImage}}"
-                   bindload="onImageLoad"
-                   binderror="onImageError"></image>
+      <swiper wx:elif="{{submission.workType !== 'video' && mediaItems.length > 1}}" class="media-swiper" current="{{activeMediaIndex}}" bindchange="onMediaSwipe" autoplay="{{false}}" circular="{{false}}" duration="220">
+        <swiper-item wx:for="{{mediaItems}}" wx:key="key">
+          <view class="media-slide" data-url="{{item.url}}" bindtap="previewImage">
+            <image wx:if="{{item.thumbnailUrl && !item.thumbnailError && (index === activeMediaIndex || (!lowMemory && index >= activeMediaIndex - 1 && index <= activeMediaIndex + 1))}}" class="main-image" src="{{item.thumbnailUrl}}" mode="aspectFit" data-index="{{index}}" binderror="onThumbnailError" />
+            <view wx:else class="empty-media">缩略图暂不可用 · 点击查看原图</view>
           </view>
-        </view>
-      </view>
-
-      <!-- 四面图 -->
-      <view wx:if="{{submission.fourViewImages && submission.fourViewImages.length > 0}}" class="image-group">
-        <view class="group-title">四面图（{{submission.fourViewImages.length}}张）</view>
-        <view class="image-grid">
-          <view wx:for="{{submission.fourViewImages}}" wx:key="*this" class="submission-image">
-            <image src="{{item}}" mode="aspectFill" bindtap="previewImage" data-url="{{item}}"></image>
-          </view>
-        </view>
-      </view>
-
-      <!-- 局部图 -->
-      <view wx:if="{{submission.detailImages && submission.detailImages.length > 0}}" class="image-group">
-        <view class="group-title">局部图（{{submission.detailImages.length}}张）</view>
-        <view class="image-grid">
-          <view wx:for="{{submission.detailImages}}" wx:key="*this" class="submission-image">
-            <image src="{{item}}" mode="aspectFill" bindtap="previewImage" data-url="{{item}}"></image>
-          </view>
-        </view>
-      </view>
-
+        </swiper-item>
+      </swiper>
+      <view wx:else class="empty-media">{{submission.workType === 'video' ? '暂无可播放视频' : '暂无作品图片'}}</view>
     </view>
 
-    <!-- 作品详细信息 -->
-    <view class="submission-info">
-      <!-- 基本信息 -->
-      <view class="info-section">
-        <view class="section-title">基本信息</view>
-        
-        <view class="info-item full-width">
-          <text class="label">作品名称：</text>
-          <text class="value">{{submission.artworkName || submission.title}}</text>
-        </view>
-        
-        <view class="info-row">
-          <view class="info-item">
-            <text class="label">创作年份：</text>
-            <text class="value">{{submission.createYear || '未填写'}}</text>
-          </view>
-          <view class="info-item">
-            <text class="label">作品分类：</text>
-            <text class="value">{{submission.categoryName || submission.category}}</text>
-          </view>
-        </view>
+    <scroll-view wx:if="{{submission.workType !== 'video' && mediaItems.length > 0}}" scroll-x class="thumb-strip" enhanced show-scrollbar="{{false}}" scroll-into-view="thumb-{{activeMediaIndex}}" scroll-with-animation>
+      <view wx:for="{{mediaItems}}" wx:key="key" id="thumb-{{index}}" class="thumb-item {{activeMediaIndex === index ? 'active' : ''}}" data-index="{{index}}" bindtap="onMediaThumbTap">
+        <image wx:if="{{item.smallThumbnailUrl && !item.thumbnailError}}" src="{{item.smallThumbnailUrl}}" mode="aspectFill" data-index="{{index}}" binderror="onThumbnailError"></image>
+        <view wx:else class="thumb-placeholder"></view>
+        <view wx:if="{{item.viewed}}" class="thumb-check">✓</view>
+        <view class="thumb-label">{{item.label}}</view>
+      </view>
+    </scroll-view>
+
+    <view class="score-card">
+      <view class="total-score-heading">
+        <view><view class="total-score-title">基础评分</view><text class="total-score-hint">综合评分 · 精确到 0.1 分</text></view>
+        <view class="total-score-number">{{baseScoreText}}<text> / 10</text></view>
+      </view>
+      <slider class="total-score-slider" min="0" max="100" step="1" value="{{scoreTenths}}" activeColor="#0866ff" backgroundColor="#e2e6ec" block-color="#0866ff" block-size="24" disabled="{{submitting || verificationPending}}" bindchanging="onScoreSliderChange" bindchange="onScoreSliderChange" />
+      <view class="total-score-ticks"><text>0</text><text>2</text><text>4</text><text>6</text><text>8</text><text>10</text></view>
+      <view class="score-fine-control">
+        <button data-delta="-1" bindtap="adjustBaseScore" disabled="{{submitting || verificationPending}}">− 0.1</button>
+        <text>{{scoreTouched ? '已选择基础分' : '请滑动选择分数'}}</text>
+        <button data-delta="1" bindtap="adjustBaseScore" disabled="{{submitting || verificationPending}}">＋ 0.1</button>
       </view>
 
-      <!-- 作品尺寸（仅常规作品显示） -->
-      <view class="info-section" wx:if="{{submission.workType === 'regular' && submission.allDimensions && submission.allDimensions.length > 0}}">
-        <view class="section-title">作品尺寸</view>
-        
-        <!-- 显示所有尺寸组 -->
-        <view class="all-dimensions">
-          <view wx:for="{{submission.allDimensions}}" wx:key="index" class="dimension-group">
-            <text class="dimension-group-text">
-              第{{index + 1}}组：{{item.length || '未填写'}} × {{item.width || '未填写'}} × {{item.height || '未填写'}} cm
-            </text>
-          </view>
-        </view>
+      <view class="deduction-block">
+        <checkbox-group bindchange="onDeductionGroupChange">
+          <label class="deduction-chip">
+            <checkbox disabled="{{submitting || verificationPending}}" value="aiNotLabeled" checked="{{deductions.aiNotLabeled}}" />
+            <text>AI 未标注 -2</text>
+          </label>
+          <label class="deduction-chip">
+            <checkbox disabled="{{submitting || verificationPending}}" value="missingCreativeStatement" checked="{{deductions.missingCreativeStatement}}" />
+            <text>缺少说明 -1</text>
+          </label>
+        </checkbox-group>
       </view>
 
-      <!-- 工艺材料（仅常规作品显示） -->
-      <view class="info-section" wx:if="{{submission.workType === 'regular' && submission.craftMaterial}}">
-        <view class="section-title">工艺材料</view>
-        <view class="info-content">
-          <text class="content-text">{{submission.craftMaterial}}</text>
-        </view>
-      </view>
-
-      <!-- 作品简介 -->
-      <view class="info-section" wx:if="{{submission.artworkDescription || submission.description}}">
-        <view class="section-title">作品简介</view>
-        <view class="info-content">
-          <text class="content-text">{{submission.artworkDescription || submission.description}}</text>
-        </view>
-      </view>
-    </view>
-
-    <!-- 评分指南按钮 -->
-    <view class="score-guide-btn" bindtap="showScoreGuide">
-      <text>查看评分标准</text>
-      <text class="arrow">></text>
-    </view>
-
-    <!-- 评分表单 -->
-    <view class="score-form">
-      <view class="form-title">作品评分</view>
-      
-      <!-- 主题契合度 -->
-      <view class="score-item">
-        <view class="score-label">
-          <text class="label-text">主题契合度</text>
-          <text class="label-desc">(0-3分)</text>
-        </view>
-        <view class="score-options">
-          <view wx:for="{{[3, 2, 1, 0.5, 0]}}" wx:key="*this" 
-                class="score-option {{scores.themeFit === item ? 'selected' : ''}}"
-                data-field="themeFit" 
-                data-value="{{item}}"
-                bindtap="onScoreSelect">
-            {{item}}分
-          </view>
-        </view>
-      </view>
-
-      <!-- 创意与表现力 -->
-      <view class="score-item">
-        <view class="score-label">
-          <text class="label-text">创意与表现力</text>
-          <text class="label-desc">(0-3分)</text>
-        </view>
-        <view class="score-options">
-          <view wx:for="{{[3, 2, 1, 0.5, 0]}}" wx:key="*this" 
-                class="score-option {{scores.creativity === item ? 'selected' : ''}}"
-                data-field="creativity" 
-                data-value="{{item}}"
-                bindtap="onScoreSelect">
-            {{item}}分
-          </view>
-        </view>
-      </view>
-
-      <!-- 工艺与材料 -->
-      <view class="score-item">
-        <view class="score-label">
-          <text class="label-text">工艺与材料</text>
-          <text class="label-desc">(0-2分)</text>
-        </view>
-        <view class="score-options">
-          <view wx:for="{{[2, 1.5, 1, 0.5, 0]}}" wx:key="*this" 
-                class="score-option {{scores.craftsmanship === item ? 'selected' : ''}}"
-                data-field="craftsmanship" 
-                data-value="{{item}}"
-                bindtap="onScoreSelect">
-            {{item}}分
-          </view>
-        </view>
-      </view>
-
-      <!-- 美感与实用性 -->
-      <view class="score-item">
-        <view class="score-label">
-          <text class="label-text">美感与实用性</text>
-          <text class="label-desc">(0-2分)</text>
-        </view>
-        <view class="score-options">
-          <view wx:for="{{[2, 1.5, 1, 0.5, 0]}}" wx:key="*this" 
-                class="score-option {{scores.aesthetics === item ? 'selected' : ''}}"
-                data-field="aesthetics" 
-                data-value="{{item}}"
-                bindtap="onScoreSelect">
-            {{item}}分
-          </view>
-        </view>
-      </view>
-
-      <!-- ⚠️ 取消资格项（与评分分离） -->
-      <view class="disqualify-section">
-        <view class="disqualify-header">
-          <view class="disqualify-title">⚠️ 取消资格项</view>
-          <view class="disqualify-warning">勾选后作品将被直接取消参赛资格</view>
-        </view>
+      <view class="disqualify-card">
         <checkbox-group bindchange="onDisqualifyChange">
           <label class="disqualify-item">
-            <checkbox value="disqualify" checked="{{disqualify}}" color="#e74c3c"/>
-            <view class="disqualify-text">
-              <view class="disqualify-main">内容违规或侵权抄袭</view>
-              <view class="disqualify-desc">涉及国家象征/宗教敏感/负面舆论，或侵犯知识产权/抄袭</view>
-            </view>
+            <checkbox disabled="{{submitting || verificationPending}}" value="disqualify" checked="{{disqualify}}" color="#e74c3c" />
+            <text>内容违规或侵权抄袭，取消资格</text>
           </label>
         </checkbox-group>
       </view>
 
-      <!-- 扣分项（依据评审纪律） -->
-      <view class="deductions">
-        <view class="deductions-title">扣分项</view>
-        <checkbox-group bindchange="onDeductionGroupChange">
-          <label class="deduction-item">
-            <checkbox value="aiNotLabeled" checked="{{deductions.aiNotLabeled}}"/>
-            <view class="deduction-text">AI生成作品未标注技术来源 -2分</view>
-          </label>
-          <label class="deduction-item">
-            <checkbox value="missingCreativeStatement" checked="{{deductions.missingCreativeStatement}}"/>
-            <view class="deduction-text">未提供创作说明或技术应用报告 -1分</view>
-          </label>
-        </checkbox-group>
-      </view>
-
-      <!-- 总分显示 -->
-      <view class="total-score">
-        <view class="score-breakdown">
-          <text class="breakdown-item">基础分：{{totalScore}}分</text>
-          <text class="breakdown-item" wx:if="{{totalScore > finalScore}}">扣分：{{totalScore - finalScore}}分</text>
-        </view>
-        <view class="final-score-display">
-          <text class="total-label">最终得分：</text>
-          <text class="total-value">{{finalScore}}分</text>
-        </view>
+      <view class="score-summary">
+        <text>基础分 {{baseScoreText}}</text>
+        <text wx:if="{{totalScore > finalScore}}">扣分 {{deductionScore}}</text>
+        <text class="summary-final">最终 {{finalScoreText}} 分</text>
       </view>
     </view>
 
-    <!-- 提交按钮 -->
-    <view class="submit-section">
-      <button 
-        class="submit-btn {{submitting ? 'loading' : ''}}"
-        bindtap="submitScore"
-        disabled="{{submitting}}"
-      >
-        {{submitting ? '提交中...' : '提交评分'}}
+    <view class="work-info-compact">
+      <view class="info-eyebrow"><view class="info-rule"></view><text>作品档案</text></view>
+      <view class="compact-title">{{submission.artworkName || submission.title}}</view>
+      <view class="work-facts">
+        <view class="work-fact"><text class="fact-label">创作年份</text><text class="fact-value">{{submission.createYear || '未填写'}}</text></view>
+        <view class="work-fact"><text class="fact-label">作品尺寸</text><view class="fact-value">
+          <view wx:for="{{dimensionRows}}" wx:key="index" class="dimension-line">{{dimensionRows.length > 1 ? (index + 1) + '. ' : ''}}{{item}}</view>
+          <text wx:if="{{!dimensionRows.length}}">{{submission.workType === 'video' ? '不适用（视频作品）' : '未填写'}}</text>
+        </view></view>
+        <view class="work-fact"><text class="fact-label">工艺材料</text><text class="fact-value">{{submission.craftMaterial || '未填写'}}</text></view>
+      </view>
+      <view wx:if="{{submission.artworkDescription || submission.description}}" class="work-statement">
+        <view class="statement-label">创作说明</view>
+        <view class="compact-desc">{{submission.artworkDescription || submission.description}}</view>
+      </view>
+    </view>
+
+    <view class="bottom-bar">
+      <button class="bottom-btn ghost" bindtap="goPreviousWork" disabled="{{submitting}}">返回类别</button>
+      <button class="bottom-btn ghost" bindtap="saveDraft" disabled="{{submitting || verificationPending}}">{{draftSaved ? '已暂存' : '暂存'}}</button>
+      <button class="bottom-btn primary {{submitting ? 'loading' : ''}}" bindtap="submitScore" disabled="{{submitting || verificationPending}}">
+        {{verificationPending ? '核验作品中...' : submitting ? '提交中...' : '提交并下一件'}}
       </button>
-    </view>
-  </view>
-</view>
-
-<!-- 评分指南弹窗 -->
-<view wx:if="{{showScoreGuide}}" class="guide-modal" bindtap="hideScoreGuide">
-  <view class="guide-content" catchtap="">
-    <view class="guide-header">
-      <view class="guide-title">评分标准</view>
-      <view class="close-btn" bindtap="hideScoreGuide">×</view>
-    </view>
-    
-    <view class="guide-body">
-      <view class="guide-section">
-        <view class="section-title">主题契合度（3分）</view>
-        <view class="section-content">
-          <view class="score-level">优（3分）：精准对应所属板块，主题表达深刻，兼具文化传承与科技赋能创新</view>
-          <view class="score-level">良（2分）：主题关联清晰，但创新性不足或技术融合较浅</view>
-          <view class="score-level">中（1分）：仅部分元素符合主题，未体现板块核心逻辑</view>
-          <view class="score-level">差（0-0.5分）：偏离主题或未明确板块归属</view>
-        </view>
-      </view>
-      
-      <view class="guide-section">
-        <view class="section-title">创意与表现力（3分）</view>
-        <view class="section-content">
-          <view class="score-level">优（3分）：突破传统形式，智能技术应用自然，情感表达强烈且具"普世价值"</view>
-          <view class="score-level">良（2分）：创意明显但技术融合生硬，或情感表达较单薄</view>
-          <view class="score-level">中（1分）：构思常规，技术仅为装饰性添加，缺乏深度创新</view>
-          <view class="score-level">差（0-0.5分）：无原创性，技术堆砌或与主题割裂</view>
-        </view>
-      </view>
-      
-      <view class="guide-section">
-        <view class="section-title">工艺与材料（2分）</view>
-        <view class="section-content">
-          <view class="score-level">优（2分）：工艺精湛无瑕疵，材料创新性强，与设计高度统一</view>
-          <view class="score-level">良（1.5分）：工艺良好，材料运用合理但创新不足，局部轻微瑕疵</view>
-          <view class="score-level">中（1分）：工艺粗糙，材料选择不当，或存在明显缺陷</view>
-          <view class="score-level">差（0-0.5分）：工艺不合格，材料与主题冲突，存在安全隐患</view>
-        </view>
-      </view>
-      
-      <view class="guide-section">
-        <view class="section-title">美感与实用性（2分）</view>
-        <view class="section-content">
-          <view class="score-level">优（2分）：视觉冲击力强，造型/色彩和谐统一，符合人体工学且具备实用功能</view>
-          <view class="score-level">良（1.5分）：美感良好，实用性达标但无突出亮点，舒适度一般</view>
-          <view class="score-level">中（1分）：美感不足，实用性弱，或存在设计缺陷</view>
-          <view class="score-level">差（0-0.5分）：缺乏审美价值，无实用功能或存在安全风险</view>
-        </view>
-      </view>
     </view>
   </view>
 </view>

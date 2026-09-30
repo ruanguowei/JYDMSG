@@ -1,0 +1,33 @@
+<view class="orientation-page">
+  <view class="purpose"><text>请先浏览30件作品，了解整体水平。</text><text>统一评分尺度后，再开始评分。</text></view>
+  <view class="batch-meta"><text>第 {{batchIndex + 1}} 批 / 共 {{batchCount}} 批</text><text>已浏览 {{viewedCount}} / {{total}}</text></view>
+  <view class="progress-track"><view class="progress-fill" style="width: {{progress}}%"></view></view>
+  <view wx:if="{{loading}}" class="loading-state">正在准备预览作品…</view>
+  <view wx:else class="preview-grid">
+    <view wx:for="{{batch}}" wx:key="id" id="preview-{{item.ordinal}}" class="preview-tile">
+      <image wx:if="{{item.thumbnail && !item.failed}}" src="{{item.thumbnail}}" mode="aspectFit" data-id="{{item.id}}" bindload="imageLoaded" binderror="imageFailed" />
+      <view wx:else class="image-error" bindtap="retry">图片未加载<text>点击重试</text></view>
+      <text class="image-number">{{item.ordinal}}</text><text wx:if="{{item.viewed}}" class="viewed-label">已看</text>
+    </view>
+  </view>
+  <view wx:if="{{error}}" class="error-message">{{error}}<button size="mini" bindtap="retry">重新加载</button></view>
+  <view wx:if="{{total < 30 && batch.length}}" class="small-note">本阶段带主视图的可评作品不足30件，请浏览全部 {{total}} 件。</view>
+  <view wx:if="{{batch.length}}" class="batch-controls">
+    <button disabled="{{loading || batchIndex === 0}}" bindtap="previous">上一批</button>
+    <text>{{batchIndex + 1}} / {{batchCount}}</text>
+    <button disabled="{{loading || !batchReady || batchIndex + 1 >= batchCount}}" bindtap="next">下一批</button>
+  </view>
+  <view class="standards-card">
+    <view class="standards-heading"><text>评分标准</text><text class="total-badge">总分 10分</text></view>
+    <view class="small-note">以下为综合评分参考，评分时只填写一个基础总分。</view>
+    <view wx:for="{{standards}}" wx:key="title" class="standard-section">
+      <view class="standard-toggle" data-index="{{index}}" bindtap="expand"><text>{{item.title}}</text><text class="standard-weight">{{item.weight}}分 {{expanded === index ? '−' : '＋'}}</text></view>
+      <view wx:if="{{expanded === index}}" class="standard-details">
+        <view wx:for="{{item.rows}}" wx:for-item="rule" wx:key="level" class="standard-rule"><view class="rule-head"><text>{{rule.level}}</text><text>{{rule.score}}分</text></view><text>{{rule.description}}</text></view>
+      </view>
+    </view>
+  </view>
+  <view class="deduction-note"><view class="note-title">扣分与取消资格</view><view>AI生成作品未标注技术来源：扣2分</view><view>未提供创作说明或技术应用报告：扣1分</view><view class="veto-note">国家象征不当使用、宗教敏感、负面内容，或侵权抄袭：取消资格，任一评委判定即生效。</view></view>
+  <view wx:if="{{allViewed}}" class="start-area"><text>已看完全部 {{total}} 件作品</text><button bindtap="startScoring" loading="{{busy}}" disabled="{{busy}}">开始评分</button></view>
+  <view wx:elif="{{batch.length}}" class="small-note footer-note">看完全部图片后，将显示“开始评分”按钮。</view>
+</view>

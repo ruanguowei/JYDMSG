@@ -17,6 +17,20 @@ exports.main = async (event, context) => {
         message: '预约信息不完整，请填写所有必填项'
       };
     }
+
+    // 检查云端系统设置是否开启了预约功能
+    try {
+      const settingsResult = await db.collection('system_settings').doc('appointment_config').get();
+      if (settingsResult.data && (settingsResult.data.enabled === false || settingsResult.data.enabled === 'false')) {
+        return {
+          success: false,
+          message: '抱歉，当前暂未开放预约功能'
+        };
+      }
+    } catch (err) {
+      // 找不到配置或获取失败，默认开放，继续执行
+    }
+
     
     // 验证手机号格式
     const phoneRegex = /^1[3-9]\d{9}$/;

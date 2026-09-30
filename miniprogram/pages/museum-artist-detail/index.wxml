@@ -1,0 +1,29 @@
+<view class="page">
+  <view wx:if="{{loading}}" class="state">正在加载艺术家详情...</view>
+  <block wx:elif="{{artist}}">
+    <view class="profile">
+      <image wx:if="{{artist.avatar}}" class="avatar" src="{{artist.avatar}}" mode="aspectFill"></image>
+      <image wx:else class="avatar" src="/images/icons/default-avatar.png" mode="aspectFill"></image>
+      <view class="name">{{artist.name || '未命名艺术家'}}</view>
+      <view class="intro">{{artist.intro || '暂无简介'}}</view>
+    </view>
+
+    <view class="section" wx:if="{{artist.biography}}">
+      <view class="section-title">履历</view>
+      <view class="text">{{artist.biography}}</view>
+    </view>
+
+    <view class="section">
+      <view class="section-title">关联馆藏</view>
+      <view wx:if="{{!artist.relatedCollections || artist.relatedCollections.length === 0}}" class="empty">暂无关联作品</view>
+      <view wx:for="{{artist.relatedCollections}}" wx:key="_id" class="work" bindtap="openCollection" data-id="{{item._id}}">
+        <image wx:if="{{item.coverImage}}" src="{{item.coverImage}}" mode="aspectFill"></image>
+        <view wx:else class="work-placeholder">暂无图片</view>
+        <view class="work-info">
+          <view class="work-title">{{item.title || '未命名作品'}}</view>
+          <view class="work-meta">{{item.period || '年代未详'}} · {{item.category || '未分类'}}</view>
+        </view>
+      </view>
+    </view>
+  </block>
+</view>

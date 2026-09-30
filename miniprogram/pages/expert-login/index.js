@@ -1,5 +1,6 @@
 // pages/expert-login/index.js
 const app = getApp()
+const reviewDates = require('../../utils/review-dates')
 
 Page({
   data: {
@@ -7,50 +8,11 @@ Page({
     expertName: '', // 专家姓名
     loading: false,
     showRules: false, // 是否显示评审规则
-    evaluationTime: '' // 评审时间提示
+    reviewDates // 初评、终评日期分别展示
   },
 
   onLoad: function() {
     // 强制每次进入都要求输入并验证，不再自动跳过
-    // 获取评审时间配置
-    this.fetchEvaluationTime();
-  },
-
-  // 获取评审时间配置
-  fetchEvaluationTime: function() {
-    wx.cloud.callFunction({
-      name: 'quickstartFunctions',
-      data: { type: 'getEvaluationSettings' },
-      success: res => {
-        if (res.result && res.result.success && res.result.data) {
-          const cfg = res.result.data;
-          if (cfg.startTime && cfg.endTime) {
-            // 格式化时间显示
-            const startDate = this.formatDate(cfg.startTime);
-            const endDate = this.formatDate(cfg.endTime);
-            this.setData({
-              evaluationTime: `${startDate} - ${endDate}`
-            });
-          }
-        }
-      },
-      fail: err => {
-        console.error('获取评审时间配置失败', err);
-        // 失败时使用默认提示
-        this.setData({
-          evaluationTime: '评审时间待定'
-        });
-      }
-    });
-  },
-
-  // 格式化日期显示
-  formatDate: function(dateStr) {
-    const date = new Date(dateStr);
-    const year = date.getFullYear();
-    const month = date.getMonth() + 1;
-    const day = date.getDate();
-    return `${year}年${month}月${day}日`;
   },
 
   // 检查登录状态
@@ -59,7 +21,7 @@ Page({
     if (expertInfo && expertInfo.isLoggedIn) {
       // 已经登录，直接跳转到评选主页
       wx.redirectTo({
-        url: '/pages/expert-evaluation/index'
+        url: '/pages/expert-orientation/index'
       });
     }
   },
@@ -169,6 +131,8 @@ Page({
     });
   },
 
+  stopRulesTap: function() {},
+
   // 同意评审规则并登录
   agreeRulesAndLogin: function() {
     this.hideRules();
@@ -188,7 +152,7 @@ Page({
           if (res.result.data.hasSigned) {
             // 已签署，直接进入评分页面
             wx.redirectTo({
-              url: '/pages/expert-evaluation/index'
+              url: '/pages/expert-orientation/index'
             });
           } else {
             // 未签署，跳转到承诺书页面

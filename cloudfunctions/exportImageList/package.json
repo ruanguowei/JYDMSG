@@ -1,0 +1,9 @@
+{
+  "name": "export-image-list",
+  "version": "1.0.0",
+  "description": "导出图片列表和下载链接",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

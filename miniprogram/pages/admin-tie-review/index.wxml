@@ -1,0 +1,18 @@
+<view class="tie-page">
+  <view class="intro">以下作品总分并列，影响入围名额。请按每组名额选择；系统会再次核对类别名额和每校至少一件。</view>
+  <view class="intro">当前勾选为满足约束的一种候选组合，须由管理员确认；保存选择不会写入结果表。</view>
+  <view wx:if="{{loading}}" class="message">正在计算，请稍候…</view>
+  <view wx:if="{{error}}" class="error">{{error}}</view>
+  <view wx:for="{{groups}}" wx:key="key" class="tie-group">
+    <view class="group-title">{{item.category}} · {{item.scoreText}}分</view>
+    <view class="quota">需选 {{item.selectedCount}} 件 · 已选 {{item.checkedCount}} 件</view>
+    <checkbox-group data-index="{{index}}" bindchange="choose">
+      <label wx:for="{{item.works}}" wx:for-item="work" wx:key="id" class="work-row">
+        <checkbox value="{{work.id}}" checked="{{work.selected}}" disabled="{{loading}}" color="#0866ff" />
+        <view><view>{{work.title}}</view><text>{{work.workCode}} · {{work.school}}</text></view>
+      </label>
+    </checkbox-group>
+  </view>
+  <button wx:if="{{groups.length}}" class="save" bindtap="save" loading="{{loading}}" disabled="{{loading}}">确认选择并校验</button>
+  <button bindtap="load" disabled="{{loading}}">重新载入</button>
+</view>

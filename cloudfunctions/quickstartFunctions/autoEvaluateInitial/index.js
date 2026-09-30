@@ -6,6 +6,7 @@ cloud.init({
 })
 
 const db = cloud.database()
+const { collectionName, publicEdition, resolveEdition } = require('../common/edition')
 
 /**
  * 自动初评评分（模拟初评评委打分）
@@ -13,6 +14,11 @@ const db = cloud.database()
  */
 exports.main = async (event, context) => {
   try {
+    if (process.env.ENABLE_TEST_DATA !== 'true') {
+      return { success: false, message: '自动评分测试入口未在当前云环境启用' };
+    }
+    const edition = await resolveEdition(db, { editionId: event.editionId, useCurrent: !event.editionId, mode: 'write' });
+    const cleanedCollection = collectionName(edition, 'cleaned');
     const {
       expertCount = 7,  // 模拟7位初评评委
       batchSize = 50    // 每批处理50件作品
@@ -28,7 +34,7 @@ exports.main = async (event, context) => {
     let hasMore = true;
     
     while (hasMore) {
-      const result = await db.collection('pottery_submissions_clean')
+      const result = await db.collection(cleanedCollection)
         .where({
           qualification: db.command.neq(false),
           workType: db.command.in(['regular', 'video']),  // 包含普通作品和视频作品
@@ -131,7 +137,7 @@ exports.main = async (event, context) => {
         
         // 更新作品的 evaluations 字段（写入清洗表）
         promises.push(
-          db.collection('pottery_submissions_clean')
+          db.collection(cleanedCollection)
             .doc(submission._id)
             .update({
               data: {
@@ -156,7 +162,8 @@ exports.main = async (event, context) => {
         evaluatedCount: submissions.length,
         expertsCount: expertCount,
         totalEvaluations: submissions.length * expertCount
-      }
+      },
+      edition: publicEdition(edition)
     };
     
   } catch (error) {

@@ -1,69 +1,104 @@
-const fetchHomeData = require('./fetchHomeData/index');
-const createAppointment = require('./createAppointment/index');
-const deleteAppointment = require('./deleteAppointment/index');
-const fetchPotteryExhibition = require('./fetchPotteryExhibition/index');
-const createPotterySubmission = require('./createPotterySubmission/index');
-const updatePotterySubmission = require('./updatePotterySubmission/index');
-const uploadTestPotteryData = require('./uploadTestPotteryData/index');
-const fetchAllSubmissions = require('./fetchAllSubmissions/index');
-const deleteSubmission = require('./deleteSubmission/index');
-const createArtworkDelivery = require('./createArtworkDelivery/index');
-const deleteArtworkDelivery = require('./deleteArtworkDelivery/index');
-const updateArtworkDelivery = require('./updateArtworkDelivery/index');
-const login = require('./login/index');
+function lazyModule(modulePath) {
+  return {
+    get main() {
+      return require(modulePath).main;
+    }
+  };
+}
+
+function rejectUnsafeDirectOperation(type) {
+  return {
+    success: false,
+    errMsg: `危险操作 ${type} 已接入安全流水线，请通过 manageAdminOperation 先完成预检、备份、口令和二次确认。`
+  };
+}
+
+function buildSafeEventSummary(event) {
+  return {
+    type: event && event.type,
+    action: event && event.action,
+    editionId: event && event.editionId,
+    operationName: event && event.operationName
+  };
+}
+
+const fetchHomeData = lazyModule('./fetchHomeData/index');
+const createAppointment = lazyModule('./createAppointment/index');
+const deleteAppointment = lazyModule('./deleteAppointment/index');
+const fetchPotteryExhibition = lazyModule('./fetchPotteryExhibition/index');
+const getCurrentEdition = lazyModule('./getCurrentEdition/index');
+const fetchMuseumContent = lazyModule('./fetchMuseumContent/index');
+const manageMuseumContent = lazyModule('./manageMuseumContent/index');
+const manageAdminOperation = lazyModule('./manageAdminOperation/index');
+const manageCertificates = lazyModule('./manageCertificates/index');
+const confirmSubmissionVideo = lazyModule('./confirmSubmissionVideo/index');
+const createPotterySubmission = lazyModule('./createPotterySubmission/index');
+const updatePotterySubmission = lazyModule('./updatePotterySubmission/index');
+const uploadTestPotteryData = lazyModule('./uploadTestPotteryData/index');
+const fetchAllSubmissions = lazyModule('./fetchAllSubmissions/index');
+const fetchAllDeliveries = lazyModule('./fetchAllDeliveries/index');
+const deleteSubmission = lazyModule('./deleteSubmission/index');
+const createArtworkDelivery = lazyModule('./createArtworkDelivery/index');
+const deleteArtworkDelivery = lazyModule('./deleteArtworkDelivery/index');
+const updateArtworkDelivery = lazyModule('./updateArtworkDelivery/index');
+const login = lazyModule('./login/index');
 
 // 专家评选相关云函数
-const expertLogin = require('./expertLogin/index');
-const fetchSubmissionsForEvaluation = require('./fetchSubmissionsForEvaluation/index');
-const fetchSubmissionDetail = require('./fetchSubmissionDetail/index');
-const submitExpertScore = require('./submitExpertScore/index');
-const fetchEvaluationResults = require('./fetchEvaluationResults/index');
-const exportEvaluationResults = require('./exportEvaluationResults/index');
-const exportPotterySubmissions = require('./exportPotterySubmissions/index');
-const getEvaluationSettings = require('./getEvaluationSettings/index');
-const getDeliveryTimeLimit = require('./getDeliveryTimeLimit/index');
-const getEvaluationPhase = require('./getEvaluationPhase/index');
+const expertLogin = lazyModule('./expertLogin/index');
+const fetchSubmissionsForEvaluation = lazyModule('./fetchSubmissionsForEvaluation/index');
+const fetchSubmissionDetail = lazyModule('./fetchSubmissionDetail/index');
+const submitExpertScore = lazyModule('./submitExpertScore/index');
+const fetchEvaluationResults = lazyModule('./fetchEvaluationResults/index');
+const exportEvaluationResults = lazyModule('./exportEvaluationResults/index');
+const exportPotterySubmissions = lazyModule('./exportPotterySubmissions/index');
+const getEvaluationSettings = lazyModule('./getEvaluationSettings/index');
+const getDeliveryTimeLimit = lazyModule('./getDeliveryTimeLimit/index');
+const getEvaluationPhase = lazyModule('./getEvaluationPhase/index');
 
 // 管理员相关云函数
-const verifyAdmin = require('./verifyAdmin/index');
-const generateRankingResults = require('./generateRankingResults/index');
-const generateFinalRanking = require('./generateFinalRanking/index');
-const getAdminStats = require('./getAdminStats/index');
-const exportCleanedSubmissions = require('./exportCleanedSubmissions/index');
-const exportPreliminaryResults = require('./exportPreliminaryResults/index');
-const exportFinalResults = require('./exportFinalResults/index');
+const verifyAdmin = lazyModule('./verifyAdmin/index');
+const generateRankingResults = lazyModule('./generateRankingResults/index');
+const generateFinalRanking = lazyModule('./generateFinalRanking/index');
+const getAdminStats = lazyModule('./getAdminStats/index');
+const exportCleanedSubmissions = lazyModule('./exportCleanedSubmissions/index');
+const exportPreliminaryResults = lazyModule('./exportPreliminaryResults/index');
+const exportFinalResults = lazyModule('./exportFinalResults/index');
 
 // 测试相关云函数
-const generateTestData = require('./generateTestData/index');
-const clearTestData = require('./clearTestData/index');
-const clearAllData = require('./clearAllData/index');
-const setupTestExperts = require('./setupTestExperts/index');
-const autoEvaluateInitial = require('./autoEvaluateInitial/index');
-const autoEvaluatePartial = require('./autoEvaluatePartial/index');
-const autoEvaluateFinal = require('./autoEvaluateFinal/index');
+const generateTestData = lazyModule('./generateTestData/index');
+const clearTestData = lazyModule('./clearTestData/index');
+const clearAllData = lazyModule('./clearAllData/index');
+const setupTestExperts = lazyModule('./setupTestExperts/index');
+const autoEvaluateInitial = lazyModule('./autoEvaluateInitial/index');
+const autoEvaluatePartial = lazyModule('./autoEvaluatePartial/index');
+const autoEvaluateFinal = lazyModule('./autoEvaluateFinal/index');
 
 // 数据清洗云函数
-const cleanSubmissionsData = require('./cleanSubmissionsData/index');
-const generatePreliminaryTable = require('./generatePreliminaryTable/index');
-const startFinalEvaluation = require('./startFinalEvaluation/index');
+const cleanSubmissionsData = lazyModule('./cleanSubmissionsData/index');
+const generatePreliminaryTable = lazyModule('./generatePreliminaryTable/index');
+const startFinalEvaluation = lazyModule('./startFinalEvaluation/index');
 
 // 查询统计云函数
-const checkExpertProgress = require('./checkExpertProgress/index');
+const checkExpertProgress = lazyModule('./checkExpertProgress/index');
 
 // 承诺书相关云函数
-const signPledge = require('./signPledge/index');
-const checkPledge = require('./checkPledge/index');
+const signPledge = lazyModule('./signPledge/index');
+const checkPledge = lazyModule('./checkPledge/index');
 
 // 数据修复相关云函数
-const fixDateFormat = require('./fixDateFormat/index');
-const diagnoseExpertLogin = require('./diagnoseExpertLogin/index');
-const swapEvaluations = require('./swapEvaluations/index');
+const fixDateFormat = lazyModule('./fixDateFormat/index');
+const diagnoseExpertLogin = lazyModule('./diagnoseExpertLogin/index');
+const swapEvaluations = lazyModule('./swapEvaluations/index');
+
+// 画册相关云函数
+const fetchCatalogData = lazyModule('./fetchCatalogData/index');
+const clearCloudStorageFiles = lazyModule('./clearCloudStorageFiles/index');
+
 
 // 云函数入口函数
 exports.main = async (event, context) => {
   try {
-    console.log('云函数被调用，参数:', JSON.stringify(event));
-    console.log('云函数类型:', event.type);
+    console.log('云函数被调用:', JSON.stringify(buildSafeEventSummary(event || {})));
     
     if (!event.type) {
       console.error('缺少type参数');
@@ -74,6 +109,8 @@ exports.main = async (event, context) => {
     }
     
     switch (event.type) {
+    case 'reviewOrientation':
+      return await require('./reviewOrientation/index').main(event, context);
     case 'fetchHomeData':
       return await fetchHomeData.main(event, context);
     case 'createAppointment':
@@ -82,6 +119,18 @@ exports.main = async (event, context) => {
       return await deleteAppointment.main(event, context);
     case 'fetchPotteryExhibition':
       return await fetchPotteryExhibition.main(event, context);
+    case 'getCurrentEdition':
+      return await getCurrentEdition.main(event, context);
+    case 'fetchMuseumContent':
+      return await fetchMuseumContent.main(event, context);
+    case 'manageMuseumContent':
+      return await manageMuseumContent.main(event, context);
+    case 'manageAdminOperation':
+      return await manageAdminOperation.main(event, context);
+    case 'manageCertificates':
+      return await manageCertificates.main(event, context);
+    case 'confirmSubmissionVideo':
+      return await confirmSubmissionVideo.main(event, context);
     case 'createPotterySubmission':
       return await createPotterySubmission.main(event, context);
     case 'updatePotterySubmission':
@@ -90,6 +139,8 @@ exports.main = async (event, context) => {
       return await uploadTestPotteryData.main(event, context);
     case 'fetchAllSubmissions':
       return await fetchAllSubmissions.main(event, context);
+    case 'fetchAllDeliveries':
+      return await fetchAllDeliveries.main(event, context);
     case 'deleteSubmission':
       return await deleteSubmission.main(event, context);
     case 'createArtworkDelivery':
@@ -133,7 +184,7 @@ exports.main = async (event, context) => {
     case 'generateRankingResults':
       return await generateRankingResults.main(event, context);
     case 'generateFinalRanking':
-      return await generateFinalRanking.main(event, context);
+      return rejectUnsafeDirectOperation(event.type);
     case 'getVideoWorksList':
       const getVideoWorksList = require('./getVideoWorksList/index');
       return await getVideoWorksList.main(event, context);
@@ -141,8 +192,7 @@ exports.main = async (event, context) => {
       const createTestVideoWorks = require('./createTestVideoWorks/index');
       return await createTestVideoWorks.main(event, context);
     case 'clearCleanTable':
-      const clearCleanTable = require('./clearCleanTable/index');
-      return await clearCleanTable.main(event, context);
+      return rejectUnsafeDirectOperation(event.type);
     case 'getAdminStats':
       return await getAdminStats.main(event, context);
     case 'exportCleanedSubmissions':
@@ -153,11 +203,11 @@ exports.main = async (event, context) => {
       return await exportFinalResults.main(event, context);
     // 数据清洗相关路由
     case 'cleanSubmissionsData':
-      return await cleanSubmissionsData.main(event, context);
+      return rejectUnsafeDirectOperation(event.type);
     case 'generatePreliminaryTable':
-      return await generatePreliminaryTable.main(event, context);
+      return rejectUnsafeDirectOperation(event.type);
     case 'startFinalEvaluation':
-      return await startFinalEvaluation.main(event, context);
+      return rejectUnsafeDirectOperation(event.type);
     // 查询统计相关路由
     case 'checkExpertProgress':
       return await checkExpertProgress.main(event, context);
@@ -170,9 +220,9 @@ exports.main = async (event, context) => {
     case 'generateTestData':
       return await generateTestData.main(event, context);
     case 'clearTestData':
-      return await clearTestData.main(event, context);
+      return rejectUnsafeDirectOperation(event.type);
     case 'clearAllData':
-      return await clearAllData.main(event, context);
+      return rejectUnsafeDirectOperation(event.type);
     case 'setupTestExperts':
       return await setupTestExperts.main(event, context);
     case 'autoEvaluateInitial':
@@ -186,17 +236,18 @@ exports.main = async (event, context) => {
       return await autoEvaluateFinalAll.main(event, context);
     // 数据修复相关路由
     case 'fixDateFormat':
-      return await fixDateFormat.main(event, context);
+      return rejectUnsafeDirectOperation(event.type);
     case 'diagnoseExpertLogin':
       return await diagnoseExpertLogin.main(event, context);
     case 'swapEvaluations':
-      return await swapEvaluations.main(event, context);
-    case 'assignVideoNumbers':
-      const assignVideoNumbers = require('./assignVideoNumbers/index');
-      return await assignVideoNumbers.main(event, context);
+      return rejectUnsafeDirectOperation(event.type);
     case 'convertImageLinks':
-      const convertImageLinks = require('./convertImageLinks/index');
-      return await convertImageLinks.main(event, context);
+      return rejectUnsafeDirectOperation(event.type);
+    // 画册相关路由
+    case 'fetchCatalogData':
+      return await fetchCatalogData.main(event, context);
+    case 'clearCloudStorageFiles':
+      return rejectUnsafeDirectOperation(event.type);
     default:
       console.error('未知的云函数类型:', event.type);
       return {

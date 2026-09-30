@@ -1,4 +1,5 @@
 // pages/expert-pledge/index.js
+const reviewDates = require('../../utils/review-dates');
 Page({
   data: {
     agreed: false,
@@ -22,16 +23,8 @@ Page({
     }
     
     // 根据评委类型设置日期范围
-    let dateRange = '';
     const expertType = expertInfo.expertType;
-    
-    if (expertType === 'preliminary') {
-      dateRange = '2025年10月25日—10月27日';
-    } else if (expertType === 'final') {
-      dateRange = '2025年10月30日—11月1日';
-    } else {
-      dateRange = '2025年**月**日—**月**日';
-    }
+    const dateRange = reviewDates[expertType] || '评审时间待定';
     
     // 当前日期
     const now = new Date();
@@ -90,7 +83,7 @@ Page({
           // 跳转到评分页面
           setTimeout(() => {
             wx.redirectTo({
-              url: '/pages/expert-evaluation/index'
+              url: '/pages/expert-orientation/index'
             });
           }, 1500);
         } else {

@@ -30,6 +30,8 @@
     </view>
     <text class="quick-action-text">大陶展专区</text>
   </view>
+
+  <!-- 馆藏作品与艺术家档案尚未发布正式内容，运营入口暂不展示。 -->
 </view>
 
 <!-- 公告栏 -->
@@ -128,4 +130,4 @@
       </view>
     </view>
   </view>
-</view> 
+</view>

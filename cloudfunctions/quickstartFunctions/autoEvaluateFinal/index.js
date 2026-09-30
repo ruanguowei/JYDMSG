@@ -6,6 +6,7 @@ cloud.init({
 })
 
 const db = cloud.database()
+const { collectionName, publicEdition, resolveEdition } = require('../common/edition')
 
 /**
  * 终评自动评分（模拟终评评委打分）
@@ -14,6 +15,11 @@ const db = cloud.database()
  */
 exports.main = async (event, context) => {
   try {
+    if (process.env.ENABLE_TEST_DATA !== 'true') {
+      return { success: false, message: '自动评分测试入口未在当前云环境启用' };
+    }
+    const edition = await resolveEdition(db, { editionId: event.editionId, useCurrent: !event.editionId, mode: 'write' });
+    const finalScoringCollection = collectionName(edition, 'finalScoring');
     const {
       count = 100,           // 要评分的作品数量
       expertCode,            // 专家代码
@@ -50,7 +56,7 @@ exports.main = async (event, context) => {
     let hasMore = true;
     
     while (hasMore) {
-      const result = await db.collection('pottery_submissions_for_final')
+      const result = await db.collection(finalScoringCollection)
         .where({
           qualification: db.command.neq(false)
         })
@@ -153,7 +159,7 @@ exports.main = async (event, context) => {
       
       // 添加到批量更新队列 - 更新终评评分表
       updatePromises.push(
-        db.collection('pottery_submissions_for_final')
+        db.collection(finalScoringCollection)
           .doc(submission._id)
           .update({
             data: {
@@ -186,7 +192,8 @@ exports.main = async (event, context) => {
       data: {
         evaluatedCount: evaluatedCount,
         remainingCount: unevaluatedSubmissions.length - evaluatedCount
-      }
+      },
+      edition: publicEdition(edition)
     };
     
   } catch (error) {

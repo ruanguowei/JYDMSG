@@ -1,0 +1,25 @@
+{
+  "name": "jdzyzd-art-museum-miniprogram-tools",
+  "private": true,
+  "version": "1.0.0",
+  "description": "景德镇艺术职业大学美术馆小程序本地开发与 CI 工具",
+  "scripts": {
+    "ci:preview": "node scripts/miniprogram-ci.js preview",
+    "ci:upload": "node scripts/miniprogram-ci.js upload",
+    "test:smoke": "node --test tests/miniprogram-smoke.test.js",
+    "test:structure": "node scripts/check-miniprogram-structure.js",
+    "test:handlers": "node scripts/check-wxml-handlers.js",
+    "test:wxml": "node scripts/check-wxml-syntax.js",
+    "test:static": "node --test --test-name-pattern=\"已注册|聚合云函数|当前联调授权|长期内容入口|管理员内容管理入口|大陶展入口|查询和画册\" tests/miniprogram-smoke.test.js",
+    "test:unit": "node --test --test-name-pattern=\"年度解析器|视频作品|专家评分|管理员危险操作|入围、获奖和证书\" tests/miniprogram-smoke.test.js",
+    "test:integration:local": "node --test --test-name-pattern=\"全链路本地合成数据\" tests/miniprogram-smoke.test.js",
+    "check:upgrade-readiness": "node scripts/upgrade-readiness-check.js",
+    "test:evaluation": "node --test tests/evaluation-2026.test.js tests/evaluation-school-selection.test.js",
+    "sync:evaluation": "node scripts/sync-evaluation-runtime.js",
+    "simulate:evaluation": "node scripts/simulate-evaluation-chain.js",
+    "test:review-v3": "node --test tests/review-v3.test.js"
+  },
+  "devDependencies": {
+    "miniprogram-ci": "^2.0.4"
+  }
+}

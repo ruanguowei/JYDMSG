@@ -6,15 +6,29 @@ Page({
     notices: [],
     loading: true,
     showModal: false,
-    currentNotice: null
+    currentNotice: null,
+    appointmentEnabled: true
   },
   
   onLoad: function() {
+    this._isPageActive = true;
     // 页面加载时调用云函数获取最新数据
     this.fetchHomeData();
   },
+
+  onUnload: function() {
+    this._isPageActive = false;
+    this._homeDataLoading = false;
+  },
   
   navigateToAppointment: function() {
+    if (this.data.appointmentEnabled === false) {
+      wx.showToast({
+        title: '预约功能暂未开放',
+        icon: 'none'
+      });
+      return;
+    }
     wx.navigateTo({
       url: '/pages/appointment/index'
     })
@@ -24,6 +38,12 @@ Page({
     wx.switchTab({
       url: '/pages/pottery-exhibition/index'
     })
+  },
+
+  navigateToMuseumResources: function() {
+    wx.navigateTo({
+      url: '/pages/museum-resources/index'
+    });
   },
   
   // 显示公告详情弹窗
@@ -260,6 +280,11 @@ Page({
   
   // 获取首页数据
   fetchHomeData: function(callback) {
+    if (this._homeDataLoading) {
+      return;
+    }
+
+    this._homeDataLoading = true;
     this.setData({ loading: true });
     
     wx.cloud.callFunction({
@@ -268,12 +293,17 @@ Page({
         type: 'fetchHomeData'
       },
       success: res => {
+        if (!this._isPageActive) {
+          return;
+        }
+
         if (res.result && res.result.success) {
-          const { banners, announcements } = res.result.data;
+          const { banners, announcements, appointmentEnabled } = res.result.data;
           
           this.setData({
             banners: banners || [],
             notices: announcements || [],
+            appointmentEnabled: appointmentEnabled !== false, // 默认为 true
             loading: false
           });
         } else {
@@ -287,6 +317,9 @@ Page({
       },
       fail: err => {
         console.error('调用云函数失败', err);
+        if (!this._isPageActive) {
+          return;
+        }
         this.setData({ loading: false });
         wx.showToast({
           title: '网络异常',
@@ -294,10 +327,11 @@ Page({
         });
       },
       complete: () => {
+        this._homeDataLoading = false;
         if (typeof callback === 'function') {
           callback();
         }
       }
     });
   }
-}) 
+})

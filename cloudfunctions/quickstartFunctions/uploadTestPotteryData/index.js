@@ -1,5 +1,6 @@
 // 云函数入口文件
 const cloud = require('wx-server-sdk')
+const { buildEditionFields, collectionName, resolveEdition } = require('../common/edition')
 
 cloud.init({
   env: cloud.DYNAMIC_CURRENT_ENV
@@ -9,6 +10,13 @@ cloud.init({
 exports.main = async (event, context) => {
   const wxContext = cloud.getWXContext()
   const db = cloud.database()
+
+  if (process.env.ENABLE_TEST_DATA !== 'true') {
+    return {
+      success: false,
+      errMsg: '测试数据入口未在当前云环境启用'
+    }
+  }
   
   try {
     // 测试数据
@@ -65,11 +73,21 @@ exports.main = async (event, context) => {
       updatedAt: db.serverDate()
     }
     
-    // 详细日志，方便调试
-    console.log('准备提交的测试数据:', JSON.stringify(testData, null, 2));
+    // 仅记录测试数据摘要，避免把个人字段写入云函数日志。
+    console.log('准备提交测试数据:', JSON.stringify({ category: testData.category, workType: testData.workType }));
     
-    // 保存到数据库
-    const result = await db.collection('pottery_submissions').add({
+    const edition = await resolveEdition(db, {
+      editionId: event.editionId || 'pottery-2026',
+      mode: 'write'
+    })
+    const submissionsCollection = collectionName(edition, 'submissions')
+    Object.assign(testData, buildEditionFields(edition), {
+      schemaVersion: edition.schemaVersion || 2,
+      workCode: `TEST-${Date.now()}`
+    })
+
+    // 保存到当前测试届次集合，不允许写入历史集合。
+    const result = await db.collection(submissionsCollection).add({
       data: testData
     })
     
@@ -79,8 +97,8 @@ exports.main = async (event, context) => {
       success: true,
       data: {
         submissionId: result._id,
-        message: '测试数据已成功添加到pottery_submissions集合',
-        testData: testData // 返回测试数据以便于查看
+        message: `测试数据已成功添加到 ${submissionsCollection} 集合`,
+        editionId: edition.editionId
       }
     }
   } catch (error) {
@@ -88,7 +106,7 @@ exports.main = async (event, context) => {
     return {
       success: false,
       errMsg: '添加测试数据失败：' + error.message,
-      error: error
+      error: error.message
     }
   }
-} 
+}

@@ -4,6 +4,21 @@
   <view class="admin-header">
     <view class="header-title">系统管理员面板</view>
     <view class="admin-account">当前账号：{{adminAccount}}</view>
+    <view class="environment-badge {{environment.isProduction ? 'production' : 'test'}}">
+      {{environment.label}} · {{environment.envVersion}}
+    </view>
+    <view class="environment-id">{{environment.envId || '环境 ID 获取中'}}</view>
+  </view>
+
+  <view class="clear-review-section">
+    <view class="section-title">清空评审表</view>
+    <view class="clear-review-note">选择要清空的表，先预检和备份，再确认执行。原始报名表不会被清空。</view>
+    <view class="clear-review-buttons">
+      <button class="clear-review-button" data-operation="clearCleanTable" bindtap="startDangerousOperationPreview" disabled="{{adminOperation.previewing || adminOperation.executing}}">初评清洗表 · 预检</button>
+      <button class="clear-review-button" data-operation="clearPreliminaryTable" bindtap="startDangerousOperationPreview" disabled="{{adminOperation.previewing || adminOperation.executing}}">初评结果表 · 预检</button>
+      <button class="clear-review-button" data-operation="clearFinalScoringTable" bindtap="startDangerousOperationPreview" disabled="{{adminOperation.previewing || adminOperation.executing}}">终评评分表 · 预检</button>
+      <button class="clear-review-button" data-operation="clearFinalResultsTable" bindtap="startDangerousOperationPreview" disabled="{{adminOperation.previewing || adminOperation.executing}}">终评结果表 · 预检</button>
+    </view>
   </view>
 
   <!-- 功能卡片区域 -->
@@ -17,8 +32,8 @@
         <view class="card-title">数据清洗</view>
         <view class="card-desc">去重并生成评分表（会清空已有评分数据）</view>
       </view>
-      <button class="card-btn danger-btn" bindtap="cleanData" loading="{{cleaning}}" disabled="{{cleaning}}">
-        {{cleaning ? '清洗中...' : '清洗数据'}}
+      <button class="card-btn danger-btn" data-operation="cleanSubmissionsData" bindtap="startDangerousOperationPreview" loading="{{adminOperation.previewing}}" disabled="{{adminOperation.previewing}}">
+        先预检
       </button>
     </view>
 
@@ -43,10 +58,10 @@
       </view>
       <view class="card-content">
         <view class="card-title">生成初评结果表</view>
-        <view class="card-desc">筛选前480件+港澳台（会清空终评评分数据）</view>
+        <view class="card-desc">按类别比例选取520件，每校至少1件，并确保终评名额能覆盖各院校</view>
       </view>
-      <button class="card-btn danger-btn" bindtap="generatePreliminaryTable" loading="{{generating.preliminary}}" disabled="{{generating.preliminary}}">
-        {{generating.preliminary ? '生成中...' : '生成结果表'}}
+      <button class="card-btn danger-btn" data-operation="generatePreliminaryTable" bindtap="startDangerousOperationPreview" loading="{{adminOperation.previewing}}" disabled="{{adminOperation.previewing}}">
+        先预检
       </button>
     </view>
 
@@ -71,10 +86,10 @@
       </view>
       <view class="card-content">
         <view class="card-title">开始终评</view>
-        <view class="card-desc">生成终评评分表（不含评分记录）</view>
+        <view class="card-desc">核对院校覆盖与类别名额，生成终评评分表</view>
       </view>
-      <button class="card-btn danger-btn" bindtap="startFinalEvaluation" loading="{{generating.startFinal}}" disabled="{{generating.startFinal}}">
-        {{generating.startFinal ? '准备中...' : '开始终评'}}
+      <button class="card-btn danger-btn" data-operation="startFinalEvaluation" bindtap="startDangerousOperationPreview" loading="{{adminOperation.previewing}}" disabled="{{adminOperation.previewing}}">
+        先预检
       </button>
     </view>
 
@@ -85,10 +100,10 @@
       </view>
       <view class="card-content">
         <view class="card-title">生成终评结果表</view>
-        <view class="card-desc">筛选前300件+地域均衡+港澳台</view>
+        <view class="card-desc">分类录取，每校至少1件，港澳台按实际数量计入</view>
       </view>
-      <button class="card-btn danger-btn" bindtap="generateFinalTable" loading="{{generating.final}}" disabled="{{generating.final}}">
-        {{generating.final ? '生成中...' : '生成结果表'}}
+      <button class="card-btn danger-btn" data-operation="generateFinalRanking" bindtap="startDangerousOperationPreview" loading="{{adminOperation.previewing}}" disabled="{{adminOperation.previewing}}">
+        先预检
       </button>
     </view>
 
@@ -104,6 +119,196 @@
       <button class="card-btn" bindtap="exportFinalResults" loading="{{exporting.final}}">
         {{exporting.final ? '导出中...' : '导出'}}
       </button>
+    </view>
+  </view>
+
+  <!-- 危险操作安全流水线 -->
+  <view class="operation-safety-section">
+    <view class="section-title">同分入围确认</view>
+    <view class="operation-warning">同分影响入围名额时，先确认作品，再重新预检、备份和生成确认码。此处仅计算和保存选择，不生成结果表。</view>
+    <button data-operation="generatePreliminaryTable" bindtap="openTieReview" disabled="{{adminOperation.executing}}">初评同分确认</button>
+    <button data-operation="generateFinalRanking" bindtap="openTieReview" disabled="{{adminOperation.executing}}">终评同分确认</button>
+  </view>
+  <view class="operation-safety-section">
+    <view id="evaluation-operations" class="section-title">评审数据操作</view>
+    <view class="operation-warning">执行会更新当前届次数据。可在下方选择“清空初评清洗表／初评结果表／终评评分表／终评结果表”。清空仅删除选中表的数据，不会自动清空其他阶段；请停止相关评审、核对目标表并完成备份。原始报名表不允许清空。奖项和证书操作暂未接入。</view>
+    <view class="operation-form">
+      <view class="form-row">
+        <input placeholder="届次口令 / editionId" value="{{adminOperation.editionId}}" bindinput="updateAdminOperationEdition" />
+      </view>
+      <view class="form-row">
+        <picker mode="selector" range="{{adminOperation.operations}}" range-key="label" bindchange="updateAdminOperation">
+          <view class="picker-value">操作：<block wx:for="{{adminOperation.operations}}" wx:key="name"><text wx:if="{{item.name === adminOperation.selectedOperation}}">{{item.label}}</text></block></view>
+        </picker>
+      </view>
+      <button class="content-btn primary" bindtap="previewDangerousOperation" loading="{{adminOperation.previewing}}">
+        生成预检报告
+      </button>
+    </view>
+    <view wx:if="{{adminOperation.previewResult}}" class="operation-preview">
+      <view class="operation-step-title">第一步：预检报告</view>
+      <view>操作编号：{{adminOperation.previewResult.operationId}}</view>
+      <view>状态：{{adminOperation.previewResult.state}}</view>
+      <view>环境：{{adminOperation.previewResult.preview.environment}}</view>
+      <view>届次：{{adminOperation.previewResult.preview.editionId}}</view>
+      <view>操作：{{adminOperation.previewResult.preview.operationLabel}}</view>
+      <view>源集合：</view>
+      <view wx:if="{{adminOperation.previewResult.preview.sourceCollections.length === 0}}">无</view>
+      <view wx:for="{{adminOperation.previewResult.preview.sourceCollections}}" wx:key="*this">- {{item}}</view>
+      <view>目标集合：</view>
+      <view wx:if="{{adminOperation.previewResult.preview.targetCollections.length === 0}}">无</view>
+      <view wx:for="{{adminOperation.previewResult.preview.targetCollections}}" wx:key="*this">- {{item}}</view>
+      <view>源记录数：{{adminOperation.previewResult.preview.sourceRecordCount}}</view>
+      <view>目标现有记录数：{{adminOperation.previewResult.preview.targetRecordCount}}</view>
+      <view>影响说明：{{adminOperation.previewResult.preview.estimatedImpact}}</view>
+      <view wx:if="{{adminOperation.previewResult.preview.warnings.length > 0}}" class="operation-warning">
+        <view>警告：</view>
+        <view wx:for="{{adminOperation.previewResult.preview.warnings}}" wx:key="*this">- {{item}}</view>
+      </view>
+      <button class="content-btn warning" bindtap="backupDangerousOperation" loading="{{adminOperation.backingUp}}">
+        第二步：创建备份清单
+      </button>
+    </view>
+
+    <view wx:if="{{adminOperation.backupResult}}" class="operation-preview">
+      <view class="operation-step-title">第二步：备份记录</view>
+      <view>操作编号：{{adminOperation.backupResult.operationId}}</view>
+      <view>状态：{{adminOperation.backupResult.state}}</view>
+      <view>备份编号：{{adminOperation.backupResult.backup.backupId}}</view>
+      <view>备份路径：{{adminOperation.backupResult.backup.path}}</view>
+      <view>备份集合：</view>
+      <view wx:if="{{adminOperation.backupResult.backup.collections.length === 0}}">无数据库集合，仅需人工核对云存储清单</view>
+      <view wx:for="{{adminOperation.backupResult.backup.collections}}" wx:key="*this">- {{item}}</view>
+      <view>恢复说明：{{adminOperation.backupResult.backup.restoreNote}}</view>
+      <button class="content-btn warning" bindtap="issueDangerousOperationConfirmation" loading="{{adminOperation.confirming}}">
+        第三步：生成 10 分钟确认码
+      </button>
+    </view>
+
+    <view wx:if="{{adminOperation.confirmationResult}}" class="operation-preview">
+      <view class="operation-step-title">第三步：口令与二次确认</view>
+      <view>操作编号：{{adminOperation.confirmationResult.operationId}}</view>
+      <view>确认状态：{{adminOperation.confirmationResult.state}}</view>
+      <view>确认码有效期：{{adminOperation.confirmationResult.expiresInSeconds}} 秒</view>
+      <view class="operation-warning">请确认环境、届次、源表、目标表和备份编号后再执行。</view>
+      <view class="form-row">
+        <input placeholder="再次输入届次口令，例如 pottery-2026" value="{{adminOperation.passphrase}}" bindinput="updateAdminOperationPassphrase" />
+      </view>
+      <view class="form-row">
+        <input placeholder="一次性确认码" value="{{adminOperation.confirmationCode}}" bindinput="updateAdminOperationConfirmationCode" />
+      </view>
+      <button class="content-btn danger-outline" bindtap="executeDangerousOperation" loading="{{adminOperation.executing}}">
+        第四步：确认执行
+      </button>
+    </view>
+
+    <view wx:if="{{adminOperation.executeResult}}" class="operation-preview">
+      <view class="operation-step-title">第四步：执行结果</view>
+      <view>操作编号：{{adminOperation.executeResult.operationId}}</view>
+        <view>{{adminOperation.executeResult.message}}</view>
+        <view wx:if="{{adminOperation.executeResult.result}}">本次作品数：{{adminOperation.executeResult.result.totalCount}}</view>
+        <view wx:if="{{adminOperation.executeResult.result && adminOperation.executeResult.result.schoolCount !== undefined}}">院校覆盖：{{adminOperation.executeResult.result.coveredSchoolCount}} / {{adminOperation.executeResult.result.schoolCount}}所（含港澳台直接展出作品）</view>
+        <view wx:if="{{adminOperation.executeResult.result && adminOperation.executeResult.result.finalFeasibilityChecked}}">已核对类别名额与每校至少1件可以同时满足</view>
+        <view wx:if="{{adminOperation.executeResult.result && adminOperation.executeResult.result.deletedCount !== undefined}}">已删除：{{adminOperation.executeResult.result.deletedCount}}条</view>
+      <view>状态：{{adminOperation.executeResult.state}}</view>
+      <view>消息：{{adminOperation.executeResult.message}}</view>
+    </view>
+  </view>
+
+  <!-- 内容管理 -->
+  <view class="content-admin-section">
+    <view class="section-title">长期内容管理</view>
+    <view class="content-type-tabs">
+      <button class="type-tab {{contentAdmin.type === 'artist' ? 'active' : ''}}" data-type="artist" bindtap="switchContentType">艺术家</button>
+      <button class="type-tab {{contentAdmin.type === 'collection' ? 'active' : ''}}" data-type="collection" bindtap="switchContentType">馆藏</button>
+      <button class="type-tab {{contentAdmin.type === 'catalog' ? 'active' : ''}}" data-type="catalog" bindtap="switchContentType">画册</button>
+    </view>
+
+    <view class="content-form">
+      <view class="form-row" wx:if="{{contentAdmin.type === 'artist'}}">
+        <input placeholder="艺术家姓名 *" value="{{contentAdmin.form.name}}" data-field="name" bindinput="updateContentField" />
+      </view>
+      <view class="form-row" wx:if="{{contentAdmin.type === 'artist'}}">
+        <input placeholder="artistId（留空自动生成）" value="{{contentAdmin.form.artistId}}" data-field="artistId" bindinput="updateContentField" />
+      </view>
+      <view class="form-row" wx:if="{{contentAdmin.type === 'artist'}}">
+        <input placeholder="头像 fileId 或 HTTPS URL" value="{{contentAdmin.form.avatar}}" data-field="avatar" bindinput="updateContentField" />
+      </view>
+
+      <view class="form-row" wx:if="{{contentAdmin.type === 'collection'}}">
+        <input placeholder="馆藏作品名称 *" value="{{contentAdmin.form.title}}" data-field="title" bindinput="updateContentField" />
+      </view>
+      <view class="form-row" wx:if="{{contentAdmin.type === 'collection'}}">
+        <input placeholder="artistId（关联艺术家）" value="{{contentAdmin.form.artistId}}" data-field="artistId" bindinput="updateContentField" />
+      </view>
+      <view class="form-row" wx:if="{{contentAdmin.type === 'collection'}}">
+        <input placeholder="艺术家显示名" value="{{contentAdmin.form.artistName}}" data-field="artistName" bindinput="updateContentField" />
+      </view>
+      <view class="form-row two" wx:if="{{contentAdmin.type === 'collection'}}">
+        <input placeholder="年代" value="{{contentAdmin.form.period}}" data-field="period" bindinput="updateContentField" />
+        <input placeholder="类别" value="{{contentAdmin.form.category}}" data-field="category" bindinput="updateContentField" />
+      </view>
+      <view class="form-row two" wx:if="{{contentAdmin.type === 'collection'}}">
+        <input placeholder="材料" value="{{contentAdmin.form.material}}" data-field="material" bindinput="updateContentField" />
+        <input placeholder="尺寸" value="{{contentAdmin.form.size}}" data-field="size" bindinput="updateContentField" />
+      </view>
+      <view class="form-row" wx:if="{{contentAdmin.type === 'collection'}}">
+        <input placeholder="主图 fileId 或 HTTPS URL" value="{{contentAdmin.form.coverImage}}" data-field="coverImage" bindinput="updateContentField" />
+      </view>
+
+      <view class="form-row" wx:if="{{contentAdmin.type === 'catalog'}}">
+        <input placeholder="画册标题 *" value="{{contentAdmin.form.title}}" data-field="title" bindinput="updateContentField" />
+      </view>
+      <view class="form-row" wx:if="{{contentAdmin.type === 'catalog'}}">
+        <input placeholder="云展网 HTTPS URL *" value="{{contentAdmin.form.url}}" data-field="url" bindinput="updateContentField" />
+      </view>
+      <view class="form-row two" wx:if="{{contentAdmin.type === 'catalog'}}">
+        <input placeholder="年份" value="{{contentAdmin.form.year}}" data-field="year" bindinput="updateContentField" />
+        <input placeholder="届次数字" value="{{contentAdmin.form.editionNumber}}" data-field="editionNumber" bindinput="updateContentField" />
+      </view>
+      <view class="form-row" wx:if="{{contentAdmin.type === 'catalog'}}">
+        <input placeholder="封面 fileId 或 HTTPS URL" value="{{contentAdmin.form.cover}}" data-field="cover" bindinput="updateContentField" />
+      </view>
+
+      <view class="form-row">
+        <textarea placeholder="{{contentAdmin.type === 'artist' ? '简介 / 履历' : '介绍 / 说明'}}" value="{{contentAdmin.type === 'artist' ? contentAdmin.form.intro : (contentAdmin.type === 'catalog' ? contentAdmin.form.description : contentAdmin.form.intro)}}" data-field="{{contentAdmin.type === 'catalog' ? 'description' : 'intro'}}" bindinput="updateContentField"></textarea>
+      </view>
+      <view class="form-row two">
+        <input placeholder="排序" value="{{contentAdmin.form.sortOrder}}" data-field="sortOrder" bindinput="updateContentField" />
+        <picker mode="selector" range="{{['draft','published']}}" value="{{contentAdmin.form.status === 'published' ? 1 : 0}}" bindchange="updateContentStatus">
+          <view class="picker-value">状态：{{contentAdmin.form.status === 'published' ? 'published' : 'draft'}}</view>
+        </picker>
+      </view>
+      <view class="content-actions">
+        <button class="content-btn secondary" bindtap="resetContentForm">清空</button>
+        <button class="content-btn primary" bindtap="saveContentItem" loading="{{contentAdmin.saving}}">{{contentAdmin.form.id ? '保存修改' : '新增内容'}}</button>
+      </view>
+    </view>
+
+    <view class="content-list">
+      <view class="content-list-title">最近内容 {{contentAdmin.loading ? '加载中...' : ''}}</view>
+      <view wx:if="{{contentAdmin.list.length === 0 && !contentAdmin.loading}}" class="content-empty">暂无内容</view>
+      <view wx:for="{{contentAdmin.list}}" wx:key="_id" class="content-list-item">
+        <view class="content-list-info" bindtap="editContentItem" data-index="{{index}}">
+          <view class="content-list-name">{{item.name || item.title || '未命名'}}</view>
+          <view class="content-list-meta">{{item.status || 'draft'}} · 排序 {{item.sortOrder || 0}}</view>
+        </view>
+        <button class="mini-btn" data-id="{{item._id}}" data-status="{{item.status}}" bindtap="toggleContentStatus">{{item.status === 'published' ? '下架' : '发布'}}</button>
+      </view>
+    </view>
+
+    <view class="import-preview">
+      <view class="content-list-title">批量导入预检</view>
+      <textarea placeholder="粘贴 JSON 数组，仅预检不写入数据库" value="{{contentAdmin.importText}}" bindinput="updateImportText"></textarea>
+      <button class="content-btn primary" bindtap="previewContentImport" loading="{{contentAdmin.importPreviewing}}">生成预检报告</button>
+      <view wx:if="{{contentAdmin.importPreview}}" class="preview-report">
+        <view>总数：{{contentAdmin.importPreview.total}}</view>
+        <view>有效：{{contentAdmin.importPreview.valid}}</view>
+        <view>失败：{{contentAdmin.importPreview.failed}}</view>
+        <view>预计新增：{{contentAdmin.importPreview.wouldCreate}}</view>
+        <view>预计更新：{{contentAdmin.importPreview.wouldUpdate}}</view>
+        <button class="content-btn primary" wx:if="{{contentAdmin.importPreview.failed === 0}}" bindtap="executeContentImport" loading="{{contentAdmin.importing}}">确认导入</button>
+      </view>
     </view>
   </view>
 

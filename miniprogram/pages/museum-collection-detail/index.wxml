@@ -1,0 +1,21 @@
+<view class="page">
+  <view wx:if="{{loading}}" class="state">正在加载馆藏详情...</view>
+  <block wx:elif="{{item}}">
+    <image wx:if="{{item.coverImage}}" class="hero" src="{{item.coverImage}}" mode="aspectFill" bindtap="previewImage" data-url="{{item.coverImage}}"></image>
+    <view wx:else class="hero placeholder">暂无图片</view>
+
+    <view class="content">
+      <view class="title">{{item.title || '未命名作品'}}</view>
+      <view class="artist" bindtap="openArtist">{{item.artistName || '佚名'}}</view>
+      <view class="meta">{{item.period || '年代未详'}} · {{item.category || '未分类'}}</view>
+      <view class="meta">{{item.material || '材料未详'}} {{item.size ? '｜' + item.size : ''}}</view>
+      <view class="section-title">作品介绍</view>
+      <view class="intro">{{item.intro || item.description || '暂无介绍'}}</view>
+    </view>
+
+    <view class="detail-images" wx:if="{{item.detailImages && item.detailImages.length > 0}}">
+      <view class="section-title">详情图</view>
+      <image wx:for="{{item.detailImages}}" wx:key="index" src="{{item}}" mode="aspectFill" bindtap="previewImage" data-url="{{item}}"></image>
+    </view>
+  </block>
+</view>

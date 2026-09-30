@@ -1,3 +1,4 @@
+const { assertOrientation } = require('./reviewOrientation');
 // cloudfunctions/fetchSubmissionDetail/index.js
 const cloud = require('wx-server-sdk')
 
@@ -6,6 +7,24 @@ cloud.init({
 })
 
 const db = cloud.database()
+const { normalizeCategory, eligible, prepareWork } = require('./evaluationRules')
+const { collectionName, publicEdition, resolveEdition } = require('./edition')
+
+async function buildVideoPlaybackInfo(submission) {
+  if (!submission.video) return null;
+  const video = { ...(submission.video || {}) };
+  const fileId = video.fileId || '';
+  if (!video.tempUrl && fileId.startsWith('cloud://')) {
+    try {
+      const result = await cloud.getTempFileURL({ fileList: [fileId] });
+      const item = result.fileList && result.fileList[0];
+      if (item && item.tempFileURL) video.tempUrl = item.tempFileURL;
+    } catch (error) {
+      console.warn('生成视频临时播放地址失败:', error.message);
+    }
+  }
+  return video;
+}
 
 exports.main = async (event, context) => {
   const { submissionId, expertCode } = event
@@ -14,27 +33,38 @@ exports.main = async (event, context) => {
   try {
     // 获取专家信息，判断评委类型
     let expertType = '';
+    let authenticatedExpert;
     if (expertCode) {
       const expertResult = await db.collection('experts')
-        .where({ expertCode: expertCode })
+        .where({ expertCode: expertCode, status: 'active' })
         .get();
       
       if (expertResult.data.length > 0) {
-        expertType = expertResult.data[0].expertType || '';
+        authenticatedExpert = expertResult.data.find(e => e._id === expertId);
+        expertType = authenticatedExpert ? authenticatedExpert.expertType : '';
       }
     }
     
+    if (!['preliminary', 'final'].includes(expertType)) throw new Error('专家身份无效');
     // 获取作品详情 - 根据评委类型从不同表读取
     let submissionResult;
+    const edition = await resolveEdition(db, {
+      editionId: event.editionId || 'pottery-2026',
+      mode: 'read'
+    });
+    if (authenticatedExpert.editionId && authenticatedExpert.editionId !== edition.editionId) throw new Error('专家届次不匹配');
+    assertOrientation(authenticatedExpert, edition);
+    const cleanedCollection = collectionName(edition, 'cleaned');
+    const finalScoringCollection = collectionName(edition, 'finalScoring');
     
     if (expertType === 'final') {
       // 终评评委：从终评评分表读取
-      submissionResult = await db.collection('pottery_submissions_for_final')
+      submissionResult = await db.collection(finalScoringCollection)
         .doc(submissionId)
         .get();
     } else {
       // 初评评委：从清洗表读取
-      submissionResult = await db.collection('pottery_submissions_clean')
+      submissionResult = await db.collection(cleanedCollection)
         .doc(submissionId)
         .get();
     }
@@ -47,6 +77,12 @@ exports.main = async (event, context) => {
     }
     
     const submission = submissionResult.data
+    if (event.category && prepareWork(submission).categoryKey !== event.category) throw new Error('该作品不属于当前评审类别');
+    const source = expertType === 'final' ? (await db.collection(cleanedCollection).doc(submission.sourceWorkId || submission._id).get()).data : submission;
+    if (!source || !eligible(source) || !eligible(submission)) throw new Error('作品已取消资格，不能继续评审');
+    const group = prepareWork(source).participantGroup;
+    if (group === 'international' || (expertType === 'preliminary' && group !== 'domestic')) throw new Error('该作品不属于本阶段评审范围');
+    const playbackVideo = await buildVideoPlaybackInfo(submission)
     
     // 调试：输出原始数据
     console.log('原始作品数据:', {
@@ -58,20 +94,32 @@ exports.main = async (event, context) => {
     });
     
     // 检查是否已有评分记录
+    let existingGradeScores = {
+      themeFit: '',
+      creativity: '',
+      craftsmanship: '',
+      aesthetics: ''
+    }
+
     let existingScores = {
-      themeFit: 3, // 默认满分
-      creativity: 3, // 默认满分
-      craftsmanship: 2, // 默认满分
-      aesthetics: 2 // 默认满分
+      themeFit: null,
+      creativity: null,
+      craftsmanship: null,
+      aesthetics: null
     }
     
+    let existingBaseScore = null;
+    let existingDeductions = {};
     if (submission.evaluations && submission.evaluations.length > 0) {
       // 查找当前专家的评分记录
       const expertEvaluation = submission.evaluations.find(eval => 
-        eval.expertId === expertId
+        eval.expertId === expertId || eval.expertCode === expertCode
       )
       
       if (expertEvaluation) {
+        existingBaseScore = expertEvaluation.baseScore ?? expertEvaluation.rawTotalScore ?? expertEvaluation.totalScore ?? null;
+        existingDeductions = expertEvaluation.deductions || {};
+        existingGradeScores = expertEvaluation.gradeScores || existingGradeScores
         existingScores = {
           themeFit: expertEvaluation.themeFit || 0,
           creativity: expertEvaluation.creativity || 0,
@@ -85,6 +133,7 @@ exports.main = async (event, context) => {
       success: true,
       data: {
         id: submission._id,
+        workCode: submission.workCode || submission.submissionNumber || '',
         title: submission.artworkName || submission.title || '未命名作品',
         artworkName: submission.artworkName || submission.title || '未命名作品',
         createYear: submission.createYear || '',
@@ -127,59 +176,25 @@ exports.main = async (event, context) => {
         description: submission.artworkDescription || submission.description || '',
         artworkDescription: submission.artworkDescription || submission.description || '',
         submitTime: submission.submissionTime || submission.submitTime || null,
+        existingGradeScores: existingGradeScores,
         existingScores: existingScores,
+        existingDeductions,
+        existingBaseScore,
+        video: playbackVideo || null,
+        videoUrl: (playbackVideo && playbackVideo.tempUrl) || submission.videoUrl || '',
         // 视频作品固定编号
         videoNumber: submission.videoNumber || ''
-      }
+      },
+      edition: publicEdition(edition)
     }
     
   } catch (error) {
     console.error('获取作品详情失败:', error)
     return {
       success: false,
-      message: '获取作品详情失败'
+      message: error.message || '获取作品详情失败', code: error.code
     }
   }
 }
 
 // 获取分类名称
-function getCategoryName(category) {
-  const { name } = normalizeCategory(category)
-  return name
-}
-
-function normalizeCategory(category) {
-  const map = {
-    'technique': '技艺类', '技艺': '技艺类', '技艺类': '技艺类',
-    'culture': '文脉类', '文脉': '文脉类', '文脉类': '文脉类',
-    'algorithm': '算法类', '算法': '算法类', '算法类': '算法类',
-    'industry': '产业类', '产业': '产业类', '产业类': '产业类',
-    'vision': '视界类', '视界': '视界类', '视界类': '视界类'
-  }
-  const raw = (category || '').toString().replace(/[\s\u3000]+/g, '')
-  const lower = raw.toLowerCase()
-  const keyGuess = {
-    'technique': 'technique',
-    'culture': 'culture',
-    'algorithm': 'algorithm',
-    'industry': 'industry',
-    'vision': 'vision'
-  }[lower]
-  const name = map[raw] || map[keyGuess] || '未知分类'
-  const reverse = {
-    '技艺类': 'technique',
-    '文脉类': 'culture',
-    '算法类': 'algorithm',
-    '产业类': 'industry',
-    '视界类': 'vision'
-  }
-  const key = reverse[name] || ''
-  return { key, name }
-}
-
-
-
-
-
-
-

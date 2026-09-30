@@ -7,31 +7,39 @@ cloud.init({
 
 const db = cloud.database()
 const _ = db.command
+const { collectionName, publicEdition, resolveEdition } = require('../common/edition')
 
 exports.main = async (event, context) => {
   try {
+    const edition = await resolveEdition(db, {
+      editionId: event && event.editionId,
+      useCurrent: !(event && event.editionId),
+      mode: 'read'
+    })
+    const submissionsCollection = collectionName(edition, 'submissions')
+    const cleanedCollection = collectionName(edition, 'cleaned')
+    const finalScoringCollection = collectionName(edition, 'finalScoring')
+
     // 获取总报名数
-    const totalSubmissionsResult = await db.collection('pottery_submissions')
+    const totalSubmissionsResult = await db.collection(submissionsCollection)
       .where({
         status: 'approved'
       })
       .count()
     
     // 获取有初评评分的作品数
-    const preliminaryResult = await db.collection('pottery_submissions')
+    const preliminaryResult = await db.collection(cleanedCollection)
       .where({
-        status: 'approved',
+        qualification: _.neq(false),
         'evaluations.0': _.exists(true)
       })
       .count()
     
     // 获取有终评评分的作品数（假设有phase字段标识）
-    const finalResult = await db.collection('pottery_submissions')
+    const finalResult = await db.collection(finalScoringCollection)
       .where({
-        status: 'approved',
-        evaluations: _.elemMatch({
-          phase: _.in(['final', '终评'])
-        })
+        qualification: _.neq(false),
+        'evaluations.0': _.exists(true)
       })
       .count()
     
@@ -46,7 +54,8 @@ exports.main = async (event, context) => {
         preliminaryCount: preliminaryResult.total || 0,
         finalCount: finalResult.total || 0,
         expertCount: expertResult.total || 0
-      }
+      },
+      edition: publicEdition(edition)
     }
     
   } catch (error) {

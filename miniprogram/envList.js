@@ -5,8 +5,9 @@ const envList = [
     type: 'production'
   },
   {
-    envId: 'jdzyzdmsg-test-4gx2v0bw182af653',
-    envName: '景德镇艺术职业大学美术馆(测试环境)',
+    // 当前 CloudBase 账号不可见原测试环境；按本次联调授权临时指向生产环境。
+    envId: 'jdzyzdmsg-5g4rgrjl2008796f',
+    envName: '景德镇艺术职业大学美术馆(生产环境-联调)',
     type: 'test'
   }
 ];
@@ -23,33 +24,24 @@ function getCloudEnv() {
     const envVersion = accountInfo.miniProgram.envVersion;
     
     // release: 正式版 → 生产环境
-    // trial: 体验版 → 测试环境
-    // develop: 开发版 → 测试环境
+    // trial/develop: 当前联调授权统一使用生产环境
     
     let targetEnv;
     
-    // ⭐ 【正式上线】强制使用生产环境（所有版本都使用生产环境）
-    // ⚠️ 当前已正式上线，所有版本使用生产环境
-    targetEnv = envList.find(env => env.type === 'production');
-    console.log(`[云环境] 🔴 【正式上线】强制使用生产环境（所有版本） - 当前版本: ${envVersion}`);
-    
-    // 正常自动切换逻辑（已注释，正式上线期间使用上方的强制生产环境）
-    // if (envVersion === 'release') {
-    //   // 正式版使用生产环境
-    //   targetEnv = envList.find(env => env.type === 'production');
-    //   console.log('[云环境] 正式版 - 使用生产环境');
-    // } else {
-    //   // 开发版和体验版使用测试环境
-    //   targetEnv = envList.find(env => env.type === 'test');
-    //   console.log(`[云环境] ${envVersion === 'trial' ? '体验版' : '开发版'} - 使用测试环境`);
-    // }
+    if (envVersion === 'release') {
+      targetEnv = envList.find(env => env.type === 'production');
+      console.log('[云环境] 正式版 - 使用生产环境');
+    } else {
+      targetEnv = envList.find(env => env.type === 'test');
+      console.warn(`[云环境] ${envVersion === 'trial' ? '体验版' : '开发版'} - 当前联调授权使用生产环境`);
+    }
     
     console.log(`[云环境] 当前版本: ${envVersion}, 环境: ${targetEnv.envName}, ID: ${targetEnv.envId}`);
     return targetEnv.envId;
     
   } catch (error) {
-    // 如果获取失败，默认使用测试环境（开发时）
-    console.warn('[云环境] 获取版本信息失败，使用测试环境', error);
+    // 如果获取失败，按当前联调授权使用生产环境
+    console.warn('[云环境] 获取版本信息失败，使用生产环境', error);
     return envList.find(env => env.type === 'test').envId;
   }
 }

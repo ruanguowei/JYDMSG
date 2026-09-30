@@ -12,3 +12,11 @@ $RECYCLE.BIN/
 
 # Node.js
 node_modules/
+
+# Local developer credentials and generated CI artifacts
+*.key
+.env.local
+.ci/
+
+# Production reset snapshots contain private application data
+.deploy-review-2026/reset-20260912/

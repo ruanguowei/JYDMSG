@@ -6,6 +6,7 @@ cloud.init({
 })
 
 const db = cloud.database()
+const { collectionName, publicEdition, resolveEdition } = require('../common/edition')
 
 /**
  * 部分自动评分（只给指定数量的未打分作品评分）
@@ -13,6 +14,11 @@ const db = cloud.database()
  */
 exports.main = async (event, context) => {
   try {
+    if (process.env.ENABLE_TEST_DATA !== 'true') {
+      return { success: false, message: '自动评分测试入口未在当前云环境启用' };
+    }
+    const edition = await resolveEdition(db, { editionId: event.editionId, useCurrent: !event.editionId, mode: 'write' });
+    const cleanedCollection = collectionName(edition, 'cleaned');
     const {
       count = 100,           // 要评分的作品数量（默认100件）
       expertCode,            // 专家代码（必须指定）
@@ -50,7 +56,7 @@ exports.main = async (event, context) => {
     let hasMore = true;
     
     while (hasMore) {
-      const result = await db.collection('pottery_submissions_clean')
+      const result = await db.collection(cleanedCollection)
         .where({
           qualification: db.command.neq(false),
           workType: db.command.in(['regular', 'video']),  // 包含普通作品和视频作品
@@ -157,7 +163,7 @@ exports.main = async (event, context) => {
       
       // 添加到批量更新队列 - 更新清洗表
       updatePromises.push(
-        db.collection('pottery_submissions_clean')
+        db.collection(cleanedCollection)
           .doc(submission._id)
           .update({
             data: {
@@ -190,7 +196,8 @@ exports.main = async (event, context) => {
       data: {
         evaluatedCount: evaluatedCount,
         remainingCount: unevaluatedSubmissions.length - evaluatedCount
-      }
+      },
+      edition: publicEdition(edition)
     };
     
   } catch (error) {

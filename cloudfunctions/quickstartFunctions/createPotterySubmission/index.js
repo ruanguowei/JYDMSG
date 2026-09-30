@@ -1,5 +1,13 @@
 // 云函数入口文件
 const cloud = require('wx-server-sdk')
+const {
+  buildEditionFields,
+  collectionName,
+  generateWorkCode,
+  publicEdition,
+  resolveEdition
+} = require('../common/edition')
+const { normalizeVideoMeta, validateVideoMeta, validateBaiduCloudBackup } = require('../common/video')
 
 cloud.init({
   env: cloud.DYNAMIC_CURRENT_ENV
@@ -8,16 +16,24 @@ cloud.init({
 // 云函数入口函数
 exports.main = async (event, context) => {
   const wxContext = cloud.getWXContext()
+  const submissionOpenId = wxContext.OPENID
   const db = cloud.database()
   
   try {
+    const edition = await resolveEdition(db, {
+      editionId: event.editionId || (event.data && event.data.editionId),
+      useCurrent: !(event.editionId || (event.data && event.data.editionId)),
+      mode: 'write'
+    })
+    const submissionsCollection = collectionName(edition, 'submissions')
+
     // 防止重复提交：先检查用户是否已经提交过
-    const existingSubmissions = await db.collection('pottery_submissions')
-      .where({ _openid: wxContext.OPENID })
+    const existingSubmissions = await db.collection(submissionsCollection)
+      .where({ _openid: submissionOpenId })
       .count()
     
     if (existingSubmissions.total > 0) {
-      console.log(`用户 ${wxContext.OPENID} 已有 ${existingSubmissions.total} 条提交记录，拒绝重复创建`)
+      console.log(`用户 ${submissionOpenId} 已有 ${existingSubmissions.total} 条提交记录，拒绝重复创建`)
       return {
         success: false,
         errMsg: '您已经提交过作品申请，如需修改请使用修改功能。如有疑问请联系管理员。'
@@ -80,32 +96,32 @@ exports.main = async (event, context) => {
         }
       }
       
-      if(!submissionData.fourViewImages || submissionData.fourViewImages.length === 0) {
+      if(!submissionData.fourViewImages || submissionData.fourViewImages.length !== 3 || submissionData.fourViewImages.some(item => !item)) {
         return {
           success: false,
-          errMsg: '请至少上传一张四面图'
+          errMsg: '请按要求上传正面、右侧和背面共3张作品图片'
         }
       }
       
-      if(!submissionData.detailImages || submissionData.detailImages.length === 0) {
+      if(!submissionData.detailImages || submissionData.detailImages.length !== 3 || submissionData.detailImages.some(item => !item)) {
         return {
           success: false,
-          errMsg: '请至少上传一张局部图'
+          errMsg: '请按要求上传左侧、顶部／底部和局部细节共3张作品图片'
         }
       }
     } else if(submissionData.workType === 'video') {
-      // 视频作品：检查视频相关字段
-      const videoRequiredFields = [
-        'videoDuration', 'videoResolution', 'videoAspectRatio', 
-        'shootingTechnique', 'baiduCloudLink', 'baiduCloudPassword'
-      ];
-      
-      for(const field of videoRequiredFields) {
-        if(!submissionData[field]) {
-          return {
-            success: false,
-            errMsg: `视频作品必须填写${field}字段`
-          }
+      const hasDirectVideo = Boolean(submissionData.video && (submissionData.video.fileId || submissionData.video.fileName || submissionData.video.sizeBytes));
+      const baiduBackup = validateBaiduCloudBackup(submissionData.baiduCloudLink, submissionData.baiduCloudPassword);
+      if (!hasDirectVideo && !baiduBackup.ok) {
+        return {
+          success: false,
+          errMsg: baiduBackup.errors[0] || '请上传 MP4 视频或填写百度网盘链接及提取码'
+        }
+      }
+      if (hasDirectVideo) {
+        const videoValidation = validateVideoMeta(submissionData.video, { required: true });
+        if (!videoValidation.ok) {
+          return { success: false, errMsg: videoValidation.errors[0] }
         }
       }
     }
@@ -165,10 +181,16 @@ exports.main = async (event, context) => {
     const convertedPerspectiveImage = await convertImageLinks(submissionData.perspectiveImage);
     const convertedFourViewImages = await convertImageArray(submissionData.fourViewImages || []);
     const convertedDetailImages = await convertImageArray(submissionData.detailImages || []);
-    
+    const workCode = await generateWorkCode(db, edition, submissionData.category);
+    const videoMeta = submissionData.workType === 'video'
+      ? normalizeVideoMeta(submissionData.video)
+      : normalizeVideoMeta();
+
     // 保存到数据库
-    const result = await db.collection('pottery_submissions').add({
+    const result = await db.collection(submissionsCollection).add({
       data: {
+        ...buildEditionFields(edition),
+        workCode,
         // 个人信息
         name: submissionData.name,
         gender: submissionData.gender,
@@ -205,9 +227,10 @@ exports.main = async (event, context) => {
         shootingTechnique: submissionData.shootingTechnique || '',
         baiduCloudLink: submissionData.baiduCloudLink || '',
         baiduCloudPassword: submissionData.baiduCloudPassword || '',
+        video: videoMeta,
         
         // 状态信息
-        _openid: wxContext.OPENID,
+        _openid: submissionOpenId,
         status: 'pending', // 审核状态：pending（待审核）, approved（已通过）, rejected（已拒绝）
         createdAt: Date.now(),
         updatedAt: Date.now()
@@ -216,8 +239,10 @@ exports.main = async (event, context) => {
     
     return {
       success: true,
+      edition: publicEdition(edition),
       data: {
-        submissionId: result._id
+        submissionId: result._id,
+        workCode
       }
     }
   } catch (error) {
@@ -227,4 +252,4 @@ exports.main = async (event, context) => {
       errMsg: '创建参展申请失败：' + error.message
     }
   }
-} 
+}

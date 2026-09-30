@@ -142,13 +142,21 @@ Page({
       title: '加载中...',
     });
     
-    const db = wx.cloud.database();
-    db.collection('artwork_deliveries')
-      .doc(id)
-      .get()
+    wx.cloud.callFunction({
+      name: 'quickstartFunctions',
+      data: {
+        type: 'fetchAllDeliveries',
+        deliveryId: id,
+        editionId: getApp().globalData.currentEdition && getApp().globalData.currentEdition.editionId
+      }
+    })
       .then(res => {
         wx.hideLoading();
-        const data = res.data;
+        const result = res.result || {};
+        const data = result.data && result.data[0];
+        if (!result.success || !data) {
+          throw new Error(result.errMsg || '运送记录不存在');
+        }
         
         // 查找快递方式索引
         let deliveryMethodIndex = this.data.deliveryMethods.findIndex(item => item === data.deliveryMethod);

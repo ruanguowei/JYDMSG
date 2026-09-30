@@ -1,5 +1,7 @@
 // 云函数入口文件 - 更新参展申请
 const cloud = require('wx-server-sdk')
+const { collectionName, publicEdition, resolveEdition } = require('../common/edition')
+const { normalizeVideoMeta, validateVideoMeta, validateBaiduCloudBackup } = require('../common/video')
 
 cloud.init({
   env: cloud.DYNAMIC_CURRENT_ENV
@@ -11,6 +13,13 @@ exports.main = async (event, context) => {
   const db = cloud.database()
   
   try {
+    const edition = await resolveEdition(db, {
+      editionId: event.editionId || (event.data && event.data.editionId),
+      useCurrent: !(event.editionId || (event.data && event.data.editionId)),
+      mode: 'write'
+    })
+    const submissionsCollection = collectionName(edition, 'submissions')
+
     // 检查申报时间限制
     const timeLimitResult = await db.collection('timeLimit')
       .limit(1)
@@ -93,38 +102,38 @@ exports.main = async (event, context) => {
         }
       }
       
-      if(!submissionData.fourViewImages || submissionData.fourViewImages.length === 0) {
+      if(!submissionData.fourViewImages || submissionData.fourViewImages.length !== 3 || submissionData.fourViewImages.some(item => !item)) {
         return {
           success: false,
-          errMsg: '请至少上传一张四面图'
+          errMsg: '请按要求上传正面、右侧和背面共3张作品图片'
         }
       }
       
-      if(!submissionData.detailImages || submissionData.detailImages.length === 0) {
+      if(!submissionData.detailImages || submissionData.detailImages.length !== 3 || submissionData.detailImages.some(item => !item)) {
         return {
           success: false,
-          errMsg: '请至少上传一张局部图'
+          errMsg: '请按要求上传左侧、顶部／底部和局部细节共3张作品图片'
         }
       }
     } else if(submissionData.workType === 'video') {
-      // 视频作品：检查视频相关字段
-      const videoRequiredFields = [
-        'videoDuration', 'videoResolution', 'videoAspectRatio', 
-        'shootingTechnique', 'baiduCloudLink', 'baiduCloudPassword'
-      ];
-      
-      for(const field of videoRequiredFields) {
-        if(!submissionData[field]) {
-          return {
-            success: false,
-            errMsg: `视频作品必须填写${field}字段`
-          }
+      const hasDirectVideo = Boolean(submissionData.video && (submissionData.video.fileId || submissionData.video.fileName || submissionData.video.sizeBytes));
+      const baiduBackup = validateBaiduCloudBackup(submissionData.baiduCloudLink, submissionData.baiduCloudPassword);
+      if (!hasDirectVideo && !baiduBackup.ok) {
+        return {
+          success: false,
+          errMsg: baiduBackup.errors[0] || '请上传 MP4 视频或填写百度网盘链接及提取码'
+        };
+      }
+      if (hasDirectVideo) {
+        const videoValidation = validateVideoMeta(submissionData.video, { required: true });
+        if (!videoValidation.ok) {
+          return { success: false, errMsg: videoValidation.errors[0] };
         }
       }
     }
     
     // 先检查记录是否存在以及权限
-    const checkResult = await db.collection('pottery_submissions')
+    const checkResult = await db.collection(submissionsCollection)
       .doc(submissionData.submissionId)
       .get();
       
@@ -198,9 +207,12 @@ exports.main = async (event, context) => {
     const convertedPerspectiveImage = await convertImageLinks(submissionData.perspectiveImage);
     const convertedFourViewImages = await convertImageArray(submissionData.fourViewImages || []);
     const convertedDetailImages = await convertImageArray(submissionData.detailImages || []);
+    const videoMeta = submissionData.workType === 'video'
+      ? normalizeVideoMeta(submissionData.video)
+      : normalizeVideoMeta();
     
     // 更新记录
-    const result = await db.collection('pottery_submissions')
+    const result = await db.collection(submissionsCollection)
       .doc(submissionData.submissionId)
       .update({
         data: {
@@ -240,6 +252,7 @@ exports.main = async (event, context) => {
           shootingTechnique: submissionData.shootingTechnique || '',
           baiduCloudLink: submissionData.baiduCloudLink || '',
           baiduCloudPassword: submissionData.baiduCloudPassword || '',
+          video: videoMeta,
           
           // 更新状态
           updatedAt: Date.now(),
@@ -249,6 +262,7 @@ exports.main = async (event, context) => {
     
     return {
       success: true,
+      edition: publicEdition(edition),
       data: {
         updated: result.stats.updated
       }

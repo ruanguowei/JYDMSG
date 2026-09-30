@@ -1,5 +1,11 @@
 // 云函数入口文件
 const cloud = require('wx-server-sdk');
+const {
+  buildEditionFields,
+  collectionName,
+  publicEdition,
+  resolveEdition
+} = require('../common/edition');
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
@@ -11,6 +17,13 @@ exports.main = async (event, context) => {
   const currentTime = db.serverDate();
   
   try {
+    const edition = await resolveEdition(db, {
+      editionId: event.editionId,
+      useCurrent: !event.editionId,
+      mode: 'write'
+    });
+    const deliveriesCollection = collectionName(edition, 'deliveries');
+
     // 提取请求数据
     const {
       // 基本信息确认
@@ -107,6 +120,7 @@ exports.main = async (event, context) => {
 
     // 构建要保存的数据
     const deliveryData = {
+      ...buildEditionFields(edition),
       _openid: OPENID,
       // 基本信息确认
       name: name.trim(),
@@ -130,12 +144,13 @@ exports.main = async (event, context) => {
     };
 
     // 将数据保存到数据库
-    const result = await db.collection('artwork_deliveries').add({
+    const result = await db.collection(deliveriesCollection).add({
       data: deliveryData
     });
 
     return {
       success: true,
+      edition: publicEdition(edition),
       data: {
         deliveryId: result._id
       },
@@ -149,4 +164,4 @@ exports.main = async (event, context) => {
       error: error
     };
   }
-}; 
+};

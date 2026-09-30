@@ -6,6 +6,7 @@ cloud.init({
 })
 
 const db = cloud.database()
+const { collectionName, publicEdition, resolveEdition } = require('../common/edition')
 
 /**
  * 获取视频作品列表（按评分展示顺序）
@@ -16,17 +17,27 @@ exports.main = async (event, context) => {
   try {
     const { 
       phase = 'initial',  // 'initial' 初评 | 'final' 终评
-      expertCode          // 可选：指定专家代码，查看该专家看到的顺序
+      expertCode,         // 可选：指定专家代码，查看该专家看到的顺序
+      editionId           // 可选：指定届次；未指定时使用当前届次
     } = event;
+
+    if (phase !== 'initial' && phase !== 'final') {
+      return { success: false, message: '评选阶段参数无效，仅支持 initial 或 final' };
+    }
+
+    const edition = await resolveEdition(db, {
+      editionId,
+      useCurrent: !editionId,
+      mode: 'read'
+    });
     
     console.log('=== 获取视频作品列表 ===');
     console.log('评选阶段:', phase);
-    console.log('专家代码:', expertCode || '全部');
+    console.log('专家代码:', expertCode ? '已指定' : '全部');
+    console.log('届次:', edition.editionId);
     
     // 确定数据源表
-    const tableName = phase === 'final' 
-      ? 'pottery_submissions_for_final' 
-      : 'pottery_submissions_clean';
+    const tableName = collectionName(edition, phase === 'final' ? 'finalScoring' : 'cleaned');
     
     console.log('数据源:', tableName);
     
@@ -69,7 +80,8 @@ exports.main = async (event, context) => {
         success: true,
         message: '暂无视频作品',
         data: {
-          phase: phase,
+          phase,
+          edition: publicEdition(edition),
           total: 0,
           list: []
         }
@@ -204,7 +216,8 @@ exports.main = async (event, context) => {
         success: true,
         message: `获取成功，共${videoList.length}件视频作品，已导出到云存储`,
         data: {
-          phase: phase,
+          phase,
+          edition: publicEdition(edition),
           expertCode: expertCode || null,
           total: videoList.length,
           allTotal: allVideoWorks.length,
@@ -227,7 +240,8 @@ exports.main = async (event, context) => {
         success: true,
         message: `获取成功，共${videoList.length}件视频作品（文件上传失败）`,
         data: {
-          phase: phase,
+          phase,
+          edition: publicEdition(edition),
           expertCode: expertCode || null,
           total: videoList.length,
           allTotal: allVideoWorks.length,

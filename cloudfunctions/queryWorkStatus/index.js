@@ -6,6 +6,12 @@ cloud.init({
 })
 
 const db = cloud.database()
+const { resolveEdition } = require('../quickstartFunctions/common/edition')
+const {
+  CERTIFICATE_TYPES,
+  fetchActiveCertificates,
+  normalizeCertificate
+} = require('../common/certificate')
 
 /**
  * 查询作品入围状态
@@ -14,7 +20,8 @@ const db = cloud.database()
 exports.main = async (event, context) => {
   const {
     phone,  // 手机号
-    name    // 学生姓名
+    name,   // 学生姓名
+    editionId
   } = event;
   
   try {
@@ -33,20 +40,73 @@ exports.main = async (event, context) => {
     // 去除手机号和姓名的空格
     const phoneClean = phone.trim();
     const nameClean = name.trim();
+    const edition = await resolveEdition(db, {
+      editionId: editionId || 'pottery-2026',
+      mode: 'read'
+    });
+
+    if (!edition.featureFlags || edition.featureFlags.shortlistedQuery !== true) {
+      return {
+        success: false,
+        code: 'SHORTLISTED_QUERY_CLOSED',
+        message: `${edition.title}入围结果暂未开放`
+      };
+    }
+
+    const finalResultsCollection = edition.collectionMap.finalResults || 'pottery_submissions_final';
     
     // 在终评结果表中查询（最终入围的作品）
-    const result = await db.collection('pottery_submissions_final')
+    const result = await db.collection(finalResultsCollection)
       .where({
         phone: phoneClean,
         name: nameClean
       })
+      .field({
+        _id: true,
+        workCode: true,
+        artworkName: true,
+        title: true,
+        category: true,
+        school: true,
+        teacher: true,
+        status: true,
+        shortlisted: true,
+        qualification: true,
+        shortlistedCertificate: true
+      })
+      .limit(100)
       .get();
     
     console.log('查询结果数量:', result.data.length);
     
     if (result.data.length > 0) {
-      // 找到作品，已入围
-      const work = result.data[0];
+      const certificateMap = await fetchActiveCertificates(
+        db,
+        edition.editionId,
+        result.data.map(work => work.workCode)
+      );
+      const works = result.data.map(work => {
+        const certificateRecord = work.workCode
+          ? certificateMap[`${work.workCode}:${CERTIFICATE_TYPES.SHORTLISTED}`]
+          : null;
+        const certificate = normalizeCertificate(certificateRecord, work.shortlistedCertificate || '');
+
+        return {
+          id: work._id,
+          workCode: work.workCode || '',
+          artworkName: work.artworkName || work.title,
+          category: work.category || '',
+          school: work.school || '',
+          teacher: work.teacher || '',
+          shortlisted: true,
+          awardStatus: work.status || '',
+          shortlistedCertificate: certificate ? certificate.fileId : '',
+          certificates: {
+            shortlisted: certificate
+          }
+        };
+      });
+      const work = works[0];
       
       console.log('✅ 作品已入围');
       console.log('作品名称:', work.artworkName || work.title);
@@ -55,13 +115,16 @@ exports.main = async (event, context) => {
       return {
         success: true,
         qualified: true,
-        message: '恭喜！您的作品已入围',
-        data: {
-          artworkName: work.artworkName || work.title,
-          category: work.category || '',
-          school: work.school || '',
-          teacher: work.teacher || ''
-        }
+        total: works.length,
+        message: works.length > 1 ? `查询到 ${works.length} 件入围作品` : '恭喜！您的作品已入围',
+        edition: {
+          editionId: edition.editionId,
+          year: edition.year,
+          editionNumber: edition.editionNumber,
+          title: edition.title
+        },
+        works,
+        data: work
       };
       
     } else {
@@ -71,7 +134,15 @@ exports.main = async (event, context) => {
       return {
         success: true,
         qualified: false,
-        message: '很遗憾，您的作品未入围'
+        total: 0,
+        message: '很遗憾，您的作品未入围',
+        edition: {
+          editionId: edition.editionId,
+          year: edition.year,
+          editionNumber: edition.editionNumber,
+          title: edition.title
+        },
+        works: []
       };
     }
     

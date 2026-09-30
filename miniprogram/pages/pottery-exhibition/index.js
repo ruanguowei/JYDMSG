@@ -1,4 +1,6 @@
 // pages/pottery-exhibition/index.js
+const app = getApp();
+
 Page({
   data: {
     exhibition: {
@@ -25,16 +27,63 @@ Page({
       }
     ],
     loading: true,
+    currentEdition: {
+      editionId: 'pottery-2026',
+      editionNumber: 3,
+      title: '第三届全国大学生陶艺作品展',
+      status: 'preparing',
+      featureFlags: {}
+    }
   },
   
   onLoad: function() {
     // 页面加载时调用云函数获取展览信息
     this.fetchExhibitionInfo();
+    this.loadEditionInfo();
+  },
+
+  loadEditionInfo: function() {
+    const fallback = app.globalData && app.globalData.currentEdition;
+    if (fallback) {
+      this.applyEditionInfo(fallback);
+    }
+
+    if (app.loadCurrentEdition) {
+      app.loadCurrentEdition().then(edition => {
+        this.applyEditionInfo(edition);
+      }).catch(error => {
+        console.warn('获取当前届次配置失败，使用本地兜底:', error);
+      });
+    }
+  },
+
+  applyEditionInfo: function(edition) {
+    this.setData({
+      currentEdition: edition
+    });
+  },
+
+  isFeatureOpen: function(feature) {
+    const flags = (this.data.currentEdition && this.data.currentEdition.featureFlags) || {};
+    return flags[feature] !== false;
+  },
+
+  showFeatureUnavailable: function(title, reason) {
+    wx.showModal({
+      title: title || '入口暂未开放',
+      content: reason || `${this.data.currentEdition.title || '当前届次'}该功能暂未开放，请以后台配置时间为准。`,
+      showCancel: false
+    });
   },
   
   
   // 导航到参展提交页面
   navigateToSubmission: function() {
+    if (!this.isFeatureOpen('registration')) {
+      this.showFeatureUnavailable('报名暂未开放');
+      return;
+    }
+
     // 先校验提交时间窗口
     wx.showLoading({ title: '校验提交时间...', mask: true })
     wx.cloud.callFunction({
@@ -187,6 +236,11 @@ Page({
 
   // 导航到邀约入口（参展申请页面）
   navigateToInvitation: function() {
+    if (!this.isFeatureOpen('registration')) {
+      this.showFeatureUnavailable('邀约入口暂未开放');
+      return;
+    }
+
     // 先校验提交时间窗口
     wx.showLoading({ title: '校验提交时间...', mask: true })
     wx.cloud.callFunction({
@@ -271,6 +325,11 @@ Page({
   
   // 导航到作品运送页面
   navigateToDelivery: function() {
+    if (!this.isFeatureOpen('delivery')) {
+      this.showFeatureUnavailable('作品运送暂未开放');
+      return;
+    }
+
     // 先校验作品运送时间窗口
     wx.showLoading({ title: '校验运送时间...', mask: true })
     wx.cloud.callFunction({
@@ -357,13 +416,35 @@ Page({
 
   // 导航到查询入围页面
   navigateToWorkQuery: function() {
+    if (!this.isFeatureOpen('shortlistedQuery')) {
+      this.showFeatureUnavailable('入围查询暂未开放', '入围结果尚未发布，请稍后再查。');
+      return;
+    }
+
     wx.navigateTo({
       url: '/pages/work-query/index'
     });
   },
 
+  // 导航到获奖查询页面
+  navigateToAwardQuery: function() {
+    if (!this.isFeatureOpen('awardQuery')) {
+      this.showFeatureUnavailable('获奖查询暂未开放', '获奖结果尚未发布，请稍后再查。');
+      return;
+    }
+
+    wx.navigateTo({
+      url: '/pages/award-query/index'
+    });
+  },
+
   // 导航到专家评选页面
   navigateToExpertEvaluation: function() {
+    if (!this.isFeatureOpen('expertEvaluation')) {
+      this.showFeatureUnavailable('专家评选暂未开放');
+      return;
+    }
+
     // 先校验评审时间窗口
     wx.showLoading({ title: '校验评审时间...', mask: true })
     wx.cloud.callFunction({
@@ -488,5 +569,47 @@ Page({
         });
       }
     });
+  },
+
+  // 打开云展网历届作品书橱
+  navigateToCatalog: function() {
+    if (!this.isFeatureOpen('catalog')) {
+      this.showFeatureUnavailable('历届作品暂未开放', '历届作品尚未发布，请稍后查看。');
+      return;
+    }
+
+    wx.navigateToMiniProgram({
+      appId: 'wx9c2d982dec74abe7',
+      path: 'pages/bookcase/bookcase?scene=kwdj',
+      envVersion: 'release',
+      fail: err => {
+        console.error('打开云展网历届作品失败:', err);
+        if ((err.errMsg || '').includes('cancel')) {
+          return;
+        }
+        wx.showToast({
+          title: '无法打开历届作品',
+          icon: 'none'
+        });
+      }
+    });
+  },
+
+  // 分享给好友
+  onShareAppMessage: function() {
+    return {
+      title: '大陶展专区 - 景德镇艺术职业大学美术馆',
+      path: '/pages/pottery-exhibition/index',
+      imageUrl: this.data.exhibition.bannerImageUrl || '' // 使用展览横幅图片作为分享图
+    }
+  },
+
+  // 分享到朋友圈
+  onShareTimeline: function() {
+    return {
+      title: '大陶展专区 - 景德镇艺术职业大学美术馆',
+      query: '',
+      imageUrl: this.data.exhibition.bannerImageUrl || '' // 使用展览横幅图片作为分享图
+    }
   }
-}) 
+})

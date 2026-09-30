@@ -553,3 +553,12 @@
   opacity: 0.5;
   margin: 0 10rpx;
 }
+.category-section { padding: 32rpx 24rpx; }
+.category-heading { font-size: 32rpx; font-weight: 600; margin-bottom: 24rpx; }
+.category-grid { display: flex; flex-wrap: wrap; justify-content: space-between; }
+.category-card { box-sizing: border-box; width: 48%; margin-bottom: 20rpx; padding: 32rpx 24rpx; border-radius: 16rpx; background: #fff; border: 1rpx solid #e2e7f0; }
+.category-name { font-size: 34rpx; font-weight: 600; color: #252c38; }
+.category-progress { margin-top: 18rpx; font-size: 24rpx; color: #787f8b; }
+.category-enter { margin-top: 28rpx; font-size: 26rpx; color: #0866ff; }
+.category-current { display: flex; align-items: center; justify-content: space-between; padding: 24rpx; font-size: 30rpx; font-weight: 600; }
+.category-back { margin: 0; padding: 0 24rpx; line-height: 64rpx; color: #0866ff; font-size: 25rpx; background: #fff; }

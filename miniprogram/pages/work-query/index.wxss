@@ -54,6 +54,11 @@
   box-sizing: border-box;
 }
 
+.picker-input {
+  display: flex;
+  align-items: center;
+}
+
 .query-btn {
   width: 100%;
   height: 96rpx;
@@ -136,6 +141,25 @@
   text-align: left;
 }
 
+.work-result-item {
+  margin: 36rpx 0;
+  padding-bottom: 24rpx;
+  border-bottom: 1rpx dashed #e2e8f0;
+}
+
+.work-result-item:last-child {
+  border-bottom: none;
+}
+
+.edition-label {
+  display: inline-block;
+  padding: 10rpx 24rpx;
+  background: #edf2f7;
+  border-radius: 999rpx;
+  color: #4a5568;
+  font-size: 24rpx;
+}
+
 .info-item {
   display: flex;
   padding: 20rpx 0;
@@ -158,6 +182,37 @@
   font-size: 28rpx;
   color: #2d3748;
   font-weight: 500;
+}
+
+/* 入围证书 */
+.certificate-section {
+  margin: 40rpx 0;
+  padding: 30rpx;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-radius: 16rpx;
+  border: 2rpx solid #f59e0b;
+}
+
+.certificate-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #92400e;
+  margin-bottom: 16rpx;
+  text-align: center;
+}
+
+.certificate-tip {
+  font-size: 24rpx;
+  color: #b45309;
+  text-align: center;
+  margin-bottom: 20rpx;
+}
+
+.certificate-image {
+  width: 100%;
+  display: block;
+  border-radius: 12rpx;
+  box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.15);
 }
 
 /* 入围通知图片 */

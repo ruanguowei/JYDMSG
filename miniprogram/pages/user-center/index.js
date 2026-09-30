@@ -53,8 +53,10 @@ Page({
   },
 
   gotoWxCodePage() {
+    const firstEnv = envList && envList[0];
+    const envId = firstEnv ? firstEnv.envId : '';
     wx.navigateTo({
-      url: `/pages/exampleDetail/index?envId=${envList?.[0]?.envId}&type=getMiniProgramCode`,
+      url: `/pages/exampleDetail/index?envId=${envId}&type=getMiniProgramCode`,
     });
   },
 });

@@ -22,7 +22,8 @@ page {
 
 .quick-actions {
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
+  flex-wrap: wrap;
   padding: 30rpx;
   margin: 20rpx;
   gap: 32rpx;
@@ -60,6 +61,14 @@ page {
   width: 72rpx;
   height: 72rpx;
   object-fit: contain;
+}
+
+.quick-action-icon.text-icon {
+  color: #1296db;
+  font-size: 40rpx;
+  font-weight: 700;
+  border: 2rpx solid rgba(18, 150, 219, 0.28);
+  border-radius: 50%;
 }
 
 .quick-action-text {
@@ -435,4 +444,4 @@ page {
   background-color: #e8f5e8;
   border-radius: 8rpx;
   flex-shrink: 0;
-} 
+}

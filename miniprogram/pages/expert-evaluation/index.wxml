@@ -11,59 +11,24 @@
     <view class="phase-content">
       <view class="phase-title">{{expertRoleInfo.role}}</view>
       <view class="phase-desc">
-        <text wx:if="{{expertRoleInfo.expertType === 'preliminary'}}">您正在进行初评工作，从所有作品中遴选520件进入终评</text>
-        <text wx:elif="{{expertRoleInfo.expertType === 'final'}}">您正在进行终评工作，从初评520件中遴选291件入围</text>
+        <text wx:if="{{expertRoleInfo.expertType === 'preliminary'}}">请选择类别，进入该类别评审</text>
+        <text wx:elif="{{expertRoleInfo.expertType === 'final'}}">请选择类别，进入该类别评审</text>
         <text wx:else>您正在进行评审工作</text>
       </view>
-      <view class="phase-stats" wx:if="{{statistics}}">
-        <text class="stats-text">已评分：{{statistics.evaluated}}件 / {{statistics.total}}件</text>
-        <text class="stats-divider">|</text>
-        <text class="stats-text">剩余：{{statistics.unevaluated}}件</text>
-      </view>
     </view>
   </view>
 
-  <!-- 作品列表 -->
-  <view class="submissions-list">
-    <view wx:if="{{loading}}" class="loading">
-      <view class="loading-spinner"></view>
-      <text>加载中...</text>
-    </view>
-
-    <view wx:elif="{{submissions.length === 0}}" class="empty">
-      <image src="/images/icons/noDate.png" class="empty-icon"></image>
-      <text class="empty-text">暂无待评选作品</text>
-    </view>
-
-    <view wx:else>
-      <view 
-        wx:for="{{submissions}}" 
-        wx:key="id"
-        class="submission-item {{item.workType === 'video' ? 'video-work' : ''}}"
-        data-id="{{item.id}}"
-        bindtap="navigateToScoring"
-      >
-        <view class="submission-image">
-          <!-- 视频作品：显示视频占位符 -->
-          <view wx:if="{{item.workType === 'video'}}" class="video-placeholder">
-            <text class="video-icon">📹</text>
-            <text class="video-text">视频作品</text>
-          </view>
-          <!-- 普通作品：显示图片 -->
-          <image wx:else src="{{item.imageUrl}}" mode="aspectFill"></image>
-        </view>
-        
-        <view class="submission-info">
-          <view class="submission-title">{{item.title}}</view>
-          <view class="submission-category">分类：{{item.categoryName}}</view>
-        </view>
-        
-        <view class="submission-arrow">
-          <text class="arrow">></text>
-        </view>
+  <view class="category-section">
+    <view class="category-heading">选择评审类别</view>
+    <view class="category-grid">
+      <view wx:for="{{categories}}" wx:key="key" class="category-card" data-category="{{item.key}}" bindtap="selectCategory">
+        <view class="category-name">{{item.name}}</view>
+        <view class="category-enter">{{item.unevaluated === 0 ? '已全部评完' : '进入评审 →'}}</view>
       </view>
     </view>
+    <view wx:if="{{listError}}" class="category-progress">{{listError}}</view>
   </view>
+  <view wx:if="{{loading && selectedCategory}}" class="loading"><text>正在打开作品...</text></view>
 
   <!-- 底部操作栏 -->
   <view class="bottom-actions">
@@ -71,7 +36,7 @@
       获取结果
     </button>
     <button class="action-btn primary" bindtap="fetchSubmissions">
-      刷新列表
+      刷新状态
     </button>
   </view>
 </view>

@@ -6,6 +6,7 @@ cloud.init({
 })
 
 const db = cloud.database()
+const { collectionName, resolveEdition } = require('../common/edition')
 
 // 分类映射
 const categoryMap = {
@@ -36,15 +37,18 @@ const categoryTargets = {
 
 exports.main = async (event, context) => {
   try {
+    const edition = await resolveEdition(db, { editionId: event.editionId, useCurrent: !event.editionId, mode: 'read' });
+    const submissionsCollection = collectionName(edition, 'submissions');
+    const deliveriesCollection = collectionName(edition, 'deliveries');
     console.log('=== 开始生成排名结果 ===');
     
     // 获取作品提交数据
-    const submissionsResult = await db.collection('pottery_submissions')
+    const submissionsResult = await db.collection(submissionsCollection)
       .orderBy('submissionTime', 'desc')
       .get()
     
     // 获取作品运送数据
-    const deliveriesResult = await db.collection('artwork_deliveries')
+    const deliveriesResult = await db.collection(deliveriesCollection)
       .get()
     
     console.log('作品提交数据数量:', submissionsResult.data.length);
@@ -209,7 +213,8 @@ exports.main = async (event, context) => {
           算法类: rankedCategories['algorithm']?.length || 0,
           产业类: rankedCategories['industry']?.length || 0,
           视界类: rankedCategories['vision']?.length || 0
-        }
+        },
+        editionId: edition.editionId
       }
     }
     

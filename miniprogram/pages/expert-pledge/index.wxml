@@ -2,14 +2,14 @@
 <view class="pledge-container">
   <!-- 标题 -->
   <view class="pledge-title">
-    第二届全国大学生陶艺作品展优秀作品<br/>评选承诺书
+    第三届全国大学生陶艺作品展优秀作品<br/>评选承诺书
   </view>
   
   <!-- 正文内容 -->
   <scroll-view class="pledge-content" scroll-y>
     <view class="pledge-inner">
     <view class="pledge-text">
-      本人于<text class="highlight">{{dateRange}}</text>参加第二届全国大学生陶艺作品展优秀作品评选工作。现作如下承诺。
+      本人于<text class="highlight">{{dateRange}}</text>参加第三届全国大学生陶艺作品展优秀作品评选工作。现作如下承诺。
     </view>
     
     <view class="pledge-item">

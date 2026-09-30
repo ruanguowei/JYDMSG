@@ -7,6 +7,9 @@ cloud.init({
 
 const db = cloud.database()
 const _ = db.command
+const { resolveEdition, collectionName } = require('../common/edition')
+const { prepareWork } = require('../common/evaluationRules')
+const { readAll, replaceRows } = require('../common/evaluationStorage')
 
 /**
  * 数据清洗（去重并生成评分表）
@@ -14,6 +17,9 @@ const _ = db.command
  */
 exports.main = async (event, context) => {
   try {
+    const edition = await resolveEdition(db, { editionId: event.editionId || 'pottery-2026', mode: 'write' });
+    const submissionsCollection = collectionName(edition, 'submissions');
+    const cleanedCollection = collectionName(edition, 'cleaned');
     console.log('=== ⚠️ 开始数据清洗（危险操作）===')
     console.log('云函数版本: v2.0 - 超时时间180秒')
     
@@ -24,7 +30,7 @@ exports.main = async (event, context) => {
     let hasMore = true
     
     while (hasMore) {
-      const result = await db.collection('pottery_submissions')
+      const result = await db.collection(submissionsCollection)
         .where({
           qualification: _.neq(false)  // 只要有资格即可（不限制status）
         })
@@ -64,11 +70,13 @@ exports.main = async (event, context) => {
       grouped[key].push(item);
     });
     
-    const cleanedData = [];
+    // 第三届已由组委会审核定版：全部有资格记录保留，不按作者合并作品。
+    const preserveAllSubmissions = edition.editionId === 'pottery-2026';
+    const cleanedData = preserveAllSubmissions ? [...allData] : [];
     const duplicateLog = [];
     
     // 每组保留 updatedAt 最新的
-    Object.keys(grouped).forEach(key => {
+    (preserveAllSubmissions ? [] : Object.keys(grouped)).forEach(key => {
       const items = grouped[key];
       
       if (items.length === 1) {
@@ -113,70 +121,12 @@ exports.main = async (event, context) => {
       console.log('');
     }
     
-    // 第3步：检查清洗表是否已有评分数据
-    let hasEvaluations = false;
-    let evaluatedCount = 0;
-    
-    try {
-      const existingResult = await db.collection('pottery_submissions_clean')
-        .limit(1000)
-        .get();
-      
-      if (existingResult.data.length > 0) {
-        // 统计有评分的作品数
-        evaluatedCount = existingResult.data.filter(item => 
-          (item.evaluations && item.evaluations.length > 0) ||
-          (item.finalEvaluation && item.finalEvaluation.length > 0)
-        ).length;
-        
-        hasEvaluations = evaluatedCount > 0;
-        
-        if (hasEvaluations) {
-          console.log('⚠️ 警告：清洗表中已有', evaluatedCount, '件作品的评分数据');
-        }
-        
-        // 清空清洗表（包括评分数据）
-        console.log('清空旧的清洗表数据:', existingResult.data.length, '条');
-        const removePromises = existingResult.data.map(item => 
-          db.collection('pottery_submissions_clean').doc(item._id).remove()
-        );
-        await Promise.all(removePromises);
-      }
-    } catch (err) {
-      // 表不存在，忽略错误（首次清洗时表不存在是正常的）
-      console.log('清洗表不存在，将新建表');
-    }
-    
-    // 第4步：写入清洗表（表已手动创建）
-    console.log('=== 开始写入清洗表 ===');
-    
-    // 批量插入清洗后的数据
-    const batchSize = 50;
-    let insertedCount = 0;
-    
-    for (let i = 0; i < cleanedData.length; i += batchSize) {
-      const batch = cleanedData.slice(i, i + batchSize);
-      const promises = batch.map(item => {
-        const cleanItem = {
-          ...item,
-          _cleanedAt: new Date(),
-          _originalId: item._id
-        };
-        delete cleanItem._id;  // 删除原ID，让系统生成新ID
-        
-        return db.collection('pottery_submissions_clean').add({ data: cleanItem });
-      });
-      
-      await Promise.all(promises);
-      insertedCount += batch.length;
-      console.log(`已写入 ${insertedCount}/${cleanedData.length} 条数据到清洗表`);
-    }
-    
-    console.log('');
-    console.log('=== ✅ 数据清洗完成 ===');
-    console.log('清洗表(pottery_submissions_clean)已生成，可在云开发控制台查看');
-    console.log('');
-    
+    const existing = await readAll(db, cleanedCollection);
+    const evaluatedCount = existing.filter(w => (w.evaluations || []).length).length;
+    const hasEvaluations = evaluatedCount > 0;
+    if (hasEvaluations || existing.some(w => w.qualification === false)) throw new Error('清洗表已有评分或取消资格记录，禁止重新清洗覆盖');
+    const rows = cleanedData.map(w => ({ ...prepareWork(w), _originalId: w._id, sourceWorkId: w._id, evaluations: [] }));
+    if (!event.dryRun) await replaceRows(db, cleanedCollection, rows, edition.editionId);
     return {
       success: true,
       message: `数据清洗完成！原始${allData.length}条，清洗后${cleanedData.length}条，删除重复${allData.length - cleanedData.length}条。评分表已生成。`,

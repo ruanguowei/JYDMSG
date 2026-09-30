@@ -1,10 +1,109 @@
 // pages/pottery-submission/index.js
+const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
+const MAX_VIDEO_SIZE_BYTES = 100 * 1024 * 1024;
+const { detectImageFormat, imageFormatLabel } = require('../../utils/image-file');
+
+const IMAGE_SLOT_DEFINITIONS = [
+  { key: 'perspective', title: '1. 整体透视图', hint: '从正前方偏 45° 拍摄，展示作品整体形态与空间感。' },
+  { key: 'front', title: '2. 正面图', hint: '正对作品正面拍摄，作品需完整居中。' },
+  { key: 'right', title: '3. 右侧图', hint: '从作品右侧拍摄，展示侧面结构。' },
+  { key: 'back', title: '4. 背面图', hint: '正对作品背面拍摄，展示背部完整状态。' },
+  { key: 'left', title: '5. 左侧图', hint: '从作品左侧拍摄，展示另一侧结构。' },
+  { key: 'topBottom', title: '6. 顶部／底部图', hint: '展示顶部或底部结构；如两者都重要可拼成一张。' },
+  { key: 'detail', title: '7. 局部细节图', hint: '清晰展示工艺、材质、纹理或创意细节。' }
+];
+
+// 页面展示并提交本届分类名称；aliases 仅用于兼容旧记录的编辑回填。
+const CATEGORY_OPTIONS = [
+  { value: '传统·匠心传承', label: '传统·匠心传承', aliases: ['传统·匠心传承', '技艺', '技艺类', 'technique'] },
+  { value: '当代·当代表达', label: '当代·当代表达', aliases: ['当代·当代表达', '文脉', '文脉类', 'culture'] },
+  { value: '数字·数字传媒', label: '数字·数字传媒', aliases: ['数字·数字传媒', '算法', '算法类', 'algorithm'] },
+  { value: '产业·产业制造', label: '产业·产业制造', aliases: ['产业·产业制造', '产业', '产业类', 'industry'] },
+  { value: '国际·全球视野', label: '国际·全球视野', aliases: ['国际·全球视野', '视界', '视界类', 'vision'] }
+];
+
+function getCategoryOptionIndex(category) {
+  const normalized = String(category || '').trim().toLowerCase();
+  return CATEGORY_OPTIONS.findIndex(option => option.aliases.indexOf(normalized) >= 0);
+}
+
+function getCategoryLabel(category) {
+  const index = getCategoryOptionIndex(category);
+  return index >= 0 ? CATEGORY_OPTIONS[index].label : String(category || '');
+}
+
+function getCategoryValue(category) {
+  const index = getCategoryOptionIndex(category);
+  return index >= 0 ? CATEGORY_OPTIONS[index].value : String(category || '');
+}
+
+function buildImageSlots(images = {}) {
+  const fourViews = Array.isArray(images.fourViewImages) ? images.fourViewImages : [];
+  const details = Array.isArray(images.detailImages) ? images.detailImages : [];
+  const paths = {
+    perspective: images.perspectiveImage || '',
+    front: fourViews[0] || '', right: fourViews[1] || '', back: fourViews[2] || '',
+    left: details[0] || '', topBottom: details[1] || '', detail: details[2] || ''
+  };
+  return IMAGE_SLOT_DEFINITIONS.map(item => ({ ...item, path: paths[item.key] || '', warning: '' }));
+}
+
+function formatFileSize(sizeBytes) {
+  return `${(Number(sizeBytes || 0) / 1024 / 1024).toFixed(1)}MB`;
+}
+
+function getSelectedVideoFileName(file = {}) {
+  const originalName = String(file.name || file.fileName || '').trim();
+  const tempFilePath = String(file.tempFilePath || '');
+  const tempName = tempFilePath.split(/[\\/]/).pop() || '';
+  const knownName = originalName || tempName;
+
+  if (/\.mp4(?:$|[?#])/i.test(knownName)) return knownName;
+  return '';
+}
+
+function getVideoUploadErrorMessage(err = {}) {
+  const rawMessage = String(err.errMsg || err.message || '').toLowerCase();
+  if (/timeout|timed out/.test(rawMessage)) return '视频上传超时，请检查网络后重新提交。';
+  if (/network|request:fail/.test(rawMessage)) return '网络连接异常，视频上传失败，请切换稳定网络后重试。';
+  if (/permission|unauthorized|auth/.test(rawMessage)) return '云存储暂时无权接收视频，请联系管理员检查存储权限。';
+  if (/size|exceed|too large/.test(rawMessage)) return '视频文件超过上传限制，请压缩到 100MB 以内后重试。';
+  return '视频上传失败，请稍后重新提交。';
+}
+
+function isValidBaiduCloudBackup(link, password) {
+  const normalizedLink = String(link || '').trim();
+  const normalizedPassword = String(password || '').trim();
+  return /^https?:\/\//i.test(normalizedLink)
+    && /baidu\.com|baidupan\.com/i.test(normalizedLink)
+    && Boolean(normalizedPassword);
+}
+
+function logVideoFlow(stage, detail = {}, level = 'log') {
+  const logger = console[level] || console.log;
+  logger.call(console, `[视频上传流程] ${stage}`, {
+    time: new Date().toISOString(),
+    ...detail
+  });
+}
+
+function summarizeVideoError(err = {}) {
+  return {
+    errMsg: String(err.errMsg || ''),
+    message: String(err.message || ''),
+    errCode: err.errCode || err.errno || ''
+  };
+}
+
 Page({
 
   /**
    * 页面的初始数据
    */
   data: {
+    consentChecked: false,
+    agreementAccepted: false,
+
     // 个人信息
     name: '',
     gender: '',
@@ -40,13 +139,17 @@ Page({
     }],
     category: '',
     categoryIndex: null,
-    categories: ['技艺', '文脉', '算法', '产业', '视界'],
+    categoryLabel: '',
+    categories: CATEGORY_OPTIONS.map(option => option.label),
+    categoryValues: CATEGORY_OPTIONS.map(option => option.value),
     craftMaterial: '', // 作品工艺材料（最多20字）
     artworkDescription: '',
+    artworkDescriptionLength: 0,
     // 分类上传的图片
     perspectiveImage: '', // 透视图（1张）
     fourViewImages: [], // 四面图（3张）
     detailImages: [], // 局部图（3张）
+    imageSlots: buildImageSlots(),
     specialDisplay: '', // 特殊陈列方式描述（选填）
     
     // 视频作品专用字段
@@ -60,6 +163,26 @@ Page({
     shootingTechnique: '', // 拍摄技巧
     baiduCloudLink: '', // 百度云链接
     baiduCloudPassword: '', // 百度云密码
+    useBaiduBackup: false,
+    video: {
+      fileId: '',
+      fileName: '',
+      tempFilePath: '',
+      sizeBytes: 0,
+      format: 'mp4',
+      durationSeconds: 0,
+      width: 0,
+      height: 0,
+      aspectRatio: '',
+      uploadStatus: 'ready',
+      uploadedAt: null
+    },
+    videoUploading: false,
+    videoChecking: false,
+    videoUploadProgress: 0,
+    videoUploadHint: '',
+    videoLocalIssue: '',
+    showPrivacyDialog: false,
     
     // 其他状态
     submitting: false,
@@ -71,6 +194,8 @@ Page({
    * 生命周期函数--监听页面加载
    */
   onLoad(options) {
+    this.registerPrivacyAuthorization();
+
     // 检查是否为编辑模式
     if (options.mode === 'edit' && options.id) {
       // 设置页面标题为编辑模式
@@ -111,10 +236,12 @@ Page({
           artworkName: editSubmission.artworkName || '',
           createYear: editSubmission.createYear || '',
           dimensions: editSubmission.dimensions || [{length: '', width: '', height: ''}],
-          category: editSubmission.category || '',
-          categoryIndex: this.data.categories.indexOf(editSubmission.category),
+          category: getCategoryValue(editSubmission.category),
+          categoryIndex: getCategoryOptionIndex(editSubmission.category),
+          categoryLabel: getCategoryLabel(editSubmission.category),
           craftMaterial: editSubmission.craftMaterial || '',
           artworkDescription: editSubmission.artworkDescription || '',
+          artworkDescriptionLength: (editSubmission.artworkDescription || '').length,
           perspectiveImage: editSubmission.perspectiveImage || '',
           fourViewImages: Array.isArray(editSubmission.fourViewImages) ? editSubmission.fourViewImages : [],
           detailImages: Array.isArray(editSubmission.detailImages) ? editSubmission.detailImages : [],
@@ -128,10 +255,17 @@ Page({
           shootingTechnique: editSubmission.shootingTechnique || '',
           baiduCloudLink: editSubmission.baiduCloudLink || '',
           baiduCloudPassword: editSubmission.baiduCloudPassword || '',
+          useBaiduBackup: Boolean(editSubmission.baiduCloudLink || editSubmission.baiduCloudPassword),
+          video: {
+            ...this.data.video,
+            ...(editSubmission.video || {}),
+            tempFilePath: ''
+          },
           
           // 编辑模式
           isEditMode: true,
-          submissionId: options.id
+          submissionId: options.id,
+          imageSlots: buildImageSlots(editSubmission)
         });
         
         console.log('设置后的图片数据:', {
@@ -178,7 +312,36 @@ Page({
    * 生命周期函数--监听页面卸载
    */
   onUnload() {
+    if (this._privacyAuthorizationHandler && typeof wx.offNeedPrivacyAuthorization === 'function') {
+      wx.offNeedPrivacyAuthorization(this._privacyAuthorizationHandler);
+    }
+    this._privacyAuthorizationHandler = null;
+    this._privacyAuthorizationResolve = null;
+  },
 
+  handleConsentChange(e) {
+    const values = Array.isArray(e.detail.value) ? e.detail.value : [];
+    this.setData({ consentChecked: values.includes('accepted') });
+  },
+
+  confirmConsent() {
+    if (!this.data.consentChecked) {
+      this.showToast('请先阅读并同意用户服务协议和隐私政策');
+      return;
+    }
+    this.setData({ agreementAccepted: true });
+  },
+
+  openUserServiceAgreement() {
+    wx.navigateTo({
+      url: '/pages/user-service-agreement/index'
+    });
+  },
+
+  openPrivacyPolicy() {
+    wx.navigateTo({
+      url: '/pages/privacy-policy/index'
+    });
   },
 
   /**
@@ -332,9 +495,11 @@ Page({
   },
   
   bindCategoryChange(e) {
+    const categoryIndex = Number(e.detail.value);
     this.setData({
-      categoryIndex: e.detail.value,
-      category: this.data.categories[e.detail.value]
+      categoryIndex: categoryIndex,
+      category: this.data.categoryValues[categoryIndex],
+      categoryLabel: this.data.categories[categoryIndex]
     })
   },
   
@@ -351,11 +516,15 @@ Page({
   },
   
   inputArtworkDescription(e) {
-    this.setData({ artworkDescription: e.detail.value })
+    const value = e.detail.value;
+    // 正文不通过 setData 回写原生 textarea，避免真机输入时反复重绘和滚动。
+    this.data.artworkDescription = value;
+    this.setData({ artworkDescriptionLength: value.length })
   },
   
   inputSpecialDisplay(e) {
-    this.setData({ specialDisplay: e.detail.value })
+    // 该字段没有实时联动展示，避免真机上逐字 setData 导致 textarea 重绘和页面跳动。
+    this.data.specialDisplay = e.detail.value
   },
   
   // 视频作品字段输入方法
@@ -388,75 +557,400 @@ Page({
   inputBaiduCloudPassword(e) {
     this.setData({ baiduCloudPassword: e.detail.value })
   },
-  
-  // 分类图片上传方法
-  choosePerspectiveImage() {
+
+  confirmBaiduBackup() {
+    wx.showModal({
+      title: '确认使用百度网盘',
+      content: '请先尝试将视频压缩到 100MB 以内。仅在确实无法压缩时使用百度网盘提交。',
+      confirmText: '确认使用',
+      cancelText: '继续压缩',
+      success: result => {
+        if (result.confirm) this.setData({ useBaiduBackup: true });
+      }
+    });
+  },
+
+  chooseVideoFile() {
+    this._videoTraceId = `video_${Date.now()}`;
+    logVideoFlow('01 点击选择视频', {
+      traceId: this._videoTraceId,
+      hasPrivacyApi: typeof wx.requirePrivacyAuthorize === 'function'
+    });
+    this.setData({ videoLocalIssue: '' });
+    if (typeof wx.requirePrivacyAuthorize === 'function') {
+      wx.requirePrivacyAuthorize({
+        success: () => {
+          logVideoFlow('02 隐私授权通过', { traceId: this._videoTraceId });
+          this.openVideoPicker();
+        },
+        fail: err => {
+          logVideoFlow('02 隐私授权失败', {
+            traceId: this._videoTraceId,
+            error: summarizeVideoError(err)
+          }, 'warn');
+          this.handleVideoPickerFailure(err, '隐私授权未完成');
+        }
+      });
+      return;
+    }
+    logVideoFlow('02 当前版本无需主动隐私授权', { traceId: this._videoTraceId });
+    this.openVideoPicker();
+  },
+
+  registerPrivacyAuthorization() {
+    if (typeof wx.onNeedPrivacyAuthorization !== 'function') return;
+    this._privacyAuthorizationHandler = resolve => {
+      logVideoFlow('隐私授权弹窗被触发', { traceId: this._videoTraceId || '' });
+      this._privacyAuthorizationResolve = resolve;
+      this.setData({ showPrivacyDialog: true });
+    };
+    wx.onNeedPrivacyAuthorization(this._privacyAuthorizationHandler);
+  },
+
+  handleAgreePrivacyAuthorization() {
+    logVideoFlow('用户同意隐私授权', { traceId: this._videoTraceId || '' });
+    const resolve = this._privacyAuthorizationResolve;
+    this._privacyAuthorizationResolve = null;
+    this.setData({ showPrivacyDialog: false });
+    if (typeof resolve === 'function') {
+      resolve({ event: 'agree', buttonId: 'agree-media-privacy' });
+    }
+  },
+
+  handleRejectPrivacyAuthorization() {
+    logVideoFlow('用户拒绝隐私授权', { traceId: this._videoTraceId || '' }, 'warn');
+    const resolve = this._privacyAuthorizationResolve;
+    this._privacyAuthorizationResolve = null;
+    this.setData({
+      showPrivacyDialog: false,
+      videoLocalIssue: '选择视频需要获得隐私授权。你可以再次点击“选择 MP4 视频”重新授权。'
+    });
+    if (typeof resolve === 'function') resolve({ event: 'disagree' });
+  },
+
+  preventDefault() {},
+
+  openPrivacyContract() {
+    if (typeof wx.openPrivacyContract !== 'function') {
+      this.showToast('当前微信版本暂不支持查看隐私指引');
+      return;
+    }
+    wx.openPrivacyContract({
+      fail: err => {
+        console.warn('打开隐私保护指引失败:', err);
+        this.showToast('隐私保护指引暂时无法打开');
+      }
+    });
+  },
+
+  openVideoPicker() {
+    logVideoFlow('03 正在打开系统相册', { traceId: this._videoTraceId });
+    wx.chooseMedia({
+      count: 1,
+      mediaType: ['video'],
+      sourceType: ['album'],
+      sizeType: ['original'],
+      success: res => {
+        const file = res.tempFiles && res.tempFiles[0];
+        logVideoFlow('04 相册返回成功', {
+          traceId: this._videoTraceId,
+          fileCount: res.tempFiles ? res.tempFiles.length : 0,
+          hasFile: Boolean(file),
+          sizeBytes: file ? Number(file.size || 0) : 0,
+          duration: file ? Number(file.duration || 0) : 0,
+          width: file ? Number(file.width || 0) : 0,
+          height: file ? Number(file.height || 0) : 0,
+          hasTempFilePath: Boolean(file && file.tempFilePath)
+        });
+        this.handleSelectedVideoFile(file);
+      },
+      fail: err => {
+        logVideoFlow('04 相册返回失败', {
+          traceId: this._videoTraceId,
+          error: summarizeVideoError(err)
+        }, 'warn');
+        this.handleVideoPickerFailure(err, '选择视频失败');
+      }
+    });
+  },
+
+  handleSelectedVideoFile(file) {
+    logVideoFlow('05 开始检查所选文件', {
+      traceId: this._videoTraceId,
+      hasFile: Boolean(file),
+      hasTempFilePath: Boolean(file && file.tempFilePath),
+      originalName: file ? String(file.name || file.fileName || '') : '',
+      sizeBytes: file ? Number(file.size || 0) : 0
+    });
+    if (!file || !file.tempFilePath) {
+      logVideoFlow('05 文件检查失败：没有临时路径', { traceId: this._videoTraceId }, 'error');
+      this.setData({ videoLocalIssue: '没有获得视频文件，请重新选择。' });
+      this.showToast('未选择视频文件');
+      return;
+    }
+
+    const fileName = getSelectedVideoFileName(file);
+    const sizeBytes = Number(file.size || 0);
+    if (!fileName) {
+      logVideoFlow('05 文件检查失败：不是 MP4', { traceId: this._videoTraceId }, 'error');
+      this.setData({ videoLocalIssue: '所选视频不是 MP4 格式，请转换为 MP4 后重新选择。' });
+      this.showToast('视频仅支持 MP4 格式');
+      return;
+    }
+    if (sizeBytes > MAX_VIDEO_SIZE_BYTES) {
+      logVideoFlow('05 文件检查失败：文件大小异常', {
+        traceId: this._videoTraceId,
+        sizeBytes,
+        maxSizeBytes: MAX_VIDEO_SIZE_BYTES
+      }, 'error');
+      this.setData({ videoLocalIssue: `所选视频为 ${formatFileSize(sizeBytes)}。请先压缩至 100MB 以内；确实无法压缩时，可确认使用百度网盘提交。` });
+      this.showToast('请先压缩至100MB以内');
+      return;
+    }
+
+    logVideoFlow('06 使用选择器返回的视频信息', {
+      traceId: this._videoTraceId,
+      duration: Number(file.duration || 0),
+      width: Number(file.width || 0),
+      height: Number(file.height || 0),
+      sizeBytes
+    });
+    this.acceptVideoFile(file, fileName, sizeBytes, file);
+  },
+
+  handleVideoPickerFailure(err, fallbackMessage) {
+    const errMsg = String((err && err.errMsg) || '');
+    console.warn(`${fallbackMessage}:`, err || {});
+    if (/cancel/i.test(errMsg)) {
+      logVideoFlow('流程结束：用户取消选择', { traceId: this._videoTraceId, errMsg }, 'warn');
+      this.setData({ videoLocalIssue: '本次没有选中视频文件，请重新选择。' });
+      this.showToast('已取消视频选择');
+      return;
+    }
+
+    let message = '无法打开视频选择器，请检查微信的照片与视频权限后重试。';
+    if (/privacy|authorize|auth deny|permission/i.test(errMsg)) {
+      message = '尚未获得照片与视频访问授权，请同意隐私保护指引并允许微信访问后重试。';
+    } else if (/not support/i.test(errMsg)) {
+      message = '当前微信版本不支持选择视频，请升级微信后重试。';
+    }
+    this.setData({ videoLocalIssue: message });
+    wx.showModal({
+      title: fallbackMessage,
+      content: message,
+      showCancel: false,
+      confirmText: '我知道了'
+    });
+  },
+
+  acceptVideoFile(file, fileName, sizeBytes, info = {}) {
+    const durationSeconds = Number(info.duration || file.duration || 0);
+    const width = Number(info.width || file.width || 0);
+    const height = Number(info.height || file.height || 0);
+    logVideoFlow('07 开始校验视频参数', {
+      traceId: this._videoTraceId,
+      fileName,
+      sizeBytes,
+      durationSeconds,
+      width,
+      height
+    });
+    const hasDimensions = Boolean(width && height);
+    const ratio = hasDimensions ? width / height : 0;
+    const hints = [];
+    if (hasDimensions && Math.abs(ratio - 16 / 9) > 0.03) hints.push('当前不是推荐的16:9横屏，仍可提交。');
+    if (hasDimensions && Math.min(width, height) < 720) hints.push('建议使用不低于720P的视频以便评审查看细节。');
+    const bitrateMbps = durationSeconds ? (sizeBytes * 8 / durationSeconds / 1000 / 1000) : 0;
+    if (bitrateMbps && bitrateMbps > 2.5) hints.push('当前码率高于建议值，上传耗时可能较长。');
+    logVideoFlow('07 参数校验通过，准备立即上传', {
+      traceId: this._videoTraceId,
+      bitrateMbps: Number(bitrateMbps.toFixed(2)),
+      hintCount: hints.length
+    });
+    this.setData({
+      video: {
+        fileId: '', fileName, tempFilePath: file.tempFilePath, sizeBytes, format: 'mp4',
+        durationSeconds, width, height, aspectRatio: hasDimensions ? `${width}:${height}` : '',
+        uploadStatus: 'ready', uploadedAt: null
+      },
+      videoDuration: durationSeconds ? `${Math.ceil(durationSeconds)}秒` : '未获取',
+      videoResolution: hasDimensions ? (height >= 1080 || width >= 1080 ? '1080P' : '720P') : '未获取',
+      videoAspectRatio: hasDimensions ? `${width}:${height}` : '未获取',
+      videoUploadHint: hints.join(' '),
+      videoLocalIssue: '',
+      videoChecking: false,
+      videoUploadProgress: 0
+    }, () => this.uploadSelectedVideoImmediately());
+  },
+
+  uploadSelectedVideoImmediately() {
+    if (this.data.videoUploading) {
+      logVideoFlow('08 忽略重复上传请求', { traceId: this._videoTraceId }, 'warn');
+      return;
+    }
+    logVideoFlow('08 开始立即上传', {
+      traceId: this._videoTraceId,
+      fileName: this.data.video.fileName,
+      sizeBytes: this.data.video.sizeBytes,
+      hasTempFilePath: Boolean(this.data.video.tempFilePath)
+    });
+    wx.showLoading({ title: '上传 0%', mask: true });
+    this.ensureVideoUploaded().then(uploadedVideo => {
+      logVideoFlow('10 云存储上传成功', {
+        traceId: this._videoTraceId,
+        fileName: uploadedVideo.fileName,
+        hasFileId: Boolean(uploadedVideo.fileId),
+        uploadStatus: uploadedVideo.uploadStatus
+      });
+      wx.hideLoading();
+      wx.showModal({
+        title: '视频上传成功',
+        content: '视频已上传完成，可以继续提交报名。',
+        showCancel: false,
+        confirmText: '我知道了'
+      });
+    }).catch(err => {
+      logVideoFlow('10 云存储上传失败', {
+        traceId: this._videoTraceId,
+        error: summarizeVideoError(err)
+      }, 'error');
+      wx.hideLoading();
+      wx.showModal({
+        title: '视频上传失败',
+        content: getVideoUploadErrorMessage(err),
+        showCancel: true,
+        cancelText: '稍后处理',
+        confirmText: '重新上传',
+        success: result => {
+          if (result.confirm) this.retryVideoUpload();
+        }
+      });
+    });
+  },
+
+  retryVideoUpload() {
+    logVideoFlow('用户点击重新上传', {
+      traceId: this._videoTraceId,
+      hasTempFilePath: Boolean(this.data.video && this.data.video.tempFilePath)
+    });
+    if (!this.data.video || !this.data.video.tempFilePath) {
+      this.showToast('本地视频已失效，请重新选择');
+      return;
+    }
+    this.uploadSelectedVideoImmediately();
+  },
+
+  removeVideoFile() {
+    this.setData({
+      video: {
+        fileId: '',
+        fileName: '',
+        tempFilePath: '',
+        sizeBytes: 0,
+        format: 'mp4',
+        durationSeconds: 0,
+        width: 0,
+        height: 0,
+        aspectRatio: '',
+        uploadStatus: 'ready',
+        uploadedAt: null
+      },
+      videoUploadProgress: 0,
+      videoUploadHint: '',
+      videoLocalIssue: '',
+      videoChecking: false,
+      videoUploading: false
+    });
+  },
+
+  chooseArtworkImage(e) {
+    const key = e.currentTarget.dataset.key;
     wx.chooseImage({
       count: 1,
-      sizeType: ['compressed'],
+      sizeType: ['original'],
       sourceType: ['album', 'camera'],
-      success: (res) => {
-        this.setData({ perspectiveImage: res.tempFilePaths[0] });
-      }
+      success: res => this.validateAndSetArtworkImage(key, res.tempFilePaths[0])
     });
   },
-  
-  removePerspectiveImage() {
-    this.setData({ perspectiveImage: '' });
-  },
-  
-  chooseFourViewImages() {
-    const remaining = 3 - this.data.fourViewImages.length;
-    if (remaining <= 0) {
-      wx.showToast({
-        title: '四面图最多3张',
-        icon: 'none'
-      });
-      return;
-    }
-    wx.chooseImage({
-      count: remaining,
-      sizeType: ['compressed'],
-      sourceType: ['album', 'camera'],
-      success: (res) => {
-        const images = [...this.data.fourViewImages, ...res.tempFilePaths];
-        this.setData({ fourViewImages: images });
-      }
+
+  validateAndSetArtworkImage(key, filePath) {
+    wx.getFileInfo({
+      filePath,
+      success: fileInfo => {
+        if (fileInfo.size > MAX_IMAGE_SIZE_BYTES) {
+          this.showImageValidationError('单张图片不能超过 5MB。请压缩图片或重新选择文件。');
+          return;
+        }
+
+        wx.getImageInfo({
+          src: filePath,
+          success: info => {
+            const type = String(info.type || '').toLowerCase();
+            if (!['jpg', 'jpeg', 'png'].includes(type)) {
+              const formatLabel = imageFormatLabel(type === 'jpg' ? 'jpeg' : type);
+              this.showImageValidationError(`检测到的图片格式为${formatLabel}。仅支持 JPG/JPEG 或 PNG 图片，请转换格式后重新选择。`);
+              return;
+            }
+            if (Math.abs(info.width / info.height - 1) > 0.01) {
+              this.showImageValidationError('图片必须为 1:1 正方形。请裁剪后重新上传。');
+              return;
+            }
+            const warning = info.width < 1200 || info.height < 1200
+              ? '当前图片低于建议尺寸 1200×1200px，但仍可提交。'
+              : '';
+            const imageSlots = this.data.imageSlots.map(slot => slot.key === key
+              ? { ...slot, path: filePath, warning }
+              : slot);
+            this.setImageSlots(imageSlots);
+          },
+          fail: () => this.inspectUnreadableArtworkImage(filePath)
+        });
+      },
+      fail: () => this.showImageValidationError('无法读取图片文件，请重新选择。')
     });
   },
-  
-  removeFourViewImage(e) {
-    const index = e.currentTarget.dataset.index;
-    const images = [...this.data.fourViewImages];
-    images.splice(index, 1);
-    this.setData({ fourViewImages: images });
-  },
-  
-  chooseDetailImages() {
-    const remaining = 3 - this.data.detailImages.length;
-    if (remaining <= 0) {
-      wx.showToast({
-        title: '局部图最多3张',
-        icon: 'none'
-      });
-      return;
-    }
-    wx.chooseImage({
-      count: remaining,
-      sizeType: ['compressed'],
-      sourceType: ['album', 'camera'],
-      success: (res) => {
-        const images = [...this.data.detailImages, ...res.tempFilePaths];
-        this.setData({ detailImages: images });
-      }
+
+  inspectUnreadableArtworkImage(filePath) {
+    wx.getFileSystemManager().readFile({
+      filePath,
+      success: fileResult => {
+        const actualFormat = detectImageFormat(fileResult.data);
+        if (actualFormat === 'webp') {
+          this.showImageValidationError('该文件虽然使用了 .jpg 扩展名，但实际编码是 WebP。仅支持 JPG/JPEG 或 PNG 图片，请转换格式后重新选择。');
+          return;
+        }
+        if (['jpeg', 'png'].includes(actualFormat)) {
+          this.showImageValidationError('文件是 JPG/PNG，但微信无法读取图片尺寸。请用系统相册或图片工具重新导出后再选择。');
+          return;
+        }
+        this.showImageValidationError(`无法读取图片信息，检测到的真实格式为${imageFormatLabel(actualFormat)}。仅支持 JPG/JPEG 或 PNG 图片。`);
+      },
+      fail: () => this.showImageValidationError('无法读取图片文件，请重新选择。')
     });
   },
-  
-  removeDetailImage(e) {
-    const index = e.currentTarget.dataset.index;
-    const images = [...this.data.detailImages];
-    images.splice(index, 1);
-    this.setData({ detailImages: images });
+
+  showImageValidationError(content) {
+    wx.showModal({
+      title: '图片不符合上传要求',
+      content,
+      showCancel: false,
+      confirmText: '我知道了'
+    });
+  },
+
+  removeArtworkImage(e) {
+    const key = e.currentTarget.dataset.key;
+    this.setImageSlots(this.data.imageSlots.map(slot => slot.key === key ? { ...slot, path: '', warning: '' } : slot));
+  },
+
+  setImageSlots(imageSlots) {
+    const paths = imageSlots.reduce((result, slot) => ({ ...result, [slot.key]: slot.path }), {});
+    this.setData({
+      imageSlots,
+      perspectiveImage: paths.perspective,
+      fourViewImages: [paths.front, paths.right, paths.back],
+      detailImages: [paths.left, paths.topBottom, paths.detail]
+    });
   },
   
   // 验证表单
@@ -554,42 +1048,44 @@ Page({
     // 根据作品类型进行不同的验证
     if (this.data.workType === 'regular') {
       // 常规作品：检查图片上传
-      if (!this.data.perspectiveImage) {
-        this.showToast('请上传透视图')
-        return false
-      }
-      if (this.data.fourViewImages.length === 0) {
-        this.showToast('请至少上传一张四面图')
-        return false
-      }
-      if (this.data.detailImages.length === 0) {
-        this.showToast('请至少上传一张局部图')
+      const missingSlots = this.data.imageSlots.filter(slot => !slot.path);
+      if (missingSlots.length) {
+        this.showToast(`请补齐${missingSlots[0].title}`)
         return false
       }
     } else if (this.data.workType === 'video') {
-      // 视频作品：检查视频相关字段
-      if (!this.data.videoDuration) {
-        this.showToast('请填写视频时长')
+      logVideoFlow('提交前检查视频状态', {
+        traceId: this._videoTraceId || '',
+        videoChecking: this.data.videoChecking,
+        videoUploading: this.data.videoUploading,
+        uploadStatus: this.data.video ? this.data.video.uploadStatus : '',
+        hasFileId: Boolean(this.data.video && this.data.video.fileId),
+        useBaiduBackup: this.data.useBaiduBackup,
+        hasBaiduLink: Boolean(this.data.baiduCloudLink.trim()),
+        hasBaiduPassword: Boolean(this.data.baiduCloudPassword.trim())
+      });
+      if (this.data.videoChecking) {
+        this.showToast('请等待视频检测完成')
         return false
       }
-      if (!this.data.videoResolution) {
-        this.showToast('请选择视频清晰度')
+      if (this.data.videoUploading) {
+        this.showToast('请等待视频上传完成')
         return false
       }
-      if (!this.data.videoAspectRatio) {
-        this.showToast('请选择视频比例')
-        return false
-      }
-      if (!this.data.shootingTechnique) {
-        this.showToast('请填写拍摄技巧')
-        return false
-      }
-      if (!this.data.baiduCloudLink) {
-        this.showToast('请填写百度云链接')
-        return false
-      }
-      if (!this.data.baiduCloudPassword) {
-        this.showToast('请填写百度云密码')
+      const hasUploadedVideo = Boolean(
+        this.data.video
+        && this.data.video.fileId
+        && this.data.video.uploadStatus === 'uploaded'
+      );
+      const baiduLink = this.data.baiduCloudLink.trim();
+      const baiduPassword = this.data.baiduCloudPassword.trim();
+      const hasBaiduBackup = this.data.useBaiduBackup && isValidBaiduCloudBackup(baiduLink, baiduPassword);
+      if (!hasUploadedVideo && !hasBaiduBackup) {
+        if (this.data.useBaiduBackup) {
+          this.showToast('请填写有效的百度网盘链接及提取码')
+          return false
+        }
+        this.showToast('请上传MP4视频，或确认使用百度网盘')
         return false
       }
     }
@@ -635,9 +1131,20 @@ Page({
   
   // 提交申请
   submitApplication() {
+    logVideoFlow('用户点击提交报名', {
+      traceId: this._videoTraceId || '',
+      workType: this.data.workType,
+      uploadStatus: this.data.video ? this.data.video.uploadStatus : '',
+      hasFileId: Boolean(this.data.video && this.data.video.fileId)
+    });
     // 防止重复提交：先检查是否正在提交中
     if (this.data.submitting) {
       console.log('正在提交中，忽略重复点击');
+      return;
+    }
+
+    if (!this.data.agreementAccepted) {
+      this.showToast('请先阅读并同意用户服务协议和隐私政策');
       return;
     }
 
@@ -669,60 +1176,51 @@ Page({
       this.uploadSingleFile(this.data.perspectiveImage, 'artwork_photos') : 
       Promise.resolve(this.data.perspectiveImage);
     
-    const fourViewToUpload = this.data.fourViewImages.filter(img => 
-      img && !img.startsWith('cloud://') && !(img.startsWith('http://') && !img.startsWith('http://tmp/')) && !img.startsWith('https://')
-    );
-    const existingFourViewImages = this.data.fourViewImages.filter(img => 
-      img && (img.startsWith('cloud://') || (img.startsWith('http://') && !img.startsWith('http://tmp/')) || img.startsWith('https://'))
-    );
-    
-    const detailToUpload = this.data.detailImages.filter(img => 
-      img && !img.startsWith('cloud://') && !(img.startsWith('http://') && !img.startsWith('http://tmp/')) && !img.startsWith('https://')
-    );
-    const existingDetailImages = this.data.detailImages.filter(img => 
-      img && (img.startsWith('cloud://') || (img.startsWith('http://') && !img.startsWith('http://tmp/')) || img.startsWith('https://'))
-    );
-
     console.log('准备上传的文件:', {
       personalPhoto: this.data.photoUrl,
       perspectiveImage: this.data.perspectiveImage,
-      fourViewToUpload,
-      detailToUpload
+      fourViewImages: this.data.fourViewImages.length,
+      detailImages: this.data.detailImages.length
     });
+
+    const hasUploadedVideo = this.data.video
+      && this.data.video.fileId
+      && this.data.video.uploadStatus === 'uploaded';
+    const videoUploadPromise = Promise.resolve(hasUploadedVideo ? this.data.video : null);
 
     Promise.all([
       uploadPersonalPhoto,
       perspectiveToUpload,
-      this.uploadMultipleFiles(fourViewToUpload, 'artwork_photos'),
-      this.uploadMultipleFiles(detailToUpload, 'artwork_photos')
-    ]).then(([photoFileID, perspectiveFileID, newFourViewFileIDs, newDetailFileIDs]) => {
+      this.uploadMultipleFiles(this.data.fourViewImages, 'artwork_photos'),
+      this.uploadMultipleFiles(this.data.detailImages, 'artwork_photos'),
+      videoUploadPromise
+    ]).then(([photoFileID, perspectiveFileID, fourViewFileIDs, detailFileIDs, uploadedVideo]) => {
       console.log('上传完成:', {
         photoFileID,
         perspectiveFileID,
-        newFourViewFileIDs,
-        newDetailFileIDs
+        fourViewFileIDs,
+        detailFileIDs
       });
       
-      // 合并已有的和新上传的图片ID
-      const fourViewFileIDs = [...existingFourViewImages, ...newFourViewFileIDs];
-      const detailFileIDs = [...existingDetailImages, ...newDetailFileIDs];
-      
       // 保存表单数据到数据库
-      return this.saveSubmissionData(photoFileID, perspectiveFileID, fourViewFileIDs, detailFileIDs);
+      return this.saveSubmissionData(photoFileID, perspectiveFileID, fourViewFileIDs, detailFileIDs, uploadedVideo);
     }).catch(err => {
       console.error('上传失败', err);
       wx.hideLoading();
       this.setData({ submitting: false });
-      
-      // 提供更详细的错误信息
-      let errorMessage = '图片上传失败，请重试';
-      if (err.message) {
-        errorMessage = err.message;
-      } else if (err.errMsg) {
-        errorMessage = err.errMsg;
-      }
-      
-      this.showToast(errorMessage);
+
+      const videoFailed = this.data.workType === 'video'
+        && this.data.video
+        && this.data.video.uploadStatus === 'failed';
+      const errorMessage = videoFailed
+        ? getVideoUploadErrorMessage(err)
+        : String((err && (err.message || err.errMsg)) || '文件上传失败，请重试');
+      wx.showModal({
+        title: videoFailed ? '视频上传失败' : '文件上传失败',
+        content: errorMessage,
+        showCancel: false,
+        confirmText: '我知道了'
+      });
     });
   },
   
@@ -753,7 +1251,9 @@ Page({
       wx.getFileInfo({
         filePath: filePath,
         success: (fileInfo) => {
-          const cloudPath = `${folder}/${Date.now()}_${Math.random().toString(36).substr(2)}.jpg`;
+          const extensionMatch = filePath.match(/\.(png|jpe?g)(?:$|[?#])/i);
+          const extension = extensionMatch ? extensionMatch[1].toLowerCase().replace('jpeg', 'jpg') : 'jpg';
+          const cloudPath = `${folder}/${Date.now()}_${Math.random().toString(36).substr(2)}.${extension}`;
           
           wx.cloud.uploadFile({
             cloudPath,
@@ -823,10 +1323,132 @@ Page({
     
     return Promise.all(uploadPromises);
   },
+
+  ensureVideoUploaded() {
+    const video = this.data.video || {};
+    if (video.fileId && video.uploadStatus === 'uploaded') {
+      logVideoFlow('09 视频已经上传，直接复用结果', {
+        traceId: this._videoTraceId,
+        fileName: video.fileName
+      });
+      return Promise.resolve(video);
+    }
+
+    if (!video.tempFilePath) {
+      logVideoFlow('09 无法上传：缺少临时文件路径', { traceId: this._videoTraceId }, 'error');
+      return Promise.reject(new Error('请先选择MP4视频'));
+    }
+
+    const edition = (getApp().globalData && getApp().globalData.currentEdition) || { editionId: 'pottery-2026' };
+    const submissionId = this.data.submissionId || `draft_${Date.now()}`;
+    const safeName = (video.fileName || `video_${Date.now()}.mp4`).replace(/[^\w.\-\u4e00-\u9fa5]/g, '_');
+    const cloudPath = `exhibitions/${edition.editionId}/submissions/${submissionId}/video/${Date.now()}_${safeName}`;
+    logVideoFlow('09 已生成云存储上传任务', {
+      traceId: this._videoTraceId,
+      editionId: edition.editionId,
+      fileName: video.fileName,
+      sizeBytes: video.sizeBytes,
+      cloudDirectory: `exhibitions/${edition.editionId}/submissions/<draft>/video/`
+    });
+
+    const uploadingVideo = {
+      ...video,
+      uploadStatus: 'uploading'
+    };
+    this.setData({
+      video: uploadingVideo,
+      videoUploading: true,
+      videoUploadProgress: 0,
+      videoLocalIssue: ''
+    });
+
+    return new Promise((resolve, reject) => {
+      const uploadTask = wx.cloud.uploadFile({
+        cloudPath,
+        filePath: video.tempFilePath,
+        success: res => {
+          logVideoFlow('09 uploadFile success 回调', {
+            traceId: this._videoTraceId,
+            hasFileId: Boolean(res && res.fileID)
+          });
+          const uploadedVideo = {
+            ...video,
+            fileId: res.fileID,
+            tempFilePath: video.tempFilePath,
+            uploadStatus: 'uploaded',
+            uploadedAt: Date.now()
+          };
+          this.setData({
+            video: uploadedVideo,
+            videoUploading: false,
+            videoUploadProgress: 100,
+            videoLocalIssue: ''
+          });
+          resolve(uploadedVideo);
+        },
+        fail: err => {
+          logVideoFlow('09 uploadFile fail 回调', {
+            traceId: this._videoTraceId,
+            error: summarizeVideoError(err)
+          }, 'error');
+          console.error('视频上传失败:', err);
+          const errorMessage = getVideoUploadErrorMessage(err);
+          this.setData({
+            video: {
+              ...video,
+              uploadStatus: 'failed'
+            },
+            videoUploading: false,
+            videoLocalIssue: errorMessage
+          });
+          reject(err);
+        }
+      });
+
+      if (uploadTask && uploadTask.onProgressUpdate) {
+        this._lastVideoProgressLog = -10;
+        uploadTask.onProgressUpdate(progress => {
+          const progressValue = Number(progress.progress || 0);
+          if (progressValue >= this._lastVideoProgressLog + 10 || progressValue === 100) {
+            this._lastVideoProgressLog = progressValue;
+            logVideoFlow('09 上传进度', {
+              traceId: this._videoTraceId,
+              progress: progressValue,
+              totalBytesSent: Number(progress.totalBytesSent || 0),
+              totalBytesExpectedToSend: Number(progress.totalBytesExpectedToSend || 0)
+            });
+          }
+          this.setData({
+            videoUploadProgress: progressValue
+          });
+          wx.showLoading({
+            title: `上传 ${progressValue}%`,
+            mask: true
+          });
+        });
+      }
+    });
+  },
   
   // 保存提交数据到数据库
-  saveSubmissionData(photoFileID, perspectiveFileID, fourViewFileIDs, detailFileIDs) {
+  saveSubmissionData(photoFileID, perspectiveFileID, fourViewFileIDs, detailFileIDs, uploadedVideo) {
     const type = this.data.isEditMode ? 'updatePotterySubmission' : 'createPotterySubmission';
+    const submittedVideo = uploadedVideo
+      && uploadedVideo.fileId
+      && uploadedVideo.uploadStatus === 'uploaded'
+      ? uploadedVideo
+      : {
+          fileId: '',
+          fileName: '',
+          sizeBytes: 0,
+          format: '',
+          durationSeconds: 0,
+          width: 0,
+          height: 0,
+          aspectRatio: '',
+          uploadStatus: 'ready',
+          uploadedAt: null
+        };
     const submissionData = {
       // 个人信息
       name: this.data.name,
@@ -864,6 +1486,7 @@ Page({
       shootingTechnique: this.data.shootingTechnique,
       baiduCloudLink: this.data.baiduCloudLink,
       baiduCloudPassword: this.data.baiduCloudPassword,
+      video: submittedVideo,
     };
 
     // 如果是编辑模式，添加ID
@@ -878,6 +1501,12 @@ Page({
         data: submissionData
       },
       success: result => {
+        logVideoFlow('报名云函数返回', {
+          traceId: this._videoTraceId || '',
+          callSuccess: true,
+          businessSuccess: Boolean(result.result && result.result.success),
+          errMsg: String((result.result && result.result.errMsg) || '')
+        });
         wx.hideLoading();
         
         if (result.result && result.result.success) {
@@ -896,11 +1525,15 @@ Page({
         } else {
           // 提交失败，重置状态并提示用户
           this.setData({ submitting: false });
-          const errorMsg = result.result?.errMsg || (this.data.isEditMode ? '更新失败，请重试' : '提交失败，请重试');
+          const errorMsg = (result.result && result.result.errMsg) || (this.data.isEditMode ? '更新失败，请重试' : '提交失败，请重试');
           this.showToast(errorMsg);
         }
       },
       fail: err => {
+        logVideoFlow('报名云函数调用失败', {
+          traceId: this._videoTraceId || '',
+          error: summarizeVideoError(err)
+        }, 'error');
         console.error('云函数调用失败', err);
         wx.hideLoading();
         this.setData({ submitting: false });

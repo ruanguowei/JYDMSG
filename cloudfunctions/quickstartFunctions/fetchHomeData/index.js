@@ -73,35 +73,73 @@ exports.main = async (event, context) => {
     const { fetchType = 'all' } = event;
     let bannersResult = { data: [] };
     let announcementsResult = { data: [] };
+    let appointmentEnabled = true; // 默认开启
 
-    // 获取公告数据
-    if (fetchType === 'all' || fetchType === 'announcements') {
-      announcementsResult = await db.collection('announcements')
+    const settingsPromise = db.collection('system_settings')
+      .doc('appointment_config')
+      .get()
+      .catch(() => {
+        console.log('未找到预约配置，默认开启预约');
+        return { data: null };
+      });
+
+    const announcementsPromise = (fetchType === 'all' || fetchType === 'announcements')
+      ? db.collection('announcements')
         .where({
           zt: true // 仅筛选活跃状态，暂时忽略过期时间条件
         })
         .orderBy('_createTime', 'desc')
         .limit(5)
+        .field({
+          _id: true,
+          ggbt: true,
+          ggnr: true,
+          pdfFiles: true,
+          attachments: true,
+          gqsj: true,
+          _createTime: true,
+          zt: true
+        })
         .get()
         .catch(err => {
           console.error("获取公告数据失败:", err);
           return { data: [] };
-        });
-    }
+        })
+      : Promise.resolve({ data: [] });
 
-    // 只有在需要获取全部数据或明确指定获取轮播图时才获取轮播图
-    if (fetchType === 'all' || fetchType === 'banners') {
-      bannersResult = await db.collection('banners')
+    const bannersPromise = (fetchType === 'all' || fetchType === 'banners')
+      ? db.collection('banners')
         .where({
           zt: true // 使用布尔值true表示活跃状态
         })
         .orderBy('px', 'asc') // 使用排序字段px
         .limit(5)
+        .field({
+          _id: true,
+          lbttp: true,
+          bt: true,
+          px: true,
+          zt: true
+        })
         .get()
         .catch(err => {
           console.error("获取轮播图数据失败:", err);
           return { data: [] };
-        });
+        })
+      : Promise.resolve({ data: [] });
+
+    const results = await Promise.all([
+      settingsPromise,
+      announcementsPromise,
+      bannersPromise
+    ]);
+
+    const settingsResult = results[0];
+    announcementsResult = results[1];
+    bannersResult = results[2];
+
+    if (settingsResult.data && typeof settingsResult.data.enabled !== 'undefined') {
+      appointmentEnabled = settingsResult.data.enabled !== false && settingsResult.data.enabled !== 'false';
     }
     
     // 处理轮播图云存储链接
@@ -182,7 +220,8 @@ exports.main = async (event, context) => {
       success: true,
       data: {
         banners: banners,
-        announcements: announcements
+        announcements: announcements,
+        appointmentEnabled: appointmentEnabled
       }
     }
   } catch (e) {
@@ -192,8 +231,9 @@ exports.main = async (event, context) => {
       errMsg: e,
       data: {
         banners: [],
-        announcements: []
+        announcements: [],
+        appointmentEnabled: true
       }
     }
   }
-} 
+}

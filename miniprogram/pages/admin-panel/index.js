@@ -2,8 +2,21 @@
 const app = getApp()
 
 Page({
+  openTieReview: function(e) {
+    wx.navigateTo({ url: '/pages/admin-tie-review/index?operation=' + e.currentTarget.dataset.operation });
+  },
+  getTieResolution: function() {
+    const operation = this.data.adminOperation;
+    return wx.getStorageSync(`tieResolution:${operation.editionId || 'pottery-2026'}:${operation.selectedOperation}`) || null;
+  },
   data: {
     adminAccount: '',
+    environment: {
+      envId: '',
+      envVersion: '',
+      label: '环境识别中',
+      isProduction: false
+    },
     exporting: {
       submissions: false,
       preliminary: false,
@@ -21,13 +34,90 @@ Page({
       finalCount: 0,
       expertCount: 0
     },
+    contentAdmin: {
+      type: 'artist',
+      loading: false,
+      saving: false,
+      importPreviewing: false,
+      importing: false,
+      list: [],
+      form: {
+        id: '',
+        title: '',
+        name: '',
+        artistId: '',
+        artistName: '',
+        period: '',
+        category: '',
+        material: '',
+        size: '',
+        intro: '',
+        biography: '',
+        avatar: '',
+        coverImage: '',
+        cover: '',
+        url: '',
+        year: '',
+        editionId: '',
+        editionNumber: '',
+        description: '',
+        sortOrder: 0,
+        status: 'draft'
+      },
+      importText: '',
+      importPreview: null
+    },
+    adminOperation: {
+      selectedOperation: 'cleanSubmissionsData',
+      editionId: 'pottery-2026',
+      previewing: false,
+      backingUp: false,
+      confirming: false,
+      executing: false,
+      previewResult: null,
+      backupResult: null,
+      confirmationResult: null,
+      passphrase: '',
+      confirmationCode: '',
+      executeResult: null,
+      operations: [
+        { name: 'cleanSubmissionsData', label: '数据清洗' },
+        { name: 'generatePreliminaryTable', label: '生成初评结果表' },
+        { name: 'startFinalEvaluation', label: '开始终评' },
+        { name: 'generateFinalRanking', label: '生成终评结果表' },
+        { name: 'clearCleanTable', label: '清空初评清洗表' },
+        { name: 'clearPreliminaryTable', label: '清空初评结果表' },
+        { name: 'clearFinalScoringTable', label: '清空终评评分表' },
+        { name: 'clearFinalResultsTable', label: '清空终评结果表' },
+        { name: 'updateAwardStatus', label: '批量更新奖项' },
+        { name: 'uploadCertificates', label: '批量上传或替换证书' }
+      ]
+    },
     exportHistory: []
   },
 
   onLoad: function() {
+    this.loadEnvironmentInfo();
     this.checkAdminStatus();
     this.loadStats();
     this.loadExportHistory();
+    this.loadContentList();
+  },
+
+  loadEnvironmentInfo: function() {
+    const globalData = app.globalData || {};
+    const envVersion = globalData.envVersion || 'unknown';
+    const envId = globalData.cloudEnv || '';
+    const isProduction = envId === 'jdzyzdmsg-5g4rgrjl2008796f';
+
+    this.setData({
+      environment: {
+        envId,
+        envVersion,
+        label: isProduction ? '生产环境' : '测试环境',
+        isProduction
+      }
+    });
   },
 
   // 检查管理员登录状态
@@ -47,12 +137,519 @@ Page({
     });
   },
 
+  getAdminPayload: function() {
+    const adminInfo = wx.getStorageSync('adminInfo') || {};
+    return {
+      account: adminInfo.account || this.data.adminAccount,
+      id: adminInfo.id || ''
+    };
+  },
+
+  updateAdminOperation: function(e) {
+    const index = Number(e.detail.value || 0);
+    const operation = this.data.adminOperation.operations[index] || this.data.adminOperation.operations[0];
+    this.setData({
+      'adminOperation.selectedOperation': operation.name,
+      'adminOperation.previewResult': null,
+      'adminOperation.backupResult': null,
+      'adminOperation.confirmationResult': null,
+      'adminOperation.confirmationCode': '',
+      'adminOperation.executeResult': null
+    });
+  },
+
+  startDangerousOperationPreview: function(e) {
+    if (this.data.adminOperation.previewing || this.data.adminOperation.executing) return;
+    const operationName = e.currentTarget.dataset.operation;
+    if (!operationName) {
+      wx.showToast({
+        title: '缺少操作类型',
+        icon: 'none'
+      });
+      return;
+    }
+
+    this.setData({
+      'adminOperation.selectedOperation': operationName,
+      'adminOperation.confirmationCode': '',
+      'adminOperation.previewResult': null,
+      'adminOperation.backupResult': null,
+      'adminOperation.confirmationResult': null,
+      'adminOperation.confirmationCode': '',
+      'adminOperation.executeResult': null
+    });
+
+    this.previewDangerousOperation();
+    wx.pageScrollTo({ selector: '#evaluation-operations', duration: 300 });
+  },
+
+  updateAdminOperationEdition: function(e) {
+    this.setData({
+      'adminOperation.editionId': e.detail.value.trim(),
+      'adminOperation.previewResult': null,
+      'adminOperation.backupResult': null,
+      'adminOperation.confirmationResult': null,
+      'adminOperation.passphrase': e.detail.value.trim(),
+      'adminOperation.confirmationCode': '',
+      'adminOperation.executeResult': null
+    });
+  },
+
+  updateAdminOperationPassphrase: function(e) {
+    this.setData({
+      'adminOperation.passphrase': e.detail.value.trim()
+    });
+  },
+
+  updateAdminOperationConfirmationCode: function(e) {
+    this.setData({
+      'adminOperation.confirmationCode': e.detail.value.trim()
+    });
+  },
+
+  previewDangerousOperation: function() {
+    this.setData({ 'adminOperation.previewing': true });
+    wx.cloud.callFunction({
+      name: 'quickstartFunctions',
+      data: {
+        type: 'manageAdminOperation',
+        action: 'preview',
+        operationName: this.data.adminOperation.selectedOperation,
+        editionId: this.data.adminOperation.editionId || 'pottery-2026',
+        environment: this.data.environment.envId || 'unknown',
+        admin: this.getAdminPayload()
+      },
+      success: res => {
+        const result = res.result || {};
+        this.setData({ 'adminOperation.previewing': false });
+        if (result.success) {
+          this.setData({
+            'adminOperation.previewResult': result.data,
+            'adminOperation.backupResult': null,
+            'adminOperation.confirmationResult': null,
+            'adminOperation.confirmationCode': '',
+            'adminOperation.executeResult': null
+          });
+          wx.showToast({
+            title: '预检完成',
+            icon: 'success'
+          });
+        } else {
+          wx.showToast({
+            title: result.errMsg || '预检失败',
+            icon: 'none'
+          });
+        }
+      },
+      fail: err => {
+        this.setData({ 'adminOperation.previewing': false });
+        wx.showToast({
+          title: err.errMsg || '预检失败',
+          icon: 'none'
+        });
+      }
+    });
+  },
+
+  backupDangerousOperation: function() {
+    const preview = this.data.adminOperation.previewResult;
+    if (!preview || !preview.operationId) {
+      wx.showToast({ title: '请先生成预检报告', icon: 'none' });
+      return;
+    }
+
+    this.setData({ 'adminOperation.backingUp': true });
+    wx.cloud.callFunction({
+      name: 'quickstartFunctions',
+      data: {
+        type: 'manageAdminOperation',
+        action: 'backup',
+        operationName: this.data.adminOperation.selectedOperation,
+        editionId: this.data.adminOperation.editionId || 'pottery-2026',
+        environment: this.data.environment.envId || 'unknown',
+        operationId: preview.operationId,
+        admin: this.getAdminPayload()
+      },
+      success: res => {
+        const result = res.result || {};
+        this.setData({ 'adminOperation.backingUp': false });
+        if (result.success) {
+          this.setData({
+            'adminOperation.backupResult': result.data,
+            'adminOperation.confirmationResult': null,
+            'adminOperation.confirmationCode': '',
+            'adminOperation.executeResult': null
+          });
+          wx.showToast({ title: '备份清单已创建', icon: 'success' });
+        } else {
+          wx.showToast({ title: result.errMsg || '备份失败', icon: 'none' });
+        }
+      },
+      fail: err => {
+        this.setData({ 'adminOperation.backingUp': false });
+        wx.showToast({ title: err.errMsg || '备份失败', icon: 'none' });
+      }
+    });
+  },
+
+  issueDangerousOperationConfirmation: function() {
+    const backup = this.data.adminOperation.backupResult;
+    if (!backup || !backup.operationId) {
+      wx.showToast({ title: '请先创建备份清单', icon: 'none' });
+      return;
+    }
+
+    this.setData({ 'adminOperation.confirming': true });
+    wx.cloud.callFunction({
+      name: 'quickstartFunctions',
+      data: {
+        type: 'manageAdminOperation',
+        action: 'issueConfirmation',
+        tieResolution: this.getTieResolution(),
+        operationName: this.data.adminOperation.selectedOperation,
+        editionId: this.data.adminOperation.editionId || 'pottery-2026',
+        operationId: backup.operationId,
+        admin: this.getAdminPayload()
+      },
+      success: res => {
+        const result = res.result || {};
+        this.setData({ 'adminOperation.confirming': false });
+        if (result.success) {
+          this.setData({
+            'adminOperation.confirmationResult': result.data,
+            'adminOperation.confirmationCode': result.data.confirmationCode || '',
+            'adminOperation.executeResult': null
+          });
+          wx.showToast({ title: '确认码已生成', icon: 'success' });
+        } else {
+          wx.showToast({ title: result.errMsg || '确认失败', icon: 'none' });
+        }
+      },
+      fail: err => {
+        this.setData({ 'adminOperation.confirming': false });
+        wx.showToast({ title: err.errMsg || '确认失败', icon: 'none' });
+      }
+    });
+  },
+
+  executeDangerousOperation: function() {
+    const backup = this.data.adminOperation.backupResult;
+    const confirmation = this.data.adminOperation.confirmationResult;
+    const passphrase = this.data.adminOperation.passphrase || '';
+    const confirmationCode = this.data.adminOperation.confirmationCode || '';
+
+    if (!backup || !backup.operationId || !confirmation) {
+      wx.showToast({ title: '请先完成备份和确认码', icon: 'none' });
+      return;
+    }
+    if (passphrase !== (this.data.adminOperation.editionId || 'pottery-2026')) {
+      wx.showToast({ title: '届次口令不正确', icon: 'none' });
+      return;
+    }
+    if (!confirmationCode) {
+      wx.showToast({ title: '请输入确认码', icon: 'none' });
+      return;
+    }
+
+    wx.showModal({
+      title: '最终确认',
+      content: '将执行所选操作并更新当前届次数据，请核对上方影响范围与备份后确认。',
+      confirmText: '确认执行',
+      cancelText: '取消',
+      success: modal => {
+        if (!modal.confirm) return;
+        this.setData({ 'adminOperation.executing': true });
+        wx.cloud.callFunction({
+          name: 'quickstartFunctions',
+          data: {
+            type: 'manageAdminOperation',
+            action: 'execute',
+            tieResolution: this.getTieResolution(),
+            operationName: this.data.adminOperation.selectedOperation,
+            editionId: this.data.adminOperation.editionId || 'pottery-2026',
+            operationId: backup.operationId,
+            passphrase,
+            confirmationCode,
+            admin: this.getAdminPayload()
+          },
+          success: res => {
+            const result = res.result || {};
+            this.setData({ 'adminOperation.executing': false });
+            if (result.success) {
+              this.setData({ 'adminOperation.executeResult': result.data });
+              wx.showToast({ title: result.data.state === 'SUCCEEDED' ? '执行完成' : '执行未完成', icon: 'none' });
+            } else {
+              wx.showToast({ title: result.errMsg || '执行被拒绝', icon: 'none' });
+            }
+          },
+          fail: err => {
+            this.setData({ 'adminOperation.executing': false });
+            wx.showToast({ title: err.errMsg || '执行失败', icon: 'none' });
+          }
+        });
+      }
+    });
+  },
+
+  switchContentType: function(e) {
+    const type = e.currentTarget.dataset.type;
+    this.setData({
+      'contentAdmin.type': type,
+      'contentAdmin.importPreview': null
+    });
+    this.resetContentForm();
+    this.loadContentList();
+  },
+
+  resetContentForm: function() {
+    this.setData({
+      'contentAdmin.form': {
+        id: '',
+        title: '',
+        name: '',
+        artistId: '',
+        artistName: '',
+        period: '',
+        category: '',
+        material: '',
+        size: '',
+        intro: '',
+        biography: '',
+        avatar: '',
+        coverImage: '',
+        cover: '',
+        url: '',
+        year: '',
+        editionId: '',
+        editionNumber: '',
+        description: '',
+        sortOrder: 0,
+        status: 'draft'
+      }
+    });
+  },
+
+  updateContentField: function(e) {
+    const field = e.currentTarget.dataset.field;
+    this.setData({
+      [`contentAdmin.form.${field}`]: e.detail.value
+    });
+  },
+
+  updateContentStatus: function(e) {
+    this.setData({
+      'contentAdmin.form.status': Number(e.detail.value) === 1 ? 'published' : 'draft'
+    });
+  },
+
+  updateImportText: function(e) {
+    this.setData({
+      'contentAdmin.importText': e.detail.value
+    });
+  },
+
+  editContentItem: function(e) {
+    const index = e.currentTarget.dataset.index;
+    const item = this.data.contentAdmin.list[index] || {};
+    this.setData({
+      'contentAdmin.form': {
+        ...this.data.contentAdmin.form,
+        ...item,
+        id: item._id || ''
+      }
+    });
+  },
+
+  loadContentList: function() {
+    this.setData({ 'contentAdmin.loading': true });
+    wx.cloud.callFunction({
+      name: 'quickstartFunctions',
+      data: {
+        type: 'manageMuseumContent',
+        action: 'list',
+        contentType: this.data.contentAdmin.type
+      },
+      success: res => {
+        const result = res.result || {};
+        this.setData({ 'contentAdmin.loading': false });
+        if (result.success) {
+          this.setData({ 'contentAdmin.list': result.data || [] });
+        } else {
+          wx.showToast({ title: result.errMsg || '内容列表加载失败', icon: 'none' });
+        }
+      },
+      fail: err => {
+        console.error('内容列表加载失败', err);
+        this.setData({ 'contentAdmin.loading': false });
+        wx.showToast({ title: '内容列表加载失败', icon: 'none' });
+      }
+    });
+  },
+
+  saveContentItem: function() {
+    this.setData({ 'contentAdmin.saving': true });
+    const form = this.data.contentAdmin.form;
+    wx.cloud.callFunction({
+      name: 'quickstartFunctions',
+      data: {
+        type: 'manageMuseumContent',
+        action: 'save',
+        contentType: this.data.contentAdmin.type,
+        id: form.id,
+        data: form,
+        admin: this.getAdminPayload()
+      },
+      success: res => {
+        const result = res.result || {};
+        this.setData({ 'contentAdmin.saving': false });
+        if (result.success) {
+          wx.showToast({ title: '保存成功', icon: 'success' });
+          this.resetContentForm();
+          this.loadContentList();
+        } else {
+          wx.showToast({ title: result.errMsg || '保存失败', icon: 'none' });
+        }
+      },
+      fail: err => {
+        console.error('保存内容失败', err);
+        this.setData({ 'contentAdmin.saving': false });
+        wx.showToast({ title: '保存失败', icon: 'none' });
+      }
+    });
+  },
+
+  toggleContentStatus: function(e) {
+    const id = e.currentTarget.dataset.id;
+    const status = e.currentTarget.dataset.status === 'published' ? 'draft' : 'published';
+    wx.cloud.callFunction({
+      name: 'quickstartFunctions',
+      data: {
+        type: 'manageMuseumContent',
+        action: 'updateStatus',
+        contentType: this.data.contentAdmin.type,
+        id,
+        status,
+        admin: this.getAdminPayload()
+      },
+      success: res => {
+        const result = res.result || {};
+        if (result.success) {
+          wx.showToast({ title: status === 'published' ? '已发布' : '已下架', icon: 'success' });
+          this.loadContentList();
+        } else {
+          wx.showToast({ title: result.errMsg || '状态更新失败', icon: 'none' });
+        }
+      },
+      fail: err => {
+        console.error('状态更新失败', err);
+        wx.showToast({ title: '状态更新失败', icon: 'none' });
+      }
+    });
+  },
+
+  previewContentImport: function() {
+    let rows;
+    try {
+      rows = JSON.parse(this.data.contentAdmin.importText || '[]');
+    } catch (error) {
+      wx.showToast({ title: '请输入 JSON 数组', icon: 'none' });
+      return;
+    }
+
+    this.setData({ 'contentAdmin.importPreviewing': true });
+    wx.cloud.callFunction({
+      name: 'quickstartFunctions',
+      data: {
+        type: 'manageMuseumContent',
+        action: 'previewImport',
+        contentType: this.data.contentAdmin.type,
+        rows,
+        admin: this.getAdminPayload()
+      },
+      success: res => {
+        const result = res.result || {};
+        this.setData({ 'contentAdmin.importPreviewing': false });
+        if (result.success) {
+          this.setData({ 'contentAdmin.importPreview': result.data });
+        } else {
+          wx.showToast({ title: result.errMsg || '导入预检失败', icon: 'none' });
+        }
+      },
+      fail: err => {
+        console.error('导入预检失败', err);
+        this.setData({ 'contentAdmin.importPreviewing': false });
+        wx.showToast({ title: '导入预检失败', icon: 'none' });
+      }
+    });
+  },
+
+  executeContentImport: function() {
+    const preview = this.data.contentAdmin.importPreview;
+    if (!preview || preview.failed > 0) {
+      wx.showToast({ title: '请先完成无失败的预检', icon: 'none' });
+      return;
+    }
+
+    let rows;
+    try {
+      rows = JSON.parse(this.data.contentAdmin.importText || '[]');
+    } catch (error) {
+      wx.showToast({ title: '请输入 JSON 数组', icon: 'none' });
+      return;
+    }
+
+    wx.showModal({
+      title: '确认导入内容',
+      content: `预计新增 ${preview.wouldCreate} 条，更新 ${preview.wouldUpdate} 条，不会删除任何已有内容。是否继续？`,
+      confirmText: '确认导入',
+      cancelText: '取消',
+      success: res => {
+        if (!res.confirm) return;
+
+        this.setData({ 'contentAdmin.importing': true });
+        wx.cloud.callFunction({
+          name: 'quickstartFunctions',
+          data: {
+            type: 'manageMuseumContent',
+            action: 'importContent',
+            contentType: this.data.contentAdmin.type,
+            rows,
+            admin: this.getAdminPayload()
+          },
+          success: importRes => {
+            const result = importRes.result || {};
+            this.setData({ 'contentAdmin.importing': false });
+            if (result.success) {
+              wx.showModal({
+                title: '导入完成',
+                content: `新增 ${result.data.created} 条，更新 ${result.data.updated} 条。`,
+                showCancel: false
+              });
+              this.setData({
+                'contentAdmin.importPreview': null,
+                'contentAdmin.importText': ''
+              });
+              this.loadContentList();
+            } else {
+              wx.showToast({ title: result.errMsg || '导入失败', icon: 'none' });
+            }
+          },
+          fail: err => {
+            console.error('内容导入失败', err);
+            this.setData({ 'contentAdmin.importing': false });
+            wx.showToast({ title: '导入失败', icon: 'none' });
+          }
+        });
+      }
+    });
+  },
+
   // 加载统计数据
   loadStats: function() {
     wx.cloud.callFunction({
       name: 'quickstartFunctions',
       data: {
-        type: 'getAdminStats'
+        type: 'getAdminStats', editionId: this.data.adminOperation.editionId || 'pottery-2026'
       },
       success: res => {
         if (res.result && res.result.success) {
@@ -97,77 +694,25 @@ Page({
   },
 
   // 数据清洗（危险操作）
-  cleanData: function() {
-    wx.showModal({
-      title: '⚠️ 危险操作警告',
-      content: '【数据清洗】会执行以下操作：\n\n' +
-               '1. 从原表读取所有作品\n' +
-               '2. 按姓名+学校+身份证号去重\n' +
-               '3. 清空清洗表(pottery_submissions_clean)\n' +
-               '4. 写入清洗后的数据\n\n' +
-               '⚠️ 警告：\n' +
-               '• 清洗表中的所有初评评分将永久丢失！\n' +
-               '• 如果您已手动修改过评分数据，修改将丢失！\n\n' +
-               '✅ 建议：只在初评开始前执行一次\n' +
-               '❌ 避免：初评过程中或已手动修改评分后执行\n\n' +
-               '确定要继续吗？',
-      confirmText: '确认',
-      confirmColor: '#e74c3c',
-      cancelText: '取消',
-      success: (res) => {
-        if (res.confirm) {
-          this.doCleanData();
-        }
-      }
+  selectEvaluationOperation: function(operationName) {
+    this.setData({
+      'adminOperation.selectedOperation': operationName,
+      'adminOperation.confirmationCode': '',
+      'adminOperation.previewResult': null,
+      'adminOperation.backupResult': null,
+      'adminOperation.confirmationResult': null,
+      'adminOperation.executeResult': null
     });
+    wx.pageScrollTo({ selector: '#evaluation-operations', duration: 300 });
+  },
+
+  cleanData: function() {
+    this.selectEvaluationOperation('cleanSubmissionsData');
   },
 
   // 执行数据清洗
   doCleanData: function() {
-    this.setData({ cleaning: true });
-    wx.showLoading({ title: '清洗中...', mask: true });
-
-    wx.cloud.callFunction({
-      name: 'quickstartFunctions',
-      data: { type: 'cleanSubmissionsData' },
-      timeout: 120000,  // 120秒超时（单位：毫秒）
-      success: res => {
-        this.setData({ cleaning: false });
-        wx.hideLoading();
-
-        if (res.result && res.result.success) {
-          const data = res.result.data;
-          wx.showModal({
-            title: '✅ 清洗成功',
-            content: `原始数据：${data.originalCount}条\n` +
-                    `清洗后：${data.cleanedCount}条\n` +
-                    `删除重复：${data.duplicateCount}条\n\n` +
-                    `评分表(pottery_submissions_clean)已生成，\n` +
-                    `可在云开发控制台查看。`,
-            showCancel: false
-          });
-          this.addExportHistory('数据清洗', '成功');
-          this.loadStats(); // 刷新统计
-        } else {
-          wx.showToast({
-            title: res.result.message || '清洗失败',
-            icon: 'none',
-            duration: 2000
-          });
-          this.addExportHistory('数据清洗', '失败');
-        }
-      },
-      fail: err => {
-        this.setData({ cleaning: false });
-        wx.hideLoading();
-        console.error('数据清洗失败', err);
-        wx.showToast({
-          title: '清洗失败',
-          icon: 'none'
-        });
-        this.addExportHistory('数据清洗', '失败');
-      }
-    });
+    this.selectEvaluationOperation('cleanSubmissionsData');
   },
 
   // 导出报名数据
@@ -180,7 +725,7 @@ Page({
     wx.cloud.callFunction({
       name: 'quickstartFunctions',
       data: {
-        type: 'exportCleanedSubmissions'
+        type: 'exportCleanedSubmissions', editionId: this.data.adminOperation.editionId || 'pottery-2026'
       },
       timeout: 120000,  // 120秒超时
       success: res => {
@@ -225,157 +770,22 @@ Page({
 
   // 生成初评结果表（危险操作）
   generatePreliminaryTable: function() {
-    wx.showModal({
-      title: '⚠️ 危险操作警告',
-      content: '【生成初评结果表】会执行以下操作：\n\n' +
-               '1. 从清洗表读取所有初评评分\n' +
-               '2. 按类别筛选前520件（技艺182+文脉182+算法78+产业78）\n' +
-               '3. 加上港澳台作品（约20件）\n' +
-               '4. 清空初评结果表(pottery_submissions_preliminary)\n' +
-               '5. 写入筛选后的约540件作品\n\n' +
-               '⚠️ 警告：\n' +
-               '• 初评结果表将被清空并重新生成！\n' +
-               '• 如果您对初评结果表有手动修改，修改将丢失！\n\n' +
-               '✅ 建议：只在初评完成后执行一次\n' +
-               '❌ 避免：如果已手动修改评分数据\n\n' +
-               '确定要继续吗？',
-      confirmText: '确认',
-      confirmColor: '#e74c3c',
-      cancelText: '取消',
-      success: (res) => {
-        if (res.confirm) {
-          this.doGeneratePreliminaryTable();
-        }
-      }
-    });
+    this.selectEvaluationOperation('generatePreliminaryTable');
   },
 
   // 执行生成初评结果表
   doGeneratePreliminaryTable: function() {
-    this.setData({ 'generating.preliminary': true });
-    wx.showLoading({ title: '生成中...', mask: true });
-
-    wx.cloud.callFunction({
-      name: 'quickstartFunctions',
-      data: { type: 'generatePreliminaryTable' },
-      timeout: 120000,  // 120秒超时
-      success: res => {
-        this.setData({ 'generating.preliminary': false });
-        wx.hideLoading();
-
-        if (res.result && res.result.success) {
-          const data = res.result.data;
-          wx.showModal({
-            title: '✅ 生成成功',
-            content: `初评结果表已生成！\n\n` +
-                    `总数：${data.totalCount}件\n` +
-                    `普通作品：${data.regularCount}件\n` +
-                    `港澳台：${data.hkMacauTaiwanCount}件\n\n` +
-                    `按类别分配（普通作品）：\n` +
-                    `技艺${data.byCategory.technique}、文脉${data.byCategory.culture}、算法${data.byCategory.algorithm}、产业${data.byCategory.industry}\n\n` +
-                    `表名：pottery_submissions_preliminary\n` +
-                    `可在云开发控制台查看。`,
-            showCancel: false
-          });
-          this.addExportHistory('生成初评结果', '成功');
-          this.loadStats();
-        } else {
-          wx.showToast({
-            title: res.result.message || '生成失败',
-            icon: 'none',
-            duration: 2000
-          });
-          this.addExportHistory('生成初评结果', '失败');
-        }
-      },
-      fail: err => {
-        this.setData({ 'generating.preliminary': false });
-        wx.hideLoading();
-        console.error('生成初评结果表失败', err);
-        wx.showToast({
-          title: '生成失败',
-          icon: 'none'
-        });
-        this.addExportHistory('生成初评结果', '失败');
-      }
-    });
+    this.selectEvaluationOperation('generatePreliminaryTable');
   },
 
   // 开始终评（危险操作）
   startFinalEvaluation: function() {
-    wx.showModal({
-      title: '⚠️ 危险操作警告',
-      content: '【开始终评】会执行以下操作：\n\n' +
-               '1. 从初评结果表读取520件作品\n' +
-               '2. 加上港澳台作品（约20件）\n' +
-               '3. 清空终评评分表(pottery_submissions_for_final)\n' +
-               '4. 复制作品基本信息（不包含评分记录）\n' +
-               '5. 写入约540件干净的作品\n\n' +
-               '⚠️ 警告：\n' +
-               '• 终评评分表中的所有终评评分将永久丢失！\n' +
-               '• 如果您已手动修改过终评评分，修改将丢失！\n\n' +
-               '✅ 建议：只在初评完成后执行一次\n' +
-               '❌ 避免：终评过程中或已手动修改评分后执行\n\n' +
-               '确定要继续吗？',
-      confirmText: '确认',
-      confirmColor: '#e74c3c',
-      cancelText: '取消',
-      success: (res) => {
-        if (res.confirm) {
-          this.doStartFinalEvaluation();
-        }
-      }
-    });
+    this.selectEvaluationOperation('startFinalEvaluation');
   },
 
   // 执行开始终评
   doStartFinalEvaluation: function() {
-    this.setData({ 'generating.startFinal': true });
-    wx.showLoading({ title: '准备中...', mask: true });
-
-    wx.cloud.callFunction({
-      name: 'quickstartFunctions',
-      data: { type: 'startFinalEvaluation' },
-      timeout: 120000,
-      success: res => {
-        this.setData({ 'generating.startFinal': false });
-        wx.hideLoading();
-
-        if (res.result && res.result.success) {
-          const data = res.result.data;
-          wx.showModal({
-            title: '✅ 开始终评成功',
-            content: `终评评分表已生成！\n\n` +
-                    `总数：${data.totalCount}件\n` +
-                    `普通作品：${data.regularCount}件\n` +
-                    `港澳台：${data.hkMacauTaiwanCount}件\n\n` +
-                    `表名：pottery_submissions_for_final\n` +
-                    `可在云开发控制台查看。\n\n` +
-                    `终评评委现在可以开始评分。`,
-            showCancel: false
-          });
-          this.addExportHistory('开始终评', '成功');
-          this.loadStats();
-        } else {
-          wx.showToast({
-            title: res.result.message || '操作失败',
-            icon: 'none',
-            duration: 2000
-          });
-          this.addExportHistory('开始终评', '失败');
-        }
-      },
-      fail: err => {
-        this.setData({ 'generating.startFinal': false });
-        wx.hideLoading();
-        console.error('开始终评失败', err);
-        wx.showToast({
-          title: '操作失败',
-          icon: 'none'
-        });
-        this.addExportHistory('开始终评', '失败');
-      }
-    });
+    this.selectEvaluationOperation('startFinalEvaluation');
   },
 
   // 导出初评结果
@@ -388,7 +798,7 @@ Page({
     wx.cloud.callFunction({
       name: 'quickstartFunctions',
       data: {
-        type: 'exportPreliminaryResults'
+        type: 'exportPreliminaryResults', editionId: this.data.adminOperation.editionId || 'pottery-2026'
       },
       timeout: 120000,  // 120秒超时
       success: res => {
@@ -432,80 +842,12 @@ Page({
 
   // 生成终评结果表（危险操作）
   generateFinalTable: function() {
-    wx.showModal({
-      title: '⚠️ 危险操作警告',
-      content: '【生成终评结果表】会执行以下操作：\n\n' +
-               '1. 从终评评分表读取所有终评评分\n' +
-               '2. 按类别筛选前291件（技艺91+文脉98+算法49+产业53）\n' +
-               '3. 应用地域均衡规则（不足4件的省份递补）\n' +
-               '4. 加上港澳台作品（约20件）\n' +
-               '5. 清空终评结果表(pottery_submissions_final)\n' +
-               '6. 写入最终约311件入围作品\n\n' +
-               '⚠️ 警告：\n' +
-               '• 终评结果表将被清空并重新生成！\n' +
-               '• 如果您对终评结果表有手动修改，修改将丢失！\n\n' +
-               '✅ 建议：只在终评完成后执行一次\n' +
-               '❌ 避免：已手动修改终评评分后重复执行\n\n' +
-               '确定要继续吗？',
-      confirmText: '确认',
-      confirmColor: '#e74c3c',
-      cancelText: '取消',
-      success: (res) => {
-        if (res.confirm) {
-          this.doGenerateFinalTable();
-        }
-      }
-    });
+    this.selectEvaluationOperation('generateFinalRanking');
   },
 
   // 执行生成终评结果表
   doGenerateFinalTable: function() {
-    this.setData({ 'generating.final': true });
-    wx.showLoading({ title: '生成中...', mask: true });
-
-    wx.cloud.callFunction({
-      name: 'quickstartFunctions',
-      data: { type: 'generateFinalRanking' },
-      timeout: 120000,  // 120秒超时
-      success: res => {
-        this.setData({ 'generating.final': false });
-        wx.hideLoading();
-
-        if (res.result && res.result.success) {
-          const data = res.result.data;
-          wx.showModal({
-            title: '✅ 生成成功',
-            content: `终评结果表已生成！\n\n` +
-                    `总数：${data.totalCount}件\n` +
-                    `普通作品：${data.regularCount}件\n` +
-                    `港澳台：${data.hkMacauTaiwanCount}件\n` +
-                    `地域递补：${data.supplementedCount}件\n\n` +
-                    `表名：pottery_submissions_final\n` +
-                    `可在云开发控制台查看。`,
-            showCancel: false
-          });
-          this.addExportHistory('生成终评结果', '成功');
-          this.loadStats();
-        } else {
-          wx.showToast({
-            title: res.result.message || '生成失败',
-            icon: 'none',
-            duration: 2000
-          });
-          this.addExportHistory('生成终评结果', '失败');
-        }
-      },
-      fail: err => {
-        this.setData({ 'generating.final': false });
-        wx.hideLoading();
-        console.error('生成终评结果表失败', err);
-        wx.showToast({
-          title: '生成失败',
-          icon: 'none'
-        });
-        this.addExportHistory('生成终评结果', '失败');
-      }
-    });
+    this.selectEvaluationOperation('generateFinalRanking');
   },
 
   // 导出终评结果
@@ -518,7 +860,7 @@ Page({
     wx.cloud.callFunction({
       name: 'quickstartFunctions',
       data: {
-        type: 'exportFinalResults'
+        type: 'exportFinalResults', editionId: this.data.adminOperation.editionId || 'pottery-2026', sourceKey: 'finalResults'
       },
       timeout: 120000,  // 120秒超时
       success: res => {

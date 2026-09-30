@@ -6,6 +6,7 @@ cloud.init({
 })
 
 const db = cloud.database()
+const { collectionName, publicEdition, resolveEdition } = require('../common/edition')
 
 /**
  * 检查专家评分进度
@@ -23,7 +24,11 @@ exports.main = async (event, context) => {
     }
     
     console.log('=== 检查专家评分进度 ===');
-    console.log('专家Code:', expertCode);
+    const edition = await resolveEdition(db, {
+      editionId: event.editionId,
+      useCurrent: !event.editionId,
+      mode: 'read'
+    });
     
     // 获取专家信息
     const expertResult = await db.collection('experts')
@@ -45,10 +50,10 @@ exports.main = async (event, context) => {
     let targetField = '';
     
     if (expertType === 'final') {
-      tableName = 'pottery_submissions_preliminary';
+      tableName = collectionName(edition, 'finalScoring');
       targetField = 'finalEvaluation';
     } else {
-      tableName = 'pottery_submissions_clean';
+      tableName = collectionName(edition, 'cleaned');
       targetField = 'evaluations';
     }
     
@@ -100,7 +105,8 @@ exports.main = async (event, context) => {
         unevaluated: unevaluated,
         progress: progress,
         isComplete: isComplete
-      }
+      },
+      edition: publicEdition(edition)
     };
     
   } catch (error) {

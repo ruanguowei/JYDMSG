@@ -71,24 +71,10 @@
           
           
           <view class="score-details">
-            <view class="score-detail-item">
-              <text class="detail-label">主题：</text>
-              <text class="detail-value">{{item.themeFit}}分</text>
-            </view>
-            <view class="score-detail-item">
-              <text class="detail-label">创意：</text>
-              <text class="detail-value">{{item.creativity}}分</text>
-            </view>
-            <view class="score-detail-item">
-              <text class="detail-label">工艺：</text>
-              <text class="detail-value">{{item.craftsmanship}}分</text>
-            </view>
-            <view class="score-detail-item">
-              <text class="detail-label">美感：</text>
-              <text class="detail-value">{{item.aesthetics}}分</text>
-            </view>
+            <view class="score-detail-item"><text class="detail-label">基础分：</text><text class="detail-value">{{item.baseScore}}分</text></view>
+            <view class="score-detail-item"><text class="detail-label">扣分：</text><text class="detail-value">{{item.deductionScore}}分</text></view>
           </view>
-          
+
           <view class="evaluation-time">
             评分时间：{{item.evaluationTime}}
           </view>

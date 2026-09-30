@@ -1,0 +1,14 @@
+{
+  "name": "exportImages",
+  "version": "1.0.0",
+  "description": "导出图片到云存储，按分类创建文件夹",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

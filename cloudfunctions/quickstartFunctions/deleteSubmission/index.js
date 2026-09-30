@@ -1,5 +1,6 @@
 // 云函数删除参展申请记录
 const cloud = require('wx-server-sdk');
+const { collectionName, publicEdition, resolveEdition } = require('../common/edition');
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
@@ -8,8 +9,10 @@ exports.main = async (event, context) => {
   const wxContext = cloud.getWXContext();
   const openid = wxContext.OPENID;
   
-  console.log('删除函数被调用，参数:', event);
-  console.log('当前用户openid:', openid);
+  console.log('删除函数被调用:', JSON.stringify({
+    editionId: event.editionId || (event.data && event.data.editionId),
+    hasSubmissionId: Boolean(event.data && event.data.submissionId)
+  }));
   
   // 没有openid或记录ID则返回错误
   if (!openid || !event.data || !event.data.submissionId) {
@@ -23,10 +26,17 @@ exports.main = async (event, context) => {
   console.log('要删除的记录ID:', submissionId);
   
   try {
+    const edition = await resolveEdition(db, {
+      editionId: event.editionId || (event.data && event.data.editionId),
+      useCurrent: !(event.editionId || (event.data && event.data.editionId)),
+      mode: 'write'
+    });
+    const submissionsCollection = collectionName(edition, 'submissions');
+
     // 首先查询记录是否存在并且属于当前用户
     console.log('开始查询记录...');
-    const record = await db.collection('pottery_submissions').doc(submissionId).get();
-    console.log('记录查询结果:', record.data);
+    const record = await db.collection(submissionsCollection).doc(submissionId).get();
+    console.log('记录查询完成:', Boolean(record.data));
     
     // 确认记录存在
     if (!record.data) {
@@ -59,7 +69,7 @@ exports.main = async (event, context) => {
       filesToDelete.push(record.data.photoUrl);
     }
     
-    console.log('需要删除的文件:', filesToDelete);
+    console.log('需要删除的文件数量:', filesToDelete.length);
     
     // 如果有需要删除的文件，则执行删除操作
     if (filesToDelete.length > 0) {
@@ -76,11 +86,12 @@ exports.main = async (event, context) => {
     
     // 删除数据库记录
     console.log('开始删除数据库记录...');
-    await db.collection('pottery_submissions').doc(submissionId).remove();
+    await db.collection(submissionsCollection).doc(submissionId).remove();
     console.log('数据库记录删除成功');
     
     return {
       success: true,
+      edition: publicEdition(edition),
       message: '申请记录删除成功'
     };
   } catch (err) {
@@ -90,4 +101,4 @@ exports.main = async (event, context) => {
       errMsg: err.message || '删除申请记录失败'
     };
   }
-}; 
+};

@@ -1,0 +1,24 @@
+page { background: #f7f6f3; color: #292d31; }
+.orientation-page { padding: 28rpx 24rpx calc(32rpx + env(safe-area-inset-bottom)); }
+.purpose { font-size: 28rpx; line-height: 1.7; margin-bottom: 24rpx; }
+.purpose text { display: block; white-space: nowrap; font-size: 3.7vw; }
+.batch-meta { display: flex; justify-content: space-between; font-size: 23rpx; color: #59616a; }
+.progress-track { height: 10rpx; background: #e8e3de; border-radius: 8rpx; margin: 14rpx 0 22rpx; overflow: hidden; }
+.progress-fill { height: 100%; background: #b95e46; }
+.preview-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10rpx; }
+.preview-tile { position: relative; height: 218rpx; height: min(29vw, 22vh); background: #eeeae4; overflow: hidden; border-radius: 10rpx; }
+.preview-tile image { width: 100%; height: 100%; }
+.image-number,.viewed-label { position: absolute; font-size: 20rpx; background: rgba(0,0,0,.45); color: white; padding: 3rpx 10rpx; border-radius: 5rpx; }
+.image-number { top: 8rpx; left: 8rpx; }.viewed-label { bottom: 8rpx; right: 8rpx; background: #39745f; }
+.image-error,.loading-state { text-align: center; padding-top: 60rpx; font-size: 23rpx; color: #6f7477; }.image-error text { display: block; }
+.batch-controls { display: flex; justify-content: space-between; align-items: center; margin: 18rpx 0 24rpx; font-size: 24rpx; }
+.batch-controls button { margin: 0; background: transparent; font-size: 24rpx; padding: 0 22rpx; }.batch-controls button::after { border: none; }
+.standards-card { background: #fff; padding: 24rpx; border-radius: 18rpx; border: 1rpx solid #e9e5df; }
+.standards-heading,.standard-toggle,.rule-head { display: flex; justify-content: space-between; align-items: center; }
+.standards-heading { font-size: 33rpx; font-weight: 600; margin-bottom: 14rpx; }.total-badge { font-size: 24rpx; color: #a84931; background: #fbf0e5; padding: 6rpx 18rpx; border-radius: 30rpx; }
+.small-note { color: #737b83; font-size: 23rpx; line-height: 1.6; }
+.standard-section { border-top: 1rpx solid #eee; margin-top: 16rpx; }.standard-toggle { padding-top: 20rpx; font-size: 27rpx; }.standard-weight { color: #a84931; font-size: 24rpx; }
+.standard-rule { margin-top: 12rpx; background: #f7f7f7; padding: 18rpx; border-radius: 8rpx; font-size: 24rpx; line-height: 1.7; }.rule-head { font-weight: 600; margin-bottom: 8rpx; }
+.deduction-note { margin-top: 20rpx; padding: 24rpx; background: #fff8ef; border: 1rpx solid #efdfcd; border-radius: 18rpx; font-size: 24rpx; line-height: 1.8; }.note-title { font-weight: 600; font-size: 29rpx; }.veto-note { color: #b04435; margin-top: 12rpx; }
+.start-area { margin-top: 24rpx; text-align: center; color: #39745f; font-size: 24rpx; }.start-area button { margin-top: 12rpx; background: #b95e46; color: #fff; border-radius: 12rpx; font-size: 30rpx; }
+.error-message { color: #b04435; font-size: 25rpx; padding: 24rpx 0; }.error-message button { margin-left: 12rpx; }.footer-note { text-align: center; padding-top: 24rpx; }

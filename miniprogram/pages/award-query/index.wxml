@@ -1,0 +1,156 @@
+<!--pages/award-query/index.wxml-->
+<view class="query-container">
+  
+  <!-- 未查询或重新查询时显示输入表单 -->
+  <view wx:if="{{!showResult}}" class="query-form">
+    <view class="page-title">获奖结果查询</view>
+    <view class="page-desc">请输入您在报名时填写的信息</view>
+    
+    <view class="form-section">
+      <view class="form-item">
+        <view class="label">查询届次</view>
+        <picker mode="selector" range="{{editionOptions}}" range-key="label" value="{{editionIndex}}" bindchange="onEditionChange">
+          <view class="input picker-input">{{editionOptions[editionIndex].label}}</view>
+        </picker>
+      </view>
+
+      <view class="form-item">
+        <view class="label">手机号</view>
+        <input 
+          class="input" 
+          type="number"
+          maxlength="11"
+          placeholder="请输入报名时的手机号" 
+          value="{{phone}}"
+          bindinput="onPhoneInput"
+        />
+      </view>
+      
+      <view class="form-item">
+        <view class="label">学生姓名</view>
+        <input 
+          class="input" 
+          type="text"
+          placeholder="请输入学生姓名" 
+          value="{{name}}"
+          bindinput="onNameInput"
+        />
+      </view>
+    </view>
+    
+    <button 
+      class="query-btn" 
+      bindtap="queryStatus"
+      loading="{{loading}}"
+      disabled="{{loading}}"
+    >
+      {{loading ? '查询中...' : '查询'}}
+    </button>
+    
+    <view class="tips">
+      <view class="tips-title">温馨提示</view>
+      <view class="tips-item">• 请输入您在报名时填写的手机号和姓名</view>
+      <view class="tips-item">• 手机号和姓名必须与报名信息完全一致</view>
+      <view class="tips-item">• 如有疑问，请联系组委会</view>
+    </view>
+  </view>
+  
+  <!-- 查询结果 -->
+  <view wx:if="{{showResult}}" class="result-container">
+    
+    <!-- 获奖结果 -->
+    <view wx:if="{{hasAward}}" class="result-card success">
+      <view class="result-icon">🏆</view>
+      <view class="result-title">恭喜获奖！</view>
+      <view class="award-badge">{{awardStatus}}</view>
+      <view class="edition-label" wx:if="{{edition}}">{{edition.title || edition.editionId}}</view>
+      
+      <view wx:for="{{works}}" wx:key="id" class="work-result-item">
+        <view class="work-info {{item.hasAward ? 'awarded-work' : ''}}">
+          <view class="info-item" wx:if="{{item.workCode}}">
+            <text class="info-label">作品编号</text>
+            <text class="info-value">{{item.workCode}}</text>
+          </view>
+          <view class="info-item">
+            <text class="info-label">作品名称</text>
+            <text class="info-value">{{item.artworkName}}</text>
+          </view>
+          <view class="info-item">
+            <text class="info-label">作品类别</text>
+            <text class="info-value">{{item.category}}</text>
+          </view>
+          <view class="info-item">
+            <text class="info-label">学校</text>
+            <text class="info-value">{{item.school}}</text>
+          </view>
+          <view class="info-item">
+            <text class="info-label">获奖状态</text>
+            <text class="info-value">{{item.hasAward ? item.awardStatus : '未获奖'}}</text>
+          </view>
+          <view class="info-item" wx:if="{{item.teacher}}">
+            <text class="info-label">指导教师</text>
+            <text class="info-value">{{item.teacher}}</text>
+          </view>
+        </view>
+
+        <view class="congrats-text" wx:if="{{item.hasAward}}">
+          恭喜作品《{{item.artworkName}}》荣获{{item.awardStatus}}！
+        </view>
+
+        <!-- 获奖证书 -->
+        <view class="certificate-section" wx:if="{{item.awardCertificate}}">
+          <view class="certificate-title">🏅 获奖证书</view>
+          <view class="certificate-tip">长按图片可保存到手机</view>
+          <image 
+            class="certificate-image" 
+            src="{{item.awardCertificate}}"
+            mode="widthFix"
+            show-menu-by-longpress
+            bindtap="previewCertificate"
+            data-url="{{item.awardCertificate}}"
+          />
+        </view>
+      </view>
+    </view>
+    
+    <!-- 入围但未获奖结果 -->
+    <view wx:else class="result-card qualified">
+      <view class="result-icon">📋</view>
+      <view class="result-title">已入围但未获奖</view>
+      <view class="edition-label" wx:if="{{edition}}">{{edition.title || edition.editionId}}</view>
+      
+      <view wx:for="{{works}}" wx:key="id" class="work-result-item">
+        <view class="work-info">
+          <view class="info-item" wx:if="{{item.workCode}}">
+            <text class="info-label">作品编号</text>
+            <text class="info-value">{{item.workCode}}</text>
+          </view>
+          <view class="info-item">
+            <text class="info-label">作品名称</text>
+            <text class="info-value">{{item.artworkName}}</text>
+          </view>
+          <view class="info-item">
+            <text class="info-label">作品类别</text>
+            <text class="info-value">{{item.category}}</text>
+          </view>
+          <view class="info-item">
+            <text class="info-label">学校</text>
+            <text class="info-value">{{item.school}}</text>
+          </view>
+          <view class="info-item" wx:if="{{item.teacher}}">
+            <text class="info-label">指导教师</text>
+            <text class="info-value">{{item.teacher}}</text>
+          </view>
+        </view>
+      </view>
+      
+      <view class="qualified-text">
+        您的作品已入围本次展览，<br/>
+        感谢您的参与和支持！
+      </view>
+    </view>
+    
+    <button class="retry-btn" bindtap="resetQuery">重新查询</button>
+  </view>
+  
+</view>

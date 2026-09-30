@@ -1,5 +1,6 @@
 // 更新作品运送记录
 const cloud = require('wx-server-sdk');
+const { collectionName, publicEdition, resolveEdition } = require('../common/edition');
 
 cloud.init({
   env: cloud.DYNAMIC_CURRENT_ENV
@@ -60,8 +61,15 @@ exports.main = async (event, context) => {
   }
   
   try {
+    const edition = await resolveEdition(db, {
+      editionId: event.editionId,
+      useCurrent: !event.editionId,
+      mode: 'write'
+    });
+    const deliveriesCollection = collectionName(edition, 'deliveries');
+
     // 首先查询记录，确认存在且属于当前用户
-    const recordResult = await db.collection('artwork_deliveries')
+    const recordResult = await db.collection(deliveriesCollection)
       .doc(id)
       .get();
       
@@ -100,7 +108,7 @@ exports.main = async (event, context) => {
     }
     
     // 更新记录
-    await db.collection('artwork_deliveries')
+    await db.collection(deliveriesCollection)
       .doc(id)
       .update({
         data: updateData
@@ -128,6 +136,7 @@ exports.main = async (event, context) => {
     
     return {
       success: true,
+      edition: publicEdition(edition),
       message: '更新成功'
     };
   } catch (err) {
@@ -138,4 +147,4 @@ exports.main = async (event, context) => {
       err
     };
   }
-}; 
+};

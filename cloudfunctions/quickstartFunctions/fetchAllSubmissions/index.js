@@ -1,5 +1,6 @@
 // 云函数获取所有参展申请记录
 const cloud = require('wx-server-sdk');
+const { collectionName, publicEdition, resolveEdition } = require('../common/edition');
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
@@ -17,11 +18,18 @@ exports.main = async (event, context) => {
   }
   
   try {
+    const edition = await resolveEdition(db, {
+      editionId: event.editionId,
+      useCurrent: !event.editionId,
+      mode: 'read'
+    });
+    const submissionsCollection = collectionName(edition, 'submissions');
+
     console.log('当前用户openid:', openid);
     
     // 获取用户所有的参展申请记录
     // 按更新时间降序排列，最新的在最前面
-    const submissionsResult = await db.collection('pottery_submissions')
+    const submissionsResult = await db.collection(submissionsCollection)
       .where({
         _openid: openid // 修改为标准的_openid字段
       })
@@ -84,6 +92,7 @@ exports.main = async (event, context) => {
     
     return {
       success: true,
+      edition: publicEdition(edition),
       data: submissions
     };
   } catch (err) {
@@ -93,4 +102,4 @@ exports.main = async (event, context) => {
       errMsg: err.message || '获取参展申请记录失败'
     };
   }
-}; 
+};

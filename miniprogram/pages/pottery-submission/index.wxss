@@ -1,6 +1,6 @@
 /* pages/pottery-submission/index.wxss */
 page {
-  background-color: #f6f6f6;
+  background-color: #f7f4ee;
   min-height: 100vh;
   padding-bottom: 40rpx;
   box-sizing: border-box;
@@ -16,7 +16,7 @@ page {
   font-weight: bold;
   text-align: center;
   margin: 40rpx 0;
-  color: #333;
+  color: #1e2a28;
 }
 
 .submission-form {
@@ -24,11 +24,11 @@ page {
 }
 
 .form-card {
-  background-color: #fff;
-  border-radius: 12rpx;
+  background-color: #fffdf9;
+  border-radius: 20rpx;
   padding: 30rpx;
   margin-bottom: 30rpx;
-  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+  box-shadow: 0 6rpx 24rpx rgba(30, 42, 40, 0.06);
 }
 
 .card-title {
@@ -50,7 +50,7 @@ page {
   transform: translateY(-70%);
   width: 6rpx;
   height: 30rpx;
-  background-color: #4e6ef2;
+  background-color: #2f6f62;
   border-radius: 3rpx;
 }
 
@@ -189,15 +189,15 @@ page {
 .video-work-section {
   margin-top: 30rpx;
   padding: 30rpx;
-  background: #f8f9fa;
+  background: #f5f8f4;
   border-radius: 16rpx;
-  border: 2rpx solid #e9ecef;
+  border: 2rpx solid #dce7df;
 }
 
 .section-title {
   font-size: 32rpx;
   font-weight: 600;
-  color: #2c3e50;
+  color: #1e2a28;
   margin-bottom: 30rpx;
   padding-bottom: 15rpx;
   border-bottom: 2rpx solid #e9ecef;
@@ -214,6 +214,7 @@ page {
   font-size: 24rpx;
   color: #666;
   margin-right: 20rpx;
+  margin-bottom: 12rpx;
   padding: 8rpx 16rpx;
   background-color: #f0f0f0;
   border-radius: 20rpx;
@@ -304,6 +305,181 @@ page {
   line-height: 1.4;
 }
 
+.video-uploader {
+  padding: 20rpx;
+  background: #ffffff;
+  border: 1rpx solid #e6e6e6;
+  border-radius: 12rpx;
+}
+
+.video-preview {
+  width: 100%;
+  height: 360rpx;
+  background: #111111;
+  border-radius: 8rpx;
+}
+
+.video-info {
+  margin-top: 16rpx;
+}
+
+.video-name {
+  color: #333333;
+  font-size: 28rpx;
+  font-weight: 600;
+  word-break: break-all;
+}
+
+.video-meta,
+.video-progress {
+  margin-top: 8rpx;
+  color: #666666;
+  font-size: 24rpx;
+}
+
+.video-status {
+  margin-top: 12rpx;
+  padding: 12rpx 16rpx;
+  border-radius: 8rpx;
+  color: #6d5a35;
+  background: #fff4d8;
+  font-size: 24rpx;
+  line-height: 1.5;
+}
+
+.video-status-uploading {
+  color: #315f73;
+  background: #e8f4f8;
+}
+
+.video-status-uploaded {
+  color: #2f6f62;
+  background: #e7f4ee;
+}
+
+.video-status-failed {
+  color: #a33f32;
+  background: #faeae7;
+}
+
+.video-checking {
+  height: 180rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1rpx dashed #7a9a8d;
+  border-radius: 12rpx;
+  color: #315f52;
+  background: #edf6f1;
+  font-size: 25rpx;
+}
+
+.video-action-row {
+  display: flex;
+  gap: 18rpx;
+  margin-top: 18rpx;
+}
+
+.video-action-row button {
+  flex: 1;
+  margin: 0;
+}
+
+.video-retry {
+  height: 64rpx;
+  line-height: 64rpx;
+  color: #ffffff;
+  background: #2f6f62;
+  border-radius: 8rpx;
+  font-size: 26rpx;
+}
+
+.video-retry::after {
+  border: none;
+}
+
+.video-remove {
+  height: 64rpx;
+  line-height: 64rpx;
+  color: #8a6a3f;
+  background: #f4f1eb;
+  border-radius: 8rpx;
+  font-size: 26rpx;
+}
+
+.video-remove::after {
+  border: none;
+}
+
+.video-upload-button {
+  height: 180rpx;
+  border: 1rpx dashed #8a6a3f;
+  border-radius: 12rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #fffaf2;
+}
+
+.artwork-upload-section {
+  margin-top: 8rpx;
+}
+
+.upload-hero {
+  padding: 30rpx;
+  border-radius: 16rpx;
+  background: linear-gradient(135deg, #1e2a28, #2f6f62);
+  color: #ffffff;
+}
+
+.upload-eyebrow {
+  color: #a45a3a;
+  font-size: 22rpx;
+  font-weight: 600;
+  letter-spacing: 4rpx;
+  margin-bottom: 12rpx;
+}
+
+.upload-hero .upload-eyebrow { color: #c7dfd4; }
+.upload-hero-title { font-size: 34rpx; font-weight: 600; }
+.upload-hero-text { margin-top: 14rpx; font-size: 24rpx; line-height: 1.6; color: #e5f0eb; }
+
+.notice-panel {
+  margin: 20rpx 0 26rpx;
+  padding: 20rpx 22rpx;
+  background: #fbf3e8;
+  color: #704b33;
+  font-size: 24rpx;
+  line-height: 1.7;
+  border-left: 6rpx solid #a45a3a;
+  border-radius: 8rpx;
+}
+
+.image-slot-grid { display: flex; flex-wrap: wrap; margin: 0 -8rpx; }
+.image-slot { width: calc(50% - 16rpx); margin: 0 8rpx 22rpx; }
+.image-slot-featured { width: 100%; }
+.image-slot-head { display: flex; justify-content: space-between; color: #1e2a28; font-size: 26rpx; font-weight: 600; margin-bottom: 12rpx; }
+.slot-state { color: #2f6f62; font-size: 22rpx; font-weight: normal; }
+.image-slot-frame { width: 100%; height: auto; aspect-ratio: 1 / 1; overflow: hidden; border: 2rpx dashed #aac2b8; border-radius: 14rpx; background: #f4f8f5; position: relative; }
+.image-slot-featured .image-slot-frame { aspect-ratio: 1 / 1; }
+.image-slot-frame image { width: 100%; height: 100%; }
+.slot-placeholder { height: 100%; color: #5f766f; font-size: 23rpx; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.slot-plus { font-size: 52rpx; line-height: 1; margin-bottom: 8rpx; }
+.slot-replace { position: absolute; right: 12rpx; bottom: 12rpx; padding: 6rpx 14rpx; border-radius: 20rpx; background: rgba(30, 42, 40, 0.72); color: #fff; font-size: 21rpx; }
+.image-slot-hint { min-height: 62rpx; margin-top: 10rpx; color: #68746f; font-size: 22rpx; line-height: 1.45; }
+.slot-warning, .video-error { margin-top: 10rpx; color: #a45a3a; font-size: 22rpx; line-height: 1.5; }
+.video-error { padding: 14rpx; background: #fbf0ea; border-radius: 8rpx; }
+.slot-remove { margin-top: 8rpx; color: #a45a3a; font-size: 22rpx; text-align: right; }
+.video-rule-list { display: flex; flex-direction: column; padding-bottom: 20rpx; color: #52635d; font-size: 24rpx; line-height: 1.7; }
+.baidu-backup { margin-top: 26rpx; padding: 24rpx; border-radius: 12rpx; background: #fffaf2; border: 1rpx solid #ead9c5; }
+.backup-title { color: #704b33; font-size: 28rpx; font-weight: 600; }
+.backup-text { margin: 10rpx 0 18rpx; color: #806b5a; font-size: 23rpx; line-height: 1.5; }
+.backup-confirm { width: 100%; margin: 0; color: #704b33; background: #f4e8d8; border-radius: 8rpx; font-size: 24rpx; }
+.backup-confirm::after { border: none; }
+.backup-confirmed { margin-bottom: 14rpx; color: #2f6f62; font-size: 23rpx; }
+.backup-password { margin-top: 14rpx; }
+
 /* 选择器样式 */
 .picker {
   width: 100%;
@@ -329,6 +505,121 @@ page {
   color: #999;
 }
 
+/* 填写报名表前的协议与个人信息授权 */
+.consent-gate {
+  padding: 40rpx 32rpx;
+  background: #fff;
+  border-radius: 20rpx;
+  box-shadow: 0 8rpx 28rpx rgba(47, 111, 98, 0.08);
+}
+
+.consent-badge {
+  display: inline-block;
+  padding: 8rpx 18rpx;
+  color: #2f6f62;
+  background: #eaf4f1;
+  border-radius: 999rpx;
+  font-size: 24rpx;
+}
+
+.consent-title {
+  margin-top: 24rpx;
+  color: #1f2926;
+  font-size: 36rpx;
+  font-weight: 600;
+}
+
+.consent-paragraph {
+  margin-top: 22rpx;
+  color: #4d5b57;
+  font-size: 28rpx;
+  line-height: 1.8;
+  text-align: justify;
+}
+
+.consent-links {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 30rpx 0 24rpx;
+  font-size: 28rpx;
+}
+
+.consent-link,
+.consent-confirmed-links text {
+  color: #2f6f62;
+  text-decoration: underline;
+}
+
+.consent-divider {
+  margin: 0 8rpx;
+  color: #66736f;
+}
+
+.consent-checkbox-row {
+  display: flex;
+  align-items: flex-start;
+  padding: 24rpx;
+  color: #38433f;
+  background: #f6f8f7;
+  border-radius: 14rpx;
+  font-size: 27rpx;
+  line-height: 1.6;
+}
+
+.consent-checkbox-row checkbox {
+  flex: none;
+  margin: 2rpx 14rpx 0 0;
+  transform: scale(0.86);
+}
+
+.consent-start-button {
+  margin-top: 30rpx;
+  color: #fff;
+  background: #2f6f62;
+  border-radius: 44rpx;
+  font-size: 30rpx;
+}
+
+.consent-start-button[disabled] {
+  color: #fff;
+  background: #aebbb7;
+}
+
+.consent-contact {
+  margin-top: 22rpx;
+  color: #7b8582;
+  font-size: 24rpx;
+  text-align: center;
+}
+
+.consent-confirmed {
+  margin-bottom: 24rpx;
+  padding: 22rpx 26rpx;
+  background: #eef6f3;
+  border: 1rpx solid #cfe2dc;
+  border-radius: 14rpx;
+}
+
+.consent-confirmed-title {
+  color: #2f6f62;
+  font-size: 27rpx;
+  font-weight: 600;
+}
+
+.consent-confirmed-links {
+  display: flex;
+  align-items: center;
+  margin-top: 10rpx;
+  font-size: 25rpx;
+}
+
+.consent-confirmed-dot {
+  margin: 0 12rpx;
+  color: #81908b !important;
+  text-decoration: none !important;
+}
+
 /* 协议样式 */
 .form-agreement {
   margin: 20rpx 0 40rpx;
@@ -348,7 +639,7 @@ page {
 /* 提交按钮 */
 .submit-button {
   margin-top: 40rpx;
-  background-color: #4e6ef2;
+  background-color: #2f6f62;
   color: #fff;
   height: 88rpx;
   display: flex;
@@ -409,4 +700,77 @@ page {
 
 .requirement-item:last-child {
   margin-bottom: 0;
+}
+
+/* 微信隐私授权弹窗：选择视频前由 requirePrivacyAuthorize 触发 */
+.privacy-mask {
+  position: fixed;
+  z-index: 1000;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48rpx;
+  box-sizing: border-box;
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.privacy-dialog {
+  width: 100%;
+  padding: 42rpx 36rpx 30rpx;
+  box-sizing: border-box;
+  border-radius: 24rpx;
+  background: #fff;
+}
+
+.privacy-title {
+  color: #1f2d29;
+  font-size: 34rpx;
+  font-weight: 600;
+  text-align: center;
+}
+
+.privacy-content {
+  margin-top: 26rpx;
+  color: #56645f;
+  font-size: 27rpx;
+  line-height: 1.65;
+}
+
+.privacy-link {
+  margin-top: 18rpx;
+  color: #2f6f62;
+  font-size: 26rpx;
+  text-align: center;
+}
+
+.privacy-actions {
+  display: flex;
+  gap: 20rpx;
+  margin-top: 34rpx;
+}
+
+.privacy-button {
+  flex: 1;
+  margin: 0;
+  border-radius: 40rpx;
+  font-size: 27rpx;
+  line-height: 78rpx;
+}
+
+.privacy-button::after {
+  border: 0;
+}
+
+.privacy-cancel {
+  color: #59635f;
+  background: #edf1ef;
+}
+
+.privacy-agree {
+  color: #fff;
+  background: #2f6f62;
 }

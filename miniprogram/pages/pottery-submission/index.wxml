@@ -1,8 +1,41 @@
 <!--pages/pottery-submission/index.wxml-->
 <view class="container">
   <view class="page-title">全国大学生陶艺作品展报名表</view>
-  
-  <form class="submission-form">
+
+  <view wx:if="{{!agreementAccepted}}" class="consent-gate">
+    <view class="consent-badge">填写前请阅读</view>
+    <view class="consent-title">参展报名个人信息收集说明</view>
+    <view class="consent-paragraph">
+      为完成参展资格核验、赛事联系、作品评审、证书制作及作品寄送与退件，我们需要收集你主动填写的身份、联系方式、学校、地址、个人照片及作品资料。
+    </view>
+    <view class="consent-paragraph">
+      相关信息将通过微信云开发提交并存储，仅在上述业务范围内使用。你可以在提交前停止填写；提交后可通过下方联系电话咨询查阅、更正或删除个人信息。
+    </view>
+    <view class="consent-links">
+      <text class="consent-link" catchtap="openUserServiceAgreement">《用户服务协议》</text>
+      <text class="consent-divider">和</text>
+      <text class="consent-link" catchtap="openPrivacyPolicy">《隐私政策》</text>
+    </view>
+    <checkbox-group bindchange="handleConsentChange">
+      <label class="consent-checkbox-row">
+        <checkbox value="accepted" checked="{{consentChecked}}" color="#2f6f62" />
+        <text>我已阅读并同意上述协议及信息收集、使用规则</text>
+      </label>
+    </checkbox-group>
+    <button class="consent-start-button" bindtap="confirmConsent" disabled="{{!consentChecked}}">同意并开始填写</button>
+    <view class="consent-contact">隐私问题联系电话：15907984066</view>
+  </view>
+
+  <form wx:else class="submission-form">
+    <view class="consent-confirmed">
+      <view class="consent-confirmed-title">已阅读并同意个人信息收集规则</view>
+      <view class="consent-confirmed-links">
+        <text catchtap="openUserServiceAgreement">用户服务协议</text>
+        <text class="consent-confirmed-dot">·</text>
+        <text catchtap="openPrivacyPolicy">隐私政策</text>
+      </view>
+    </view>
+
     <!-- 个人信息部分 -->
     <view class="form-card">
       <view class="card-title">个人信息</view>
@@ -174,16 +207,12 @@
         <view class="form-label required">作品类别</view>
         <picker bindchange="bindCategoryChange" value="{{categoryIndex}}" range="{{categories}}">
           <view class="picker {{category ? '' : 'placeholder'}}">
-            {{category || '请选择作品类别'}}
+            {{categoryLabel || '请选择作品类别'}}
             <text class="picker-arrow">▼</text>
           </view>
         </picker>
         <view class="category-options">
-          <text class="category-option">技艺</text>
-          <text class="category-option">文脉</text>
-          <text class="category-option">算法</text>
-          <text class="category-option">产业</text>
-          <text class="category-option">视界</text>
+          <text wx:for="{{categories}}" wx:key="*this" class="category-option">{{item}}</text>
         </view>
       </view>
       
@@ -197,83 +226,36 @@
       
       <view class="form-group">
         <view class="form-label required">作品简介（200字以内）</view>
-        <textarea class="form-textarea" placeholder="请描述您的作品简介..." value="{{artworkDescription}}" bindinput="inputArtworkDescription" maxlength="200"></textarea>
-        <view class="char-count">{{artworkDescription.length}}/200</view>
+        <textarea class="form-textarea" placeholder="请描述您的作品简介..." value="{{artworkDescription}}"
+                  bindinput="inputArtworkDescription" maxlength="200"
+                  adjust-position="{{true}}" cursor-spacing="24"></textarea>
+        <view class="char-count">{{artworkDescriptionLength}}/200</view>
       </view>
       
       <!-- 常规作品图片上传 -->
-      <view wx:if="{{workType === 'regular'}}">
-        <!-- 透视图上传 -->
-        <view class="form-group">
-          <view class="form-label required">透视图（整体图）</view>
-          <view class="upload-single">
-            <view class="upload-preview" wx:if="{{perspectiveImage}}">
-              <image src="{{perspectiveImage}}" mode="aspectFill"></image>
-              <view class="upload-delete" bindtap="removePerspectiveImage">×</view>
-            </view>
-            <view class="upload-button" bindtap="choosePerspectiveImage" wx:else>
-              <text class="upload-icon">+</text>
-              <text class="upload-text">上传透视图</text>
-            </view>
-          </view>
-          <!-- 透视图要求说明 -->
-          <view class="upload-requirements">
-            <view class="requirements-title">📐 比例要求</view>
-            <view class="requirements-content">宽高比16:9（横向）完整展示作品全貌，避免竖屏拍摄</view>
-          </view>
+      <view wx:if="{{workType === 'regular'}}" class="artwork-upload-section">
+        <view class="upload-hero">
+          <view class="upload-eyebrow">作品影像档案</view>
+          <view class="upload-hero-title">请按指定角度上传 7 张作品照片</view>
+          <view class="upload-hero-text">支持真实编码的 JPG/JPEG、PNG；图片必须为 1:1 正方形，单张不超过 5MB。建议尺寸不低于 1200×1200px（建议项，不影响提交）。</view>
         </view>
-        
-        <!-- 四面图上传 -->
-        <view class="form-group">
-          <view class="form-label required">四面图（3张）</view>
-          <view class="upload-container">
-            <block wx:for="{{fourViewImages}}" wx:key="index">
-              <view class="upload-preview">
-                <image src="{{item}}" mode="aspectFill"></image>
-                <view class="upload-delete" data-index="{{index}}" bindtap="removeFourViewImage">×</view>
+        <view class="notice-panel">
+          请上传作品实拍图。不得使用效果图、渲染图、合成图或 AI 生成图；不添加水印、边框、文字、滤镜或装饰效果。
+        </view>
+        <view class="image-slot-grid">
+          <block wx:for="{{imageSlots}}" wx:key="key">
+            <view class="image-slot {{index === 0 ? 'image-slot-featured' : ''}}">
+              <view class="image-slot-head"><text>{{item.title}}</text><text class="slot-state">{{item.path ? '已就绪' : '待上传'}}</text></view>
+              <view class="image-slot-frame" bindtap="chooseArtworkImage" data-key="{{item.key}}">
+                <image wx:if="{{item.path}}" src="{{item.path}}" mode="aspectFill"></image>
+                <view wx:else class="slot-placeholder"><text class="slot-plus">+</text><text>选择图片</text></view>
+                <view wx:if="{{item.path}}" class="slot-replace">更换</view>
               </view>
-            </block>
-            <view class="upload-button" bindtap="chooseFourViewImages" wx:if="{{fourViewImages.length < 3}}">
-              <text class="upload-icon">+</text>
+              <view class="image-slot-hint">{{item.hint}}</view>
+              <view wx:if="{{item.warning}}" class="slot-warning">{{item.warning}}</view>
+              <view wx:if="{{item.path}}" class="slot-remove" bindtap="removeArtworkImage" data-key="{{item.key}}">移除</view>
             </view>
-          </view>
-          <!-- 四面图要求说明 -->
-          <view class="upload-requirements">
-            <view class="requirements-title">📐 比例要求</view>
-            <view class="requirements-content">宽高比16:9（横向）角度保持一定距离</view>
-          </view>
-        </view>
-        
-        <!-- 局部图上传 -->
-        <view class="form-group">
-          <view class="form-label required">局部图（3张）</view>
-          <view class="upload-container">
-            <block wx:for="{{detailImages}}" wx:key="index">
-              <view class="upload-preview">
-                <image src="{{item}}" mode="aspectFill"></image>
-                <view class="upload-delete" data-index="{{index}}" bindtap="removeDetailImage">×</view>
-              </view>
-            </block>
-            <view class="upload-button" bindtap="chooseDetailImages" wx:if="{{detailImages.length < 3}}">
-              <text class="upload-icon">+</text>
-            </view>
-          </view>
-          <!-- 局部图要求说明 -->
-          <view class="upload-requirements">
-            <view class="requirements-title">📐 比例要求</view>
-            <view class="requirements-content">宽高比16:9（横向）突出作品细节和工艺特色</view>
-          </view>
-        </view>
-        
-        <!-- 通用文件要求说明 -->
-        <view class="upload-requirements common-requirements">
-          <view class="requirements-title">📋 文件要求</view>
-          <view class="requirements-content">
-            <view class="requirement-item">• 文件格式：JPG格式</view>
-            <view class="requirement-item">• 文件大小：1MB-5MB</view>
-            <view class="requirement-item">• 图片质量：清晰、光线充足、对焦准确</view>
-            <view class="requirement-item">• 分辨率：300dpi及以上</view>
-          </view>
+          </block>
         </view>
       </view>
       
@@ -281,65 +263,78 @@
       <view wx:if="{{workType === 'regular'}}" class="form-group">
         <view class="form-label">特殊陈列方式描述</view>
         <textarea class="form-textarea" placeholder="请描述特殊陈列方式（选填）" 
-                  value="{{specialDisplay}}" bindinput="inputSpecialDisplay"></textarea>
+                  value="{{specialDisplay}}" bindinput="inputSpecialDisplay"
+                  adjust-position="{{true}}" cursor-spacing="24"></textarea>
       </view>
       
       <!-- 视频作品专用字段 -->
       <view wx:if="{{workType === 'video'}}" class="video-work-section">
-        <view class="section-title">视频作品信息</view>
-        
-        <view class="form-row">
-          <view class="form-cell">
-            <view class="form-label required">视频时长</view>
-            <input class="form-input" placeholder="如：3分30秒" value="{{videoDuration}}" bindinput="inputVideoDuration"/>
-          </view>
-          <view class="form-cell">
-            <view class="form-label required">视频清晰度</view>
-            <picker bindchange="bindVideoResolutionChange" value="{{videoResolutionIndex}}" range="{{videoResolutions}}">
-              <view class="picker {{videoResolution ? '' : 'placeholder'}}">
-                {{videoResolution || '请选择清晰度'}}
-                <text class="picker-arrow">▼</text>
-              </view>
-            </picker>
-          </view>
-        </view>
-        
-        <view class="form-row">
-          <view class="form-cell">
-            <view class="form-label required">视频比例</view>
-            <picker bindchange="bindVideoAspectRatioChange" value="{{videoAspectRatioIndex}}" range="{{videoAspectRatios}}">
-              <view class="picker {{videoAspectRatio ? '' : 'placeholder'}}">
-                {{videoAspectRatio || '请选择比例'}}
-                <text class="picker-arrow">▼</text>
-              </view>
-            </picker>
-          </view>
-          <view class="form-cell">
-            <view class="form-label required">拍摄技巧</view>
-            <input class="form-input" placeholder="如：航拍、延时摄影等" value="{{shootingTechnique}}" bindinput="inputShootingTechnique"/>
-          </view>
+        <view class="upload-eyebrow">作品展示视频</view>
+        <view class="section-title">上传 1 条视频，或使用百度网盘备用提交</view>
+        <view class="video-rule-list">
+          <text>仅支持 MP4，文件不超过 100MB。</text>
+          <text>推荐 720P、约 2.5Mbps、16:9 横屏；时长和分辨率不作限制。</text>
         </view>
         
         <view class="form-group">
-          <view class="form-label required">百度云链接</view>
-          <input class="form-input" placeholder="请输入百度云分享链接" value="{{baiduCloudLink}}" bindinput="inputBaiduCloudLink"/>
+          <view class="form-label">站内上传视频（推荐）</view>
+          <view wx:if="{{video.fileName}}" class="video-uploader">
+            <video wx:if="{{video.tempFilePath || video.fileId}}" class="video-preview" src="{{video.tempFilePath || video.fileId}}" controls></video>
+            <view class="video-info">
+              <view class="video-status video-status-{{video.uploadStatus}}">
+                <text wx:if="{{video.uploadStatus === 'uploading'}}">正在上传：{{videoUploadProgress}}%</text>
+                <text wx:elif="{{video.uploadStatus === 'uploaded'}}">视频上传成功</text>
+                <text wx:elif="{{video.uploadStatus === 'failed'}}">视频上传失败，可直接重新上传</text>
+                <text wx:else>视频检查完成，准备上传</text>
+              </view>
+            </view>
+            <view class="video-action-row">
+              <button wx:if="{{video.uploadStatus === 'failed'}}" class="video-retry" bindtap="retryVideoUpload">重新上传</button>
+              <button class="video-remove" bindtap="removeVideoFile" disabled="{{videoUploading}}">重新选择</button>
+            </view>
+          </view>
+          <view wx:elif="{{videoChecking}}" class="video-checking">
+            <text>正在检查视频格式和大小…</text>
+          </view>
+          <view wx:else class="video-upload-button" bindtap="chooseVideoFile">
+            <text class="upload-icon">+</text>
+            <text class="upload-text">选择 MP4 视频</text>
+          </view>
+          <view wx:if="{{videoUploadHint}}" class="slot-warning">{{videoUploadHint}}</view>
+          <view wx:if="{{videoLocalIssue}}" class="video-error">{{videoLocalIssue}}</view>
         </view>
-        
-        <view class="form-group">
-          <view class="form-label required">百度云密码</view>
-          <input class="form-input" placeholder="请输入百度云提取密码" value="{{baiduCloudPassword}}" bindinput="inputBaiduCloudPassword"/>
+        <view class="baidu-backup">
+          <view class="backup-title">视频超过 100MB？</view>
+          <view class="backup-text">请优先压缩至 100MB 以内再上传。确实无法压缩时，可确认改用百度网盘提交。</view>
+          <button wx:if="{{!useBaiduBackup}}" class="backup-confirm" bindtap="confirmBaiduBackup">确认无法压缩至 100MB 以内</button>
+          <view wx:else class="backup-fields">
+            <view class="backup-confirmed">已确认使用百度网盘提交</view>
+            <input class="form-input" placeholder="百度网盘分享链接" value="{{baiduCloudLink}}" bindinput="inputBaiduCloudLink"/>
+            <input class="form-input backup-password" placeholder="提取码（必填）" value="{{baiduCloudPassword}}" bindinput="inputBaiduCloudPassword" maxlength="8"/>
+          </view>
         </view>
       </view>
       
       
       <!-- 视频作品注意事项 -->
       <view wx:if="{{workType === 'video'}}" class="upload-tips">
-        <text>1.视频格式：支持MP4、MOV、AVI等常见格式。</text>
-        <text>2.上传方式：请将视频上传至百度云，并填写分享链接和密码。</text>
-        <text>3.内容要求：视频应清晰展示作品全貌和细节。</text>
+        <text>视频应清晰展示作品整体效果、结构细节、功能展示或创作亮点。</text>
+        <text>选择视频后会检查格式和大小并立即上传，请在显示“视频上传成功”前保持页面打开。</text>
       </view>
     </view>
     
-    <button class="submit-button" bindtap="submitApplication" disabled="{{submitting}}">提交报名</button>
+    <button class="submit-button" bindtap="submitApplication" disabled="{{submitting || videoUploading || videoChecking}}">提交报名</button>
   </form>
+
+  <view wx:if="{{showPrivacyDialog}}" class="privacy-mask" catchtouchmove="preventDefault">
+    <view class="privacy-dialog">
+      <view class="privacy-title">隐私保护提示</view>
+      <view class="privacy-content">选择作品图片或视频需要读取你主动选中的照片或视频，仅用于本次参展报名与作品评审。</view>
+      <view class="privacy-link" bindtap="openPrivacyContract">查看《用户隐私保护指引》</view>
+      <view class="privacy-actions">
+        <button class="privacy-button privacy-cancel" bindtap="handleRejectPrivacyAuthorization">暂不同意</button>
+        <button id="agree-media-privacy" class="privacy-button privacy-agree" open-type="agreePrivacyAuthorization" bindagreeprivacyauthorization="handleAgreePrivacyAuthorization">同意并继续</button>
+      </view>
+    </view>
+  </view>
 </view>

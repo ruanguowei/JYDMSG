@@ -6,13 +6,27 @@ cloud.init({
 })
 
 const db = cloud.database()
+const { buildEditionFields, collectionName, publicEdition, resolveEdition } = require('../common/edition')
 
 /**
  * 批量生成测试数据
  * 用于测试不同的评选阶段
  */
 exports.main = async (event, context) => {
+  if (process.env.ENABLE_TEST_DATA !== 'true') {
+    return {
+      success: false,
+      errMsg: '测试数据入口未在当前云环境启用'
+    }
+  }
+
   try {
+    const edition = await resolveEdition(db, {
+      editionId: event && event.editionId,
+      useCurrent: !(event && event.editionId),
+      mode: 'write'
+    })
+    const submissionsCollection = collectionName(edition, 'submissions')
     const { 
       totalCount = 400,  // 总数量（默认400件，用于测试直接终评）
       includeHkMacauTaiwan = true,  // 是否包含港澳台作品
@@ -149,9 +163,8 @@ exports.main = async (event, context) => {
         _isTestData: true
       };
       
-      promises.push(
-        db.collection('pottery_submissions').add({ data: testData })
-      );
+      Object.assign(testData, buildEditionFields(edition))
+      promises.push(db.collection(submissionsCollection).add({ data: testData }));
       
       currentIndex++;
     }
@@ -220,9 +233,8 @@ exports.main = async (event, context) => {
           _isHkMacauTaiwan: true  // 测试标记
         };
         
-        promises.push(
-          db.collection('pottery_submissions').add({ data: testData })
-        );
+        Object.assign(testData, buildEditionFields(edition))
+        promises.push(db.collection(submissionsCollection).add({ data: testData }));
         
         currentIndex++;
       }
@@ -281,9 +293,8 @@ exports.main = async (event, context) => {
           _isVision: true  // 测试标记
         };
         
-        promises.push(
-          db.collection('pottery_submissions').add({ data: testData })
-        );
+        Object.assign(testData, buildEditionFields(edition))
+        promises.push(db.collection(submissionsCollection).add({ data: testData }));
         
         currentIndex++;
       }
@@ -316,7 +327,9 @@ exports.main = async (event, context) => {
           普通作品: regularCount,
           港澳台作品: hkMacauTaiwanCount,
           视界类作品: visionCount
-        }
+        },
+        edition: publicEdition(edition),
+        collection: submissionsCollection
       }
     };
     

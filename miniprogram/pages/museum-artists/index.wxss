@@ -1,0 +1,78 @@
+page {
+  background: #f6f6f6;
+}
+
+.page {
+  padding: 24rpx;
+}
+
+.search-bar {
+  display: flex;
+  gap: 16rpx;
+  margin-bottom: 24rpx;
+}
+
+.search-bar input {
+  flex: 1;
+  height: 76rpx;
+  padding: 0 24rpx;
+  background: #ffffff;
+  border-radius: 8rpx;
+  font-size: 28rpx;
+}
+
+.search-bar button {
+  width: 140rpx;
+  height: 76rpx;
+  line-height: 76rpx;
+  background: #8a6a3f;
+  color: #ffffff;
+  font-size: 28rpx;
+  border-radius: 8rpx;
+}
+
+.state {
+  padding: 80rpx 0;
+  text-align: center;
+  color: #888888;
+  font-size: 28rpx;
+}
+
+.artist-item {
+  display: flex;
+  gap: 22rpx;
+  padding: 24rpx;
+  margin-bottom: 18rpx;
+  background: #ffffff;
+  border-radius: 8rpx;
+}
+
+.avatar {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 60rpx;
+  flex-shrink: 0;
+  background: #d9d2c3;
+}
+
+.info {
+  flex: 1;
+  min-width: 0;
+}
+
+.name {
+  color: #1f1f1f;
+  font-size: 34rpx;
+  font-weight: 700;
+}
+
+.intro {
+  margin-top: 12rpx;
+  color: #666666;
+  font-size: 26rpx;
+  line-height: 1.6;
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}

@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "cloudbase": {
+      "command": "npx",
+      "args": ["@cloudbase/cloudbase-mcp@latest"],
+      "description": "CloudBase MCP（景德镇艺术职业大学美术馆生产环境）",
+      "lifecycle": "keep-alive"
+    }
+  }
+}

@@ -437,6 +437,8 @@ Page({
    * 生命周期函数--监听页面加载
    */
   onLoad(options) {
+    this._isPageActive = true;
+    this._skipNextShowRefresh = true;
     // 获取用户数据
     this.getUserData();
   },
@@ -452,8 +454,16 @@ Page({
    * 生命周期函数--监听页面显示
    */
   onShow() {
+    this._isPageActive = true;
+    if (this._skipNextShowRefresh) {
+      this._skipNextShowRefresh = false;
+      return;
+    }
+
     // 每次页面显示时更新数据，稍微延迟确保openid已获取
-    setTimeout(() => {
+    clearTimeout(this._refreshTimer);
+    this._refreshTimer = setTimeout(() => {
+      this._refreshTimer = null;
       this.getUserData();
     }, 500);
   },
@@ -462,14 +472,18 @@ Page({
    * 生命周期函数--监听页面隐藏
    */
   onHide() {
-
+    this._isPageActive = false;
+    clearTimeout(this._refreshTimer);
+    this._refreshTimer = null;
   },
 
   /**
    * 生命周期函数--监听页面卸载
    */
   onUnload() {
-
+    this._isPageActive = false;
+    clearTimeout(this._refreshTimer);
+    this._refreshTimer = null;
   },
 
   /**
@@ -507,22 +521,23 @@ Page({
     }
     
     // 如果globalData中没有，调用app的getOpenid方法
-    app.getOpenid();
-    // 返回一个占位值，实际上查询会失败，但getOpenid方法会更新本地存储
-    // 用户需要刷新页面才能看到数据
-    return '';
+    return app.getOpenid();
   },
 
   /**
    * 获取用户数据
    */
   getUserData() {
+    if (this._userDataRequest) {
+      return this._userDataRequest;
+    }
+
     console.log('开始获取用户数据...');
     wx.showLoading({
       title: '加载中',
     });
 
-    return new Promise(async (resolve, reject) => {
+    const request = new Promise(async (resolve, reject) => {
       try {
         // 优先从多个来源获取openid
         let openid = wx.getStorageSync('openid') || getApp().globalData.openid;
@@ -534,17 +549,12 @@ Page({
         if (!openid) {
           console.log('没有openid，调用app.getOpenid()获取');
           const app = getApp();
-          
-          // 调用app.js中的getOpenid方法
-          await new Promise((resolve) => {
-            app.getOpenid();
-            // 等待一段时间让openid获取完成
-            setTimeout(() => {
-              openid = wx.getStorageSync('openid') || app.globalData.openid;
-              console.log('等待后获取的openid:', openid);
-              resolve();
-            }, 2000);
-          });
+
+          try {
+            openid = await app.getOpenid();
+          } catch (error) {
+            console.error('通过app获取openid失败，将使用兼容路径重试', error);
+          }
         }
         
         // 如果还是没有openid，直接调用云函数获取
@@ -638,9 +648,11 @@ Page({
             console.log('过滤后的预约记录:', filteredAppointments);
             console.log('过滤后的预约记录数量:', filteredAppointments.length);
             
-            this.setData({
-              appointments: filteredAppointments
-            });
+            if (this._isPageActive) {
+              this.setData({
+                appointments: filteredAppointments
+              });
+            }
           })
           .catch(err => {
             console.error('获取预约记录失败', err);
@@ -648,18 +660,20 @@ Page({
         
         // 获取作品提交记录
         console.log('开始查询作品提交记录...');
-        const submissionsPromise = db.collection('pottery_submissions')
-          .where({
-            _openid: openid
-          })
-          .get()
-          .then(res => {
-            console.log('作品提交记录查询结果:', res.data);
-            console.log('作品提交记录数量:', res.data.length);
+        const editionId = getApp().globalData.currentEdition && getApp().globalData.currentEdition.editionId;
+        const submissionsPromise = wx.cloud.callFunction({
+          name: 'quickstartFunctions',
+          data: { type: 'fetchAllSubmissions', editionId }
+        }).then(res => {
+            const result = res.result || {};
+            const rows = result.data || [];
+            console.log('作品提交记录数量:', rows.length);
             
-            this.setData({
-              submissions: res.data
-            });
+            if (this._isPageActive) {
+              this.setData({
+                submissions: rows
+              });
+            }
           })
           .catch(err => {
             console.error('获取作品记录失败', err);
@@ -667,17 +681,16 @@ Page({
           
         // 获取作品运送记录
         console.log('开始查询运送记录...');
-        const deliveriesPromise = db.collection('artwork_deliveries')
-          .where({
-            _openid: openid
-          })
-          .get()
-          .then(res => {
-            console.log('运送记录查询结果:', res.data);
-            console.log('运送记录数量:', res.data.length);
+        const deliveriesPromise = wx.cloud.callFunction({
+          name: 'quickstartFunctions',
+          data: { type: 'fetchAllDeliveries', editionId }
+        }).then(res => {
+            const result = res.result || {};
+            const rows = result.data || [];
+            console.log('运送记录数量:', rows.length);
             
             // 处理运送记录数据，确保图片字段为数组类型
-            const processedDeliveries = res.data.map(delivery => {
+            const processedDeliveries = rows.map(delivery => {
               // 处理包裹图片
               let packageImages = delivery.packageImages || [];
               if (typeof packageImages === 'string') {
@@ -714,9 +727,11 @@ Page({
               };
             });
 
-            this.setData({
-              deliveries: processedDeliveries
-            });
+            if (this._isPageActive) {
+              this.setData({
+                deliveries: processedDeliveries
+              });
+            }
           })
           .catch(err => {
             console.error('获取运送记录失败', err);
@@ -739,6 +754,15 @@ Page({
         });
         reject(err);
       }
+    });
+
+    this._userDataRequest = request;
+    return request.then(result => {
+      this._userDataRequest = null;
+      return result;
+    }, error => {
+      this._userDataRequest = null;
+      throw error;
     });
   },
 

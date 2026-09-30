@@ -1,0 +1,14 @@
+<view class="page">
+  <view wx:if="{{loading}}" class="state">正在加载电子画册...</view>
+  <view wx:elif="{{catalogs.length === 0}}" class="state">暂无已发布电子画册</view>
+
+  <view wx:for="{{catalogs}}" wx:key="_id" class="catalog" bindtap="openCatalog" data-url="{{item.url}}" data-title="{{item.title}}">
+    <image wx:if="{{item.cover}}" class="cover" src="{{item.cover}}" mode="aspectFill"></image>
+    <view wx:else class="cover placeholder">暂无封面</view>
+    <view class="body">
+      <view class="title">{{item.title || '未命名画册'}}</view>
+      <view class="meta">{{item.year || ''}} {{item.editionNumber ? '第' + item.editionNumber + '届' : ''}}</view>
+      <view class="desc">{{item.description || '点击打开云展网电子画册'}}</view>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>更新获奖状态</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .stat-card h3 {
+            margin: 0 0 10px 0;
+            color: #666;
+            font-size: 14px;
+        }
+        .stat-card .number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2196F3;
+        }
+        button {
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #1976D2;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+        .result.success {
+            background: #e8f5e9;
+            border: 1px solid #4caf50;
+            display: block;
+        }
+        .result.error {
+            background: #ffebee;
+            border: 1px solid #f44336;
+            display: block;
+        }
+        .result.loading {
+            background: #fff3e0;
+            border: 1px solid #ff9800;
+            display: block;
+        }
+        pre {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .mode-selector {
+            margin: 20px 0;
+        }
+        .mode-selector label {
+            display: inline-block;
+            margin-right: 15px;
+            cursor: pointer;
+        }
+        .mode-selector input[type="radio"] {
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>更新获奖状态</h1>
+        
+        <div class="info">
+            <strong>说明：</strong>此工具将根据获奖名单更新 <code>pottery_submissions_final</code> 表中作品的 <code>status</code> 字段。
+            请确保已上传云函数 <code>updateAwardStatus</code>。
+        </div>
+        
+        <div class="stats" id="stats">
+            <div class="stat-card">
+                <h3>技艺类</h3>
+                <div class="number" id="stat-技艺类">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>文脉类</h3>
+                <div class="number" id="stat-文脉类">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>算法类</h3>
+                <div class="number" id="stat-算法类">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>产业类</h3>
+                <div class="number" id="stat-产业类">-</div>
+            </div>
+        </div>
+        
+        <div class="mode-selector">
+            <strong>执行模式：</strong>
+            <label>
+                <input type="radio" name="mode" value="best-effort" checked>
+                尽力而为（best-effort）- 尽可能多地更新，跳过失败项
+            </label>
+            <label>
+                <input type="radio" name="mode" value="all-or-nothing">
+                全部成功（all-or-nothing）- 全部匹配成功才执行更新
+            </label>
+            <label>
+                <input type="radio" name="mode" value="stop-on-error">
+                遇错停止（stop-on-error）- 遇到错误立即停止
+            </label>
+        </div>
+        
+        <div>
+            <button id="loadBtn" onclick="loadAwardList()">加载获奖名单</button>
+            <button id="updateBtn" onclick="updateStatus()" disabled>更新状态</button>
+        </div>
+        
+        <div id="result" class="result"></div>
+    </div>
+    
+    <script>
+        let awardListData = null;
+        
+        // 加载获奖名单
+        async function loadAwardList() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.className = 'result loading';
+            resultDiv.innerHTML = '<p>正在加载获奖名单...</p>';
+            
+            try {
+                const response = await fetch('其他文件/获奖名单.json');
+                if (!response.ok) {
+                    throw new Error('无法加载获奖名单文件');
+                }
+                
+                awardListData = await response.json();
+                
+                // 更新统计信息
+                document.getElementById('stat-技艺类').textContent = awardListData.技艺类.length;
+                document.getElementById('stat-文脉类').textContent = awardListData.文脉类.length;
+                document.getElementById('stat-算法类').textContent = awardListData.算法类.length;
+                document.getElementById('stat-产业类').textContent = awardListData.产业类.length;
+                
+                const total = awardListData.技艺类.length + awardListData.文脉类.length + 
+                             awardListData.算法类.length + awardListData.产业类.length;
+                
+                resultDiv.className = 'result success';
+                resultDiv.innerHTML = `
+                    <p><strong>✅ 获奖名单加载成功</strong></p>
+                    <p>总计: ${total} 件作品</p>
+                    <p>技艺类: ${awardListData.技艺类.length} 件</p>
+                    <p>文脉类: ${awardListData.文脉类.length} 件</p>
+                    <p>算法类: ${awardListData.算法类.length} 件</p>
+                    <p>产业类: ${awardListData.产业类.length} 件</p>
+                `;
+                
+                document.getElementById('updateBtn').disabled = false;
+                
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `<p><strong>❌ 加载失败</strong></p><p>${error.message}</p>`;
+            }
+        }
+        
+        // 更新状态
+        async function updateStatus() {
+            if (!awardListData) {
+                alert('请先加载获奖名单');
+                return;
+            }
+            
+            const resultDiv = document.getElementById('result');
+            const updateBtn = document.getElementById('updateBtn');
+            const mode = document.querySelector('input[name="mode"]:checked').value;
+            
+            resultDiv.className = 'result loading';
+            resultDiv.innerHTML = '<p>正在更新状态，请稍候...</p>';
+            updateBtn.disabled = true;
+            
+            try {
+                // 检查是否在微信小程序环境中
+                if (typeof wx === 'undefined' || !wx.cloud) {
+                    throw new Error('此功能需要在微信开发者工具中运行，或使用云函数测试工具');
+                }
+                
+                const result = await wx.cloud.callFunction({
+                    name: 'updateAwardStatus',
+                    data: {
+                        awardList: awardListData,
+                        mode: mode
+                    }
+                });
+                
+                const res = result.result;
+                
+                if (res.success) {
+                    resultDiv.className = 'result success';
+                    let html = `<p><strong>✅ ${res.message}</strong></p>`;
+                    html += `<p>总计: ${res.data.total} 件</p>`;
+                    html += `<p>成功: ${res.data.succeeded} 件</p>`;
+                    html += `<p>失败: ${res.data.failed} 件</p>`;
+                    
+                    if (res.data.categoryStats) {
+                        html += '<p><strong>按类别统计：</strong></p><ul>';
+                        for (const [category, stats] of Object.entries(res.data.categoryStats)) {
+                            html += `<li>${category}: ${stats.succeeded}/${stats.total} 成功</li>`;
+                        }
+                        html += '</ul>';
+                    }
+                    
+                    html += '<p><strong>详细结果：</strong></p>';
+                    html += '<pre>' + JSON.stringify(res.data, null, 2) + '</pre>';
+                    
+                    resultDiv.innerHTML = html;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `
+                        <p><strong>❌ ${res.message}</strong></p>
+                        <pre>${JSON.stringify(res, null, 2)}</pre>
+                    `;
+                }
+                
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `
+                    <p><strong>❌ 更新失败</strong></p>
+                    <p>${error.message}</p>
+                    <p><small>提示：如果不在微信开发者工具中，请手动复制以下参数到云函数测试工具：</small></p>
+                    <pre>${JSON.stringify({
+                        awardList: awardListData,
+                        mode: mode
+                    }, null, 2)}</pre>
+                `;
+            } finally {
+                updateBtn.disabled = false;
+            }
+        }
+        
+        // 页面加载时自动加载获奖名单
+        window.onload = function() {
+            loadAwardList();
+        };
+    </script>
+</body>
+</html>
+
+
+
+
+
+

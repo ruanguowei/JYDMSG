@@ -6,7 +6,14 @@ Page({
     loading: false,
     showResult: false,
     qualified: false,
-    resultData: null
+    resultData: null,
+    works: [],
+    editionIndex: 0,
+    editionOptions: [
+      { editionId: 'pottery-2026', label: '第三届' },
+      { editionId: 'pottery-2025', label: '第二届' }
+    ],
+    edition: null
   },
 
   onLoad: function() {
@@ -24,6 +31,12 @@ Page({
   onNameInput: function(e) {
     this.setData({
       name: e.detail.value
+    });
+  },
+
+  onEditionChange: function(e) {
+    this.setData({
+      editionIndex: Number(e.detail.value || 0)
     });
   },
 
@@ -65,7 +78,8 @@ Page({
       name: 'queryWorkStatus',
       data: {
         phone: phone.trim(),
-        name: name.trim()
+        name: name.trim(),
+        editionId: this.data.editionOptions[this.data.editionIndex].editionId
       },
       success: res => {
         this.setData({ loading: false });
@@ -75,7 +89,9 @@ Page({
           this.setData({
             showResult: true,
             qualified: res.result.qualified,
-            resultData: res.result.data || null
+            resultData: res.result.data || null,
+            works: res.result.works || (res.result.data ? [res.result.data] : []),
+            edition: res.result.edition || null
           });
         } else {
           wx.showToast({
@@ -102,8 +118,21 @@ Page({
       phone: '',
       name: '',
       qualified: false,
-      resultData: null
+      resultData: null,
+      works: [],
+      edition: null
     });
+  },
+
+  // 预览证书图片
+  previewCertificate: function(e) {
+    const url = e.currentTarget.dataset.url;
+    if (url) {
+      wx.previewImage({
+        urls: [url],
+        current: url
+      });
+    }
   }
 });
 

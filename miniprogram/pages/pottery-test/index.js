@@ -46,21 +46,22 @@ Page({
       queryResult: '正在查询最新数据...'
     });
     
-    // 获取数据库引用
-    const db = wx.cloud.database();
-    
-    // 查询最新记录
-    db.collection('pottery_submissions')
-      .orderBy('createdAt', 'desc') // 按创建时间降序排列
-      .limit(1) // 只获取一条记录
-      .get()
-      .then(res => {
-        console.log('查询结果:', res.data);
+    wx.cloud.callFunction({
+      name: 'quickstartFunctions',
+      data: {
+        type: 'fetchAllSubmissions',
+        editionId: getApp().globalData.currentEdition && getApp().globalData.currentEdition.editionId
+      }
+    }).then(res => {
+        const result = res.result || {};
+        const rows = result.data || [];
+        const latest = rows[0];
+        console.log('查询结果数量:', rows.length);
         
-        if (res.data && res.data.length > 0) {
+        if (latest) {
           // 格式化JSON数据便于阅读
           this.setData({
-            queryResult: JSON.stringify(res.data[0], null, 2)
+            queryResult: JSON.stringify(latest, null, 2)
           });
         } else {
           this.setData({
@@ -80,4 +81,4 @@ Page({
         });
       });
   }
-}); 
+});

@@ -5,11 +5,19 @@ cloud.init({
 })
 
 const db = cloud.database()
+const { collectionName, publicEdition, resolveEdition } = require('../common/edition')
 
 exports.main = async (event, context) => {
   try {
+    const edition = await resolveEdition(db, {
+      editionId: event && event.editionId,
+      useCurrent: !(event && event.editionId),
+      mode: 'read'
+    })
+    const submissionsCollection = collectionName(edition, 'submissions')
+
     // 获取所有参展申请数据
-    const submissionsResult = await db.collection('pottery_submissions')
+    const submissionsResult = await db.collection(submissionsCollection)
       .orderBy('createdAt', 'desc')
       .get()
     
@@ -85,7 +93,8 @@ exports.main = async (event, context) => {
       success: true,
       downloadUrl: uploadResult.fileID,
       fileName: fileName,
-      recordCount: results.length
+      recordCount: results.length,
+      edition: publicEdition(edition)
     }
     
   } catch (error) {
@@ -148,7 +157,6 @@ function generateCSV(data) {
   
   return csvContent
 }
-
 
 
 

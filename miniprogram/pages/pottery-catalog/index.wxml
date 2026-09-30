@@ -1,0 +1,287 @@
+<!--pages/pottery-catalog/index.wxml-->
+<!-- 3D翻书效果画册 -->
+<view class="catalog-container">
+  <!-- 加载状态 -->
+  <view class="loading-overlay" wx:if="{{loading}}">
+    <view class="loading-content">
+      <view class="book-loading">
+        <view class="book-page"></view>
+        <view class="book-page"></view>
+        <view class="book-page"></view>
+      </view>
+      <text class="loading-text">{{loadingText}}</text>
+      <view class="loading-progress" wx:if="{{loadingProgress > 0}}">
+        <view class="progress-bar">
+          <view class="progress-fill" style="width: {{loadingProgress}}%"></view>
+        </view>
+        <text class="progress-text">{{loadingProgress}}%</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 3D翻书主区域 -->
+  <view 
+    class="book-wrapper"
+    wx:if="{{!loading && pageList.length > 0}}"
+  >
+    <!-- 3D书本容器 -->
+    <view class="book-3d" style="perspective: 2000rpx;">
+      <!-- 翻页层 - 使用touch事件控制 -->
+      <view 
+        class="flip-container"
+        bindtouchstart="onTouchStart"
+        bindtouchmove="onTouchMove"
+        bindtouchend="onTouchEnd"
+      >
+        <!-- 当前显示的页面 -->
+        <view class="book-page right-page" wx:if="{{currentPageData}}">
+          <view class="page-inner {{pageAnimClass}}" style="transition: transform 0.4s ease; transform: rotateY({{flipAngle}}deg);">
+            <!-- 封面页 -->
+            <view class="page cover-page" wx:if="{{currentPageData.type === 'cover'}}">
+              <view class="cover-content">
+                <view class="cover-decoration top-left"></view>
+                <view class="cover-decoration top-right"></view>
+                <view class="cover-logo">
+                  <text class="logo-text">景德镇艺术职业大学</text>
+                  <text class="logo-text-sub">美术馆</text>
+                </view>
+                <view class="cover-title-section">
+                  <text class="cover-subtitle">第二届全国大学生</text>
+                  <text class="cover-title">陶艺作品展</text>
+                  <view class="cover-divider"></view>
+                  <text class="cover-theme">天工开物 · 智韵瓷章</text>
+                </view>
+                <view class="cover-hint">
+                  <text class="hint-text">左右滑动翻页</text>
+                  <text class="cover-year">2025</text>
+                </view>
+                <view class="cover-decoration bottom-left"></view>
+                <view class="cover-decoration bottom-right"></view>
+              </view>
+            </view>
+
+            <!-- 分类过渡页 -->
+            <view class="page divider-page" wx:elif="{{currentPageData.type === 'divider'}}">
+              <view class="divider-content">
+                <view class="divider-bg"></view>
+                <view class="divider-frame">
+                  <view class="frame-corner tl"></view>
+                  <view class="frame-corner tr"></view>
+                  <view class="frame-corner bl"></view>
+                  <view class="frame-corner br"></view>
+                </view>
+                <view class="divider-main">
+                  <view class="category-icon">{{currentPageData.categoryIcon || '◆'}}</view>
+                  <text class="divider-category">{{currentPageData.categoryName}}</text>
+                  <view class="divider-line">
+                    <view class="line-dot"></view>
+                    <view class="line-bar"></view>
+                    <view class="line-dot"></view>
+                  </view>
+                  <text class="divider-count">共 {{currentPageData.count}} 件作品</text>
+                  <text class="divider-desc">{{currentPageData.description}}</text>
+                </view>
+              </view>
+            </view>
+
+            <!-- 作品详情页 -->
+            <view class="page work-page" wx:elif="{{currentPageData.type === 'work'}}">
+              <view class="work-content">
+                <!-- 作品图片区（顶部铺满） -->
+                <view class="work-image-container">
+                  <image 
+                    class="work-image"
+                    src="{{currentPageData.imageUrl}}"
+                    mode="aspectFit"
+                    lazy-load="{{true}}"
+                    show-menu-by-longpress="{{true}}"
+                    bindtap="onImageTap"
+                    data-original-url="{{currentPageData.originalImageUrl}}"
+                    binderror="onImageError"
+                  ></image>
+                </view>
+
+                <!-- 作品信息区 -->
+                <view class="work-info-bottom">
+                  <view class="info-row title-row">
+                    <text class="info-label">作品名称</text>
+                    <text class="info-divider-line">|</text>
+                    <text class="info-value title-value">{{currentPageData.artworkName}}</text>
+                  </view>
+                  <view class="info-row">
+                    <text class="info-label">作者姓名</text>
+                    <text class="info-divider-line">|</text>
+                    <text class="info-value">{{currentPageData.authorName || '未知'}}</text>
+                  </view>
+                  <view class="info-row">
+                    <text class="info-label">所在院校</text>
+                    <text class="info-divider-line">|</text>
+                    <text class="info-value school-value">{{currentPageData.schoolName || '未知'}}</text>
+                  </view>
+                  <view class="info-row" wx:if="{{currentPageData.advisorName}}">
+                    <text class="info-label">指导老师</text>
+                    <text class="info-divider-line">|</text>
+                    <text class="info-value">{{currentPageData.advisorName}}</text>
+                  </view>
+                  <!-- 作品简介 -->
+                  <view class="info-row desc-row" wx:if="{{currentPageData.artworkDescription}}">
+                    <text class="info-label">作品简介</text>
+                    <text class="info-divider-line">|</text>
+                    <text class="info-value desc-value">{{currentPageData.artworkDescription}}</text>
+                  </view>
+                  <!-- 底部信息 -->
+                  <view class="work-bottom-info">
+                    <text class="bottom-text">{{currentPageData.year || '2025'}}年，{{currentPageData.craftMaterial || '陶瓷'}}{{currentPageData.dimensionText ? '，' + currentPageData.dimensionText : ''}}</text>
+                  </view>
+                </view>
+              </view>
+            </view>
+
+            <!-- 尾页 -->
+            <view class="page ending-page" wx:elif="{{currentPageData.type === 'ending'}}">
+              <view class="ending-content">
+                <view class="ending-decoration">
+                  <view class="deco-circle"></view>
+                  <view class="deco-line"></view>
+                </view>
+                <text class="ending-title">感谢观赏</text>
+                <text class="ending-en">Thank You</text>
+                <view class="ending-divider">
+                  <view class="divider-diamond"></view>
+                </view>
+                <text class="ending-subtitle">第二届全国大学生陶艺作品展</text>
+                <view class="ending-info">
+                  <text class="ending-org">指导：教育部体育卫生与艺术教育司</text>
+                  <text class="ending-org">主办：江西省教育厅、景德镇市人民政府</text>
+                  <text class="ending-org">承办：景德镇艺术职业大学、景德镇陶文旅集团</text>
+                  <text class="ending-year">2025</text>
+                </view>
+                <view class="ending-actions">
+                  <view class="action-btn" bindtap="goToStart">
+                    <text class="btn-icon">↺</text>
+                    <text class="btn-text">重新阅读</text>
+                  </view>
+                  <button class="action-btn share-btn" open-type="share">
+                    <text class="btn-icon">↗</text>
+                    <text class="btn-text">分享画册</text>
+                  </button>
+                </view>
+              </view>
+            </view>
+          </view>
+          <!-- 页面阴影效果 -->
+          <view class="page-shadow right"></view>
+          <view class="page-curl"></view>
+        </view>
+      </view>
+
+      <!-- 书脊效果 -->
+      <view class="book-spine"></view>
+    </view>
+
+    <!-- 翻页提示动画 -->
+    <view class="flip-hint {{showFlipHint ? 'show' : ''}}" wx:if="{{currentPage === 0}}">
+      <view class="hint-hand">👆</view>
+      <view class="hint-arrow">→</view>
+    </view>
+  </view>
+
+  <!-- 底部导航栏 -->
+  <view class="bottom-nav" wx:if="{{!loading && totalPages > 0}}">
+    <!-- 上一页 -->
+    <view class="nav-btn {{globalCurrentPage <= 0 ? 'disabled' : ''}}" bindtap="goPrevPage">
+      <view class="nav-icon prev">❮</view>
+    </view>
+    
+    <!-- 进度条 -->
+    <view class="nav-progress" bindtap="showCatalogModal">
+      <view class="progress-track">
+        <view class="progress-thumb" style="left: {{totalPages > 1 ? (globalCurrentPage / (totalPages - 1)) * 100 : 0}}%"></view>
+      </view>
+      <view class="progress-info">
+        <text class="current-page">{{globalCurrentPage + 1}}</text>
+        <text class="page-sep">/</text>
+        <text class="total-pages">{{totalPages}}</text>
+      </view>
+    </view>
+    
+    <!-- 下一页 -->
+    <view class="nav-btn {{globalCurrentPage >= totalPages - 1 ? 'disabled' : ''}}" bindtap="goNextPage">
+      <view class="nav-icon next">❯</view>
+    </view>
+    
+    <!-- 目录按钮 -->
+    <view class="nav-btn catalog-btn" bindtap="showCatalogModal">
+      <view class="nav-icon">☰</view>
+    </view>
+  </view>
+
+  <!-- 目录弹窗 -->
+  <view class="catalog-modal {{showCatalog ? 'show' : ''}}" bindtap="hideCatalogModal">
+    <view class="modal-content" catchtap="preventBubble">
+      <view class="modal-header">
+        <text class="modal-title">目 录</text>
+      </view>
+      
+      <!-- 搜索框 -->
+      <view class="search-box">
+        <view class="search-icon">🔍</view>
+        <input 
+          class="search-input" 
+          type="text" 
+          placeholder="搜索作品名称..." 
+          placeholder-class="search-placeholder"
+          value="{{searchKeyword}}"
+          bindinput="onSearchInput"
+          bindconfirm="onSearchConfirm"
+        />
+        <view class="search-clear" wx:if="{{searchKeyword}}" bindtap="clearSearch">✕</view>
+      </view>
+      
+      <!-- 搜索结果 -->
+      <scroll-view class="search-results" scroll-y="{{true}}" wx:if="{{searchKeyword && searchResults.length > 0}}">
+        <view 
+          class="search-result-item" 
+          wx:for="{{searchResults}}" 
+          wx:key="_id"
+          bindtap="jumpToWork"
+          data-page="{{item.pageIndex}}"
+        >
+          <text class="result-name">{{item.artworkName}}</text>
+          <text class="result-author">{{item.authorName}}</text>
+        </view>
+      </scroll-view>
+      
+      <!-- 无搜索结果提示 -->
+      <view class="search-empty" wx:if="{{searchKeyword && searchResults.length === 0}}">
+        <text class="empty-text">未找到匹配的作品</text>
+      </view>
+      
+      <!-- 分类列表 -->
+      <scroll-view class="modal-body" scroll-y="{{true}}" wx:if="{{!searchKeyword}}">
+        <view class="catalog-section" wx:for="{{catalogSections}}" wx:key="category">
+          <view class="section-item" bindtap="jumpToCategory" data-page="{{item.startPage}}">
+            <view class="section-icon">{{item.icon || '◇'}}</view>
+            <view class="section-info">
+              <text class="section-title">{{item.categoryName}}</text>
+              <text class="section-desc">{{item.description}}</text>
+            </view>
+            <text class="section-count">{{item.count}}件</text>
+            <view class="section-arrow">›</view>
+          </view>
+        </view>
+      </scroll-view>
+    </view>
+  </view>
+
+  <!-- 图片预览蒙层 -->
+  <view class="image-preview {{showImagePreview ? 'show' : ''}}" bindtap="hideImagePreview">
+    <image 
+      class="preview-image" 
+      src="{{previewImageUrl}}" 
+      mode="aspectFit"
+      show-menu-by-longpress="{{true}}"
+    ></image>
+    <view class="preview-close">✕</view>
+  </view>
+</view>

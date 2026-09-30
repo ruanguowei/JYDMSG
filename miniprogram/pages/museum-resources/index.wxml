@@ -1,0 +1,24 @@
+<view class="page-container">
+  <view class="page-heading">
+    <text class="page-kicker">MUSEUM ARCHIVE</text>
+    <text class="page-title">馆藏与档案</text>
+    <text class="page-description">浏览馆藏作品、艺术家档案与电子画册</text>
+  </view>
+
+  <view class="resource-actions">
+    <view class="resource-action-item" bindtap="navigateToMuseumCollections">
+      <view class="resource-action-icon">藏</view>
+      <text class="resource-action-text">馆藏作品</text>
+    </view>
+
+    <view class="resource-action-item" bindtap="navigateToMuseumArtists">
+      <view class="resource-action-icon">艺</view>
+      <text class="resource-action-text">艺术家档案</text>
+    </view>
+
+    <view class="resource-action-item" bindtap="navigateToCatalogLinks">
+      <view class="resource-action-icon">册</view>
+      <text class="resource-action-text">电子画册</text>
+    </view>
+  </view>
+</view>

@@ -1,4 +1,5 @@
 {
+  "__usePrivacyCheck__": true,
   "pages": [
     "pages/home/index",
     "pages/exhibition/index",
@@ -7,6 +8,8 @@
     "pages/pottery-exhibition/index",
     "pages/pottery-query/index",
     "pages/pottery-submission/index",
+    "pages/user-service-agreement/index",
+    "pages/privacy-policy/index",
     "pages/pottery-test/index",
     "pages/submission/index",
     "pages/artwork-delivery/index",
@@ -15,10 +18,24 @@
     "pages/expert-login/index",
     "pages/expert-pledge/index",
     "pages/expert-evaluation/index",
+    "pages/expert-orientation/index",
     "pages/expert-scoring/index",
     "pages/expert-results/index",
     "pages/admin-panel/index",
-    "pages/work-query/index"
+    "pages/admin-tie-review/index",
+    "pages/work-query/index",
+    "pages/pottery-catalog/index",
+    "pages/award-query/index",
+    "pages/museum-resources/index",
+    "pages/museum-collections/index",
+    "pages/museum-collection-detail/index",
+    "pages/museum-artists/index",
+    "pages/museum-artist-detail/index",
+    "pages/catalog-links/index",
+    "pages/web/index"
+  ],
+  "navigateToMiniProgramAppIdList": [
+    "wx9c2d982dec74abe7"
   ],
   "window": {
     "backgroundColor": "#F6F6F6",
@@ -29,7 +46,6 @@
   },
   "sitemapLocation": "sitemap.json",
   "style": "v2",
-  "lazyCodeLoading": "requiredComponents",
   "tabBar": {
     "color": "#999999",
     "selectedColor": "#4b6bfb",

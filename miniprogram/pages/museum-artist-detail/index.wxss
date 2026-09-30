@@ -1,0 +1,96 @@
+page {
+  background: #f6f6f6;
+}
+
+.page {
+  padding: 24rpx;
+}
+
+.state,
+.empty {
+  padding: 70rpx 0;
+  text-align: center;
+  color: #888888;
+  font-size: 28rpx;
+}
+
+.profile,
+.section {
+  padding: 30rpx;
+  margin-bottom: 22rpx;
+  background: #ffffff;
+  border-radius: 8rpx;
+}
+
+.profile {
+  text-align: center;
+}
+
+.avatar {
+  width: 168rpx;
+  height: 168rpx;
+  border-radius: 84rpx;
+  background: #d9d2c3;
+}
+
+.name {
+  margin-top: 24rpx;
+  color: #1f1f1f;
+  font-size: 40rpx;
+  font-weight: 700;
+}
+
+.intro,
+.text {
+  margin-top: 18rpx;
+  color: #444444;
+  font-size: 28rpx;
+  line-height: 1.8;
+  white-space: pre-wrap;
+}
+
+.section-title {
+  color: #1f1f1f;
+  font-size: 32rpx;
+  font-weight: 700;
+}
+
+.work {
+  display: flex;
+  gap: 18rpx;
+  padding: 18rpx 0;
+  border-bottom: 1rpx solid #eeeeee;
+}
+
+.work:last-child {
+  border-bottom: none;
+}
+
+.work image,
+.work-placeholder {
+  width: 150rpx;
+  height: 110rpx;
+  border-radius: 6rpx;
+  flex-shrink: 0;
+}
+
+.work-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #d9d2c3;
+  color: #7a6a55;
+  font-size: 22rpx;
+}
+
+.work-title {
+  color: #1f1f1f;
+  font-size: 30rpx;
+  font-weight: 600;
+}
+
+.work-meta {
+  margin-top: 10rpx;
+  color: #666666;
+  font-size: 24rpx;
+}

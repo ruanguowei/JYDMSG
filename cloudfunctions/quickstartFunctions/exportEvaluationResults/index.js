@@ -6,36 +6,23 @@ cloud.init({
 })
 
 const db = cloud.database()
+const { loadExpertResults, publicEdition } = require('../common/evaluationResults')
 
 exports.main = async (event, context) => {
-  const expertId = event.expertId || context.OPENID
-  
   try {
-    // 获取该专家已评分的所有作品
-    const submissionsResult = await db.collection('pottery_submissions')
-      .where({
-        'evaluations.expertId': expertId
-      })
-      .orderBy('lastEvaluationTime', 'desc')
-      .get()
-    
-    const results = submissionsResult.data.map(item => {
-      // 找到该专家的评分记录
-      const expertEvaluation = item.evaluations.find(eval => eval.expertId === expertId)
-      
-      return {
-        作品标题: item.title,
-        作者姓名: item.authorName,
-        学校名称: item.schoolName,
-        作品分类: getCategoryName(item.category),
-        主题契合度: expertEvaluation.themeFit,
-        创意与表现力: expertEvaluation.creativity,
-        工艺与材料: expertEvaluation.craftsmanship,
-        美感与实用性: expertEvaluation.aesthetics,
-        总分: expertEvaluation.totalScore,
-        评分时间: expertEvaluation.evaluationTime
-      }
+    const expertId = event.expertId || context.OPENID
+    const loaded = await loadExpertResults(db, {
+      expertId,
+      editionId: event.editionId
     })
+    const results = loaded.results.map(item => ({
+      作品标题: item.title,
+      作品分类: item.categoryName,
+      基础分: item.baseScore,
+      扣分: item.deductionScore,
+      最终分: item.totalScore,
+      评分时间: item.evaluationTime
+    }))
     
     // 生成CSV格式数据
     const csvContent = generateCSV(results)
@@ -51,7 +38,8 @@ exports.main = async (event, context) => {
       success: true,
       downloadUrl: uploadResult.fileID,
       fileName: fileName,
-      recordCount: results.length
+      recordCount: results.length,
+      edition: publicEdition(loaded.edition)
     }
     
   } catch (error) {
@@ -61,18 +49,6 @@ exports.main = async (event, context) => {
       message: '导出失败，请重试'
     }
   }
-}
-
-// 获取分类名称
-function getCategoryName(category) {
-  const categoryMap = {
-    'technique': '技艺类',
-    'culture': '文脉类', 
-    'algorithm': '算法类',
-    'industry': '产业类',
-    'vision': '视界类'
-  }
-  return categoryMap[category] || '未知分类'
 }
 
 // 生成CSV内容

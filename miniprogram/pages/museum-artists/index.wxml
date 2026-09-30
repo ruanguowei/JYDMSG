@@ -1,0 +1,20 @@
+<view class="page">
+  <view class="search-bar">
+    <input value="{{keyword}}" placeholder="搜索艺术家姓名或简介" bindinput="onKeywordInput" confirm-type="search" bindconfirm="onSearch" />
+    <button bindtap="onSearch">搜索</button>
+  </view>
+
+  <view wx:if="{{loading}}" class="state">正在加载艺术家档案...</view>
+  <view wx:elif="{{artists.length === 0}}" class="state">暂无已发布艺术家档案</view>
+
+  <view class="artist-list">
+    <view wx:for="{{artists}}" wx:key="_id" class="artist-item" bindtap="openDetail" data-id="{{item._id}}" data-artist-id="{{item.artistId}}">
+      <image wx:if="{{item.avatar}}" class="avatar" src="{{item.avatar}}" mode="aspectFill"></image>
+      <image wx:else class="avatar" src="/images/icons/default-avatar.png" mode="aspectFill"></image>
+      <view class="info">
+        <view class="name">{{item.name || '未命名艺术家'}}</view>
+        <view class="intro">{{item.intro || '暂无简介'}}</view>
+      </view>
+    </view>
+  </view>
+</view>

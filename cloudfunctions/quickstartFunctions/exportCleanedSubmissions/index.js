@@ -7,9 +7,12 @@ cloud.init({
 
 const db = cloud.database()
 const _ = db.command
+const { collectionName, resolveEdition } = require('../common/edition')
 
 exports.main = async (event, context) => {
   try {
+    const edition = await resolveEdition(db, { editionId: event.editionId, useCurrent: !event.editionId, mode: 'read' });
+    const cleanedCollection = collectionName(edition, 'cleaned');
     console.log('=== 开始导出报名数据（从清洗表）===')
     
     // 从清洗表读取数据（不执行清洗操作）
@@ -19,7 +22,7 @@ exports.main = async (event, context) => {
     let hasMore = true
     
     while (hasMore) {
-      const result = await db.collection('pottery_submissions_clean')
+      const result = await db.collection(cleanedCollection)
         .skip(skip)
         .limit(MAX_LIMIT)
         .get()
@@ -147,6 +150,7 @@ exports.main = async (event, context) => {
       downloadUrl: uploadResult.fileID,
       fileName: fileName,
       recordCount: results.length,
+      editionId: edition.editionId,
       message: `成功导出 ${results.length} 条报名数据`
     }
     

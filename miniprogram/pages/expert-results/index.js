@@ -9,11 +9,11 @@ Page({
     selectedCategory: 'all', // 选中的分类
     categories: [
       { key: 'all', name: '全部作品' },
-      { key: 'technique', name: '技艺类' },
-      { key: 'culture', name: '文脉类' },
-      { key: 'algorithm', name: '算法类' },
+      { key: 'technique', name: '传统类' },
+      { key: 'culture', name: '当代类' },
+      { key: 'algorithm', name: '数字类' },
       { key: 'industry', name: '产业类' },
-      { key: 'vision', name: '视界类' }
+      { key: 'vision', name: '国际类' }
     ],
     filteredResults: [], // 筛选后的结果
     stats: {
@@ -60,7 +60,8 @@ Page({
       name: 'quickstartFunctions',
       data: {
         type: 'fetchEvaluationResults',
-        expertId: this.data.expertInfo.expertId
+        expertId: this.data.expertInfo.expertId,
+        editionId: this.data.expertInfo.editionId || 'pottery-2026'
       },
       success: res => {
         this.setData({ loading: false });
@@ -173,7 +174,8 @@ Page({
       name: 'quickstartFunctions',
       data: {
         type: 'exportEvaluationResults',
-        expertId: this.data.expertInfo.expertId
+        expertId: this.data.expertInfo.expertId,
+        editionId: this.data.expertInfo.editionId || 'pottery-2026'
       },
       success: res => {
         wx.hideLoading();

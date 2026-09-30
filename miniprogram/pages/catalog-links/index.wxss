@@ -1,0 +1,58 @@
+page {
+  background: #f6f6f6;
+}
+
+.page {
+  padding: 24rpx;
+}
+
+.state {
+  padding: 90rpx 0;
+  text-align: center;
+  color: #888888;
+  font-size: 28rpx;
+}
+
+.catalog {
+  margin-bottom: 22rpx;
+  background: #ffffff;
+  border-radius: 8rpx;
+  overflow: hidden;
+}
+
+.cover {
+  width: 100%;
+  height: 320rpx;
+  background: #d9d2c3;
+}
+
+.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #7a6a55;
+  font-size: 28rpx;
+}
+
+.body {
+  padding: 26rpx;
+}
+
+.title {
+  color: #1f1f1f;
+  font-size: 34rpx;
+  font-weight: 700;
+}
+
+.meta {
+  margin-top: 12rpx;
+  color: #8a6a3f;
+  font-size: 26rpx;
+}
+
+.desc {
+  margin-top: 14rpx;
+  color: #666666;
+  font-size: 26rpx;
+  line-height: 1.6;
+}

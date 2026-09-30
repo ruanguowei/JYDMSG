@@ -1,0 +1,21 @@
+<view class="page">
+  <view class="search-bar">
+    <input value="{{keyword}}" placeholder="搜索作品、艺术家或介绍" bindinput="onKeywordInput" confirm-type="search" bindconfirm="onSearch" />
+    <button bindtap="onSearch">搜索</button>
+  </view>
+
+  <view wx:if="{{loading}}" class="state">正在加载馆藏作品...</view>
+  <view wx:elif="{{collections.length === 0}}" class="state">暂无已发布馆藏作品</view>
+
+  <view class="collection-list">
+    <view wx:for="{{collections}}" wx:key="_id" class="collection-item" bindtap="openDetail" data-id="{{item._id}}">
+      <image wx:if="{{item.coverImage}}" class="cover" src="{{item.coverImage}}" mode="aspectFill"></image>
+      <view wx:else class="cover placeholder">暂无图片</view>
+      <view class="info">
+        <view class="title">{{item.title || '未命名作品'}}</view>
+        <view class="meta">{{item.artistName || '佚名'}} · {{item.period || '年代未详'}}</view>
+        <view class="desc">{{item.category || '未分类'}} {{item.material ? '｜' + item.material : ''}}</view>
+      </view>
+    </view>
+  </view>
+</view>

@@ -6,13 +6,30 @@ cloud.init({
 })
 
 const db = cloud.database()
+const { buildEditionFields, collectionName, publicEdition, resolveEdition } = require('../common/edition')
 
 /**
  * 创建测试视频作品
  */
 exports.main = async (event, context) => {
+  if (process.env.ENABLE_TEST_DATA !== 'true') {
+    return {
+      success: false,
+      errMsg: '测试数据入口未在当前云环境启用'
+    }
+  }
+
   try {
-    const { count = 5 } = event;  // 默认创建5件视频作品
+    const requestedCount = Number(event && event.count == null ? 5 : event.count);
+    const count = Number.isInteger(requestedCount) && requestedCount > 0 && requestedCount <= 50
+      ? requestedCount
+      : 5;
+    const edition = await resolveEdition(db, {
+      editionId: event && event.editionId,
+      useCurrent: !(event && event.editionId),
+      mode: 'write'
+    });
+    const targetCollection = collectionName(edition, 'cleaned');
     
     console.log('=== 开始创建测试视频作品 ===');
     console.log('创建数量:', count);
@@ -68,9 +85,9 @@ exports.main = async (event, context) => {
         // 初始评分为空
         evaluations: [],
         
-        // 其他字段
-        _openid: 'test_openid_video_' + i,
-        _createdAt: new Date()
+        // 其他字段；_openid 由 CloudBase 自动写入调用者身份
+        _createdAt: new Date(),
+        ...buildEditionFields(edition)
       };
       
       videoWorks.push(videoWork);
@@ -78,7 +95,7 @@ exports.main = async (event, context) => {
     
     // 批量插入到清洗表
     const insertPromises = videoWorks.map(work => 
-      db.collection('pottery_submissions_clean').add({ data: work })
+      db.collection(targetCollection).add({ data: work })
     );
     
     await Promise.all(insertPromises);
@@ -86,24 +103,23 @@ exports.main = async (event, context) => {
     console.log('');
     console.log('=== ✅ 测试视频作品创建完成 ===');
     console.log('创建数量:', videoWorks.length, '件');
-    console.log('已写入清洗表: pottery_submissions_clean');
+    console.log('已写入清洗表:', targetCollection);
     console.log('');
     
     // 输出创建的作品信息
-    videoWorks.forEach((work, index) => {
-      console.log(`视频作品${index + 1}:`, {
-        名称: work.artworkName,
-        分类: work.category,
-        学校: work.school,
-        省份: work.schoolProvinces
-      });
-    });
+    console.log('测试视频作品摘要:', JSON.stringify({
+      count: videoWorks.length,
+      targetCollection,
+      editionId: edition.editionId
+    }));
     
     return {
       success: true,
       message: `成功创建 ${videoWorks.length} 件测试视频作品`,
       data: {
         createdCount: videoWorks.length,
+        edition: publicEdition(edition),
+        collection: targetCollection,
         works: videoWorks.map(w => ({
           name: w.artworkName,
           category: w.category,
