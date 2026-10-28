@@ -1,21 +1,41 @@
-<view class="page">
-  <view wx:if="{{loading}}" class="state">正在加载馆藏详情...</view>
+<view class="page collection-page">
+  <view wx:if="{{loading}}" class="state" role="status">正在加载作品…</view>
+  <view wx:elif="{{error}}" class="state" role="alert">
+    <view>{{error}}</view>
+    <button class="more" hover-class="pressed" bindtap="retry">重新加载</button>
+  </view>
   <block wx:elif="{{item}}">
-    <image wx:if="{{item.coverImage}}" class="hero" src="{{item.coverImage}}" mode="aspectFill" bindtap="previewImage" data-url="{{item.coverImage}}"></image>
-    <view wx:else class="hero placeholder">暂无图片</view>
-
-    <view class="content">
-      <view class="title">{{item.title || '未命名作品'}}</view>
-      <view class="artist" bindtap="openArtist">{{item.artistName || '佚名'}}</view>
-      <view class="meta">{{item.period || '年代未详'}} · {{item.category || '未分类'}}</view>
-      <view class="meta">{{item.material || '材料未详'}} {{item.size ? '｜' + item.size : ''}}</view>
-      <view class="section-title">作品介绍</view>
-      <view class="intro">{{item.intro || item.description || '暂无介绍'}}</view>
+    <view class="hero-wrap">
+      <swiper wx:if="{{images.length}}" class="hero" current="{{imageIndex}}" bindchange="onImageChange" duration="0" aria-label="作品图片，可用下方按钮切换">
+        <swiper-item wx:for="{{images}}" wx:key="*this" wx:for-item="imageUrl" wx:for-index="imagePosition">
+          <image wx:if="{{!failedImages[imagePosition]}}" class="hero" src="{{imageUrl}}" mode="aspectFit" bindtap="previewImage" data-url="{{imageUrl}}" data-index="{{imagePosition}}" binderror="onHeroImageError" aria-label="{{item.title || '作品图片'}}"/>
+          <view wx:else class="hero placeholder">图片暂时无法显示</view>
+        </swiper-item>
+      </swiper>
+      <view wx:else class="hero placeholder">暂无图片</view>
+      <view wx:if="{{images.length > 1}}" class="counter">{{imageIndex + 1}} / {{images.length}}</view>
     </view>
-
-    <view class="detail-images" wx:if="{{item.detailImages && item.detailImages.length > 0}}">
-      <view class="section-title">详情图</view>
-      <image wx:for="{{item.detailImages}}" wx:key="index" src="{{item}}" mode="aspectFill" bindtap="previewImage" data-url="{{item}}"></image>
+    <view wx:if="{{images.length}}" class="image-controls">
+      <block wx:if="{{images.length > 1}}">
+        <button class="image-step" hover-class="pressed" bindtap="previousImage" disabled="{{imageIndex === 0}}" aria-label="上一张作品图片">上一张</button>
+        <button class="image-step" hover-class="pressed" bindtap="nextImage" disabled="{{imageIndex === images.length - 1}}" aria-label="下一张作品图片">下一张</button>
+      </block>
+      <button class="text-action image-action" hover-class="pressed" bindtap="previewImage" loading="{{previewing}}" disabled="{{previewing}}">
+        <text>查看大图</text>
+        <view class="arrow-symbol" aria-hidden="true"></view>
+      </button>
+    </view>
+    <view class="heading">{{item.title || '未命名作品'}}</view>
+    <view wx:if="{{item.artistDocumentId}}" class="author link" hover-class="pressed" bindtap="openArtist" aria-role="button" aria-label="{{'查看作者档案：' + (item.artistName || '佚名')}}">
+      <image wx:if="{{item.artistAvatar && !authorImageFailed}}" class="author-photo" src="{{item.artistAvatar}}" mode="aspectFit" binderror="onAuthorImageError" aria-hidden="true"/>
+      <view wx:else class="author-photo placeholder author-initial" aria-hidden="true">作</view>
+      <text class="author-name">作者 · {{item.artistName || '佚名'}}</text>
+      <view class="arrow-symbol" aria-hidden="true"></view>
+    </view>
+    <view wx:else class="author"><text class="author-name">作者 · {{item.artistName || '佚名'}}</text></view>
+    <view class="section">
+      <view class="section-label">作品介绍</view>
+      <view class="intro">{{item.intro || '暂无介绍'}}</view>
     </view>
   </block>
 </view>

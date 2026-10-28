@@ -1,4 +1,10 @@
 {
-  "navigationBarTitleText": "艺术家档案",
-  "usingComponents": {}
+  "navigationBarTitleText": "景德镇艺术职业大学美术馆",
+  "usingComponents": {},
+  "navigationBarBackgroundColor": "#FFFFFF",
+  "navigationBarTextStyle": "black",
+  "backgroundColor": "#FFFFFF",
+  "backgroundTextStyle": "dark",
+  "enablePullDownRefresh": true,
+  "onReachBottomDistance": 240
 }

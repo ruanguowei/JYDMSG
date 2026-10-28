@@ -91,13 +91,18 @@ App({
   },
 
   loadCurrentEdition: function(options = {}) {
-    const cachedEdition = wx.getStorageSync('currentEdition');
+    const cacheKey = `currentEdition:${getCloudEnv()}:${options.editionId || 'current'}`;
+    const cachedEdition = wx.getStorageSync(cacheKey);
     if (cachedEdition && cachedEdition.editionId && cachedEdition.expiresAt > Date.now()) {
-      this.globalData.currentEdition = cachedEdition.data || cachedEdition;
-      return Promise.resolve(this.globalData.currentEdition);
+      const edition = cachedEdition.data || cachedEdition;
+      if (!options.editionId) this.globalData.currentEdition = edition;
+      return Promise.resolve(edition);
     }
 
-    return new Promise((resolve, reject) => {
+    this._editionRequests = this._editionRequests || {};
+    if (this._editionRequests[cacheKey]) return this._editionRequests[cacheKey];
+
+    const request = new Promise((resolve, reject) => {
       wx.cloud.callFunction({
         name: 'quickstartFunctions',
         data: {
@@ -113,8 +118,9 @@ App({
             return;
           }
 
-          this.globalData.currentEdition = edition;
-          wx.setStorageSync('currentEdition', {
+          // 明确查询历史届次时，不覆盖全局当前届次。
+          if (!options.editionId) this.globalData.currentEdition = edition;
+          wx.setStorageSync(cacheKey, {
             editionId: edition.editionId,
             data: edition,
             expiresAt: Date.now() + 5 * 60 * 1000
@@ -126,6 +132,14 @@ App({
           reject(err);
         }
       });
+    }).then(edition => {
+      delete this._editionRequests[cacheKey];
+      return edition;
+    }).catch(error => {
+      delete this._editionRequests[cacheKey];
+      throw error;
     });
+    this._editionRequests[cacheKey] = request;
+    return request;
   }
 });

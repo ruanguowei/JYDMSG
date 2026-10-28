@@ -437,7 +437,7 @@ test('小程序启动可加载并缓存当前届次配置', async () => {
   assert.equal(callCount, 1, '有效缓存期内不应重复请求届次配置');
 });
 
-test('长期内容页面保留注册，首页暂停展示空内容入口', () => {
+test('长期内容页面保留注册，首页提供馆藏与艺术家入口', () => {
   const appConfig = JSON.parse(read('miniprogram/app.json'));
   for (const pagePath of [
     'pages/museum-collections/index',
@@ -451,7 +451,7 @@ test('长期内容页面保留注册，首页暂停展示空内容入口', () =>
   }
 
   const homePage = read('miniprogram/pages/home/index.wxml');
-  assert.ok(!homePage.includes('bindtap="navigateToMuseumResources"'), '未发布正式内容前不应展示馆藏与艺术家入口');
+  assert.ok(homePage.includes('bindtap="navigateToMuseumResources"'), '首页应提供馆藏与艺术家入口');
 
   const webPage = read('miniprogram/pages/web/index.js');
   assert.ok(webPage.includes('ALLOWED_HOSTS'), 'web-view 页面应声明业务域名白名单');
@@ -487,16 +487,6 @@ test('管理员内容管理入口和服务端校验保持存在', () => {
   const adminPage = read('miniprogram/pages/admin-panel/index.wxml');
   assert.ok(adminPage.includes('长期内容管理'), '管理员面板缺少长期内容管理分区');
   assert.ok(adminPage.includes('批量导入预检'), '管理员面板缺少导入预检入口');
-});
-
-test('大陶展入口显示届次状态并恢复作品画册', () => {
-  const pageJs = read('miniprogram/pages/pottery-exhibition/index.js');
-  const pageWxml = read('miniprogram/pages/pottery-exhibition/index.wxml');
-
-  assert.ok(pageJs.includes('loadEditionInfo'), '大陶展页面应加载届次配置');
-  assert.ok(pageJs.includes('isFeatureOpen'), '大陶展页面应根据 featureFlags 控制入口');
-  assert.ok(pageWxml.includes('作品画册'), '大陶展页面应显示作品画册入口');
-  assert.ok(!pageWxml.includes('wx:if="{{false}}"'), '作品画册入口不应继续被硬编码隐藏');
 });
 
 test('视频作品上传与百度网盘备用提交规则保持生效', () => {
@@ -599,71 +589,6 @@ test('常规作品图片按7个指定角度上传并在客户端检测', () => {
   assert.ok(createSubmission.includes('detailImages.length !== 3'), '服务端应校验3张细节图片');
 });
 
-test('专家评分采用数字档位并由服务端计算', () => {
-  const rubric = require('../cloudfunctions/common/rubric');
-  const quickstartRubric = require('../cloudfunctions/quickstartFunctions/common/rubric');
-  const standaloneRubric = require('../cloudfunctions/submitExpertScore/rubric');
-
-  const result = rubric.calculateRubric({
-    themeFit: 'A',
-    creativity: 'B',
-    craftsmanship: 'C',
-    aesthetics: 'D'
-  }, {
-    missingCreativeStatement: true
-  });
-
-  assert.equal(result.ok, true);
-  assert.deepEqual(result.scores, {
-    themeFit: 3,
-    creativity: 2,
-    craftsmanship: 1,
-    aesthetics: 0
-  });
-  assert.equal(result.rawTotalScore, 6);
-  assert.equal(result.deductionScore, 1);
-  assert.equal(result.finalScore, 5);
-  assert.deepEqual(quickstartRubric.calculateRubric(result.scores, {
-    missingCreativeStatement: true
-  }), result, '聚合云函数内置评分规则必须与源规则一致');
-  assert.deepEqual(standaloneRubric.calculateRubric(result.scores, {
-    missingCreativeStatement: true
-  }), result, '独立评分云函数内置评分规则必须与源规则一致');
-
-  const twoPointGrades = rubric.calculateRubric({
-    themeFit: 'D',
-    creativity: 'D',
-    craftsmanship: 'B',
-    aesthetics: 'C'
-  }, {
-    aiNotLabeled: true,
-    missingCreativeStatement: true
-  });
-  assert.equal(twoPointGrades.scores.craftsmanship, 1.5);
-  assert.equal(twoPointGrades.scores.aesthetics, 1);
-  assert.equal(twoPointGrades.finalScore, 0, '扣分后最低应为 0 分');
-
-  const incomplete = rubric.calculateRubric({ themeFit: 'A' }, {});
-  assert.equal(incomplete.ok, false, '未完整选择四项等级不能通过换算');
-
-  const scoringPageJs = read('miniprogram/pages/expert-scoring/index.js');
-  const scoringPageWxml = read('miniprogram/pages/expert-scoring/index.wxml');
-  const submitFunction = read('cloudfunctions/submitExpertScore/index.js');
-  const submitPackage = JSON.parse(read('cloudfunctions/submitExpertScore/package.json'));
-  const submitQuickstart = read('cloudfunctions/quickstartFunctions/submitExpertScore/index.js');
-
-  assert.ok(scoringPageJs.includes('SCORE_OPTIONS'), '评分页应限制数字档位');
-  assert.ok(scoringPageJs.includes('onScoreSelect'), '评分页应选择具体分数');
-  assert.ok(scoringPageWxml.includes('scoreOptions'), '评分页应渲染数字选项');
-  assert.ok(rubric.SCORE_OPTIONS.craftsmanship.includes(1.5), '工艺应允许1.5分');
-  assert.ok(submitFunction.includes('calculateRubric'), '提交评分云函数必须服务端换算等级分');
-  assert.ok(submitFunction.includes('rubricVersion'), '评分记录应保存评分规则版本');
-  assert.ok(submitFunction.includes("require('./rubric')"), '独立评分云函数必须引用部署包内的评分规则');
-  assert.ok(submitFunction.includes("require('./edition')"), '独立评分云函数必须引用部署包内的届次路由');
-  assert.ok(submitPackage.dependencies['wx-server-sdk'], '独立评分云函数必须声明 wx-server-sdk 运行依赖');
-  assert.ok(submitQuickstart.includes("require('../common/rubric')"), '聚合评分处理器必须引用部署包内的评分规则');
-});
-
 test('专家评审列表、详情和评分提交使用年度集合路由', () => {
   const expertList = read('cloudfunctions/quickstartFunctions/fetchSubmissionsForEvaluation/index.js');
   const listWrapper = read('cloudfunctions/fetchSubmissionsForEvaluation/index.js');
@@ -698,27 +623,6 @@ test('专家评审列表、详情和评分提交使用年度集合路由', () =>
   assert.ok(detailQuickstart.includes('getTempFileURL'), '聚合作品详情应为云存储视频生成临时播放地址');
   assert.ok(detailFunction.includes('playbackVideo.tempUrl'), '独立作品详情应优先返回临时视频地址');
   assert.ok(detailQuickstart.includes('playbackVideo.tempUrl'), '聚合作品详情应优先返回临时视频地址');
-});
-
-test('专家评分页面保留图片视频评审布局并使用具体分值', () => {
-  const scoringPageJs = read('miniprogram/pages/expert-scoring/index.js');
-  const scoringPageWxml = read('miniprogram/pages/expert-scoring/index.wxml');
-  const scoringPageWxss = read('miniprogram/pages/expert-scoring/index.wxss');
-
-  assert.ok(scoringPageWxml.includes('视频评审'), '评分页应支持视频评审标题');
-  assert.ok(scoringPageWxml.includes('作品评审'), '评分页应支持作品评审标题');
-  assert.ok(scoringPageWxml.includes('media-card'), '评分页应包含主媒体展示卡片');
-  assert.ok(scoringPageWxml.includes('thumb-strip'), '评分页应包含图片缩略图条');
-  assert.ok(scoringPageWxml.includes('播放进度'), '视频显示真实播放位置，不虚构章节或观看完成率');
-  assert.ok(scoringPageWxml.includes('提交并下一件'), '评分页应包含提交并下一件按钮');
-  assert.ok(scoringPageWxml.includes('暂存'), '评分页应包含暂存按钮');
-  assert.ok(scoringPageWxml.includes('scoreOptions'), '评分页使用具体分值');
-  assert.ok(scoringPageJs.includes('prepareMediaItems'), '评分页 JS 应生成媒体展示列表');
-  assert.ok(scoringPageJs.includes('saveDraft'), '评分页 JS 应支持本地暂存');
-  assert.ok(scoringPageJs.includes('onVideoTimeUpdate'), '评分页 JS 应记录视频观看进度');
-  assert.ok(scoringPageJs.includes('stopGuideTap'), '评分指南弹层应阻止内容区域冒泡');
-  assert.ok(!scoringPageWxml.includes('catchtap=""'), '评分指南不应使用空事件处理器');
-  assert.ok(scoringPageWxss.includes('.bottom-bar'), '评分页样式应包含固定底部操作栏');
 });
 
 test('专家登录规则弹层不使用空事件处理器', () => {

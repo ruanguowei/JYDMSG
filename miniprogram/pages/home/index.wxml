@@ -1,8 +1,12 @@
+<view class="home-content">
 <!-- 轮播图 -->
 <view class="banner">
-  <swiper wx:if="{{banners.length > 0}}" indicator-dots="{{true}}" autoplay="{{true}}" interval="{{3000}}" duration="{{500}}">
+  <swiper wx:if="{{hasBanners}}" current="{{bannerCurrent}}" bindchange="onBannerChange" indicator-dots="{{true}}" autoplay="{{bannerAutoplay}}" interval="{{3000}}" duration="{{500}}">
     <swiper-item wx:for="{{banners}}" wx:key="_id">
-      <image src="{{item.imageUrl}}" mode="aspectFill" lazy-load="{{true}}"></image>
+      <view wx:if="{{!item.imageLoaded}}" class="banner-image-placeholder">
+        <text wx:if="{{item.imageFailed}}">图片暂时无法加载</text>
+      </view>
+      <image wx:if="{{item.shouldLoad}}" src="{{item.imageUrl}}" data-index="{{index}}" data-src="{{item.imageUrl}}" mode="aspectFill" lazy-load="{{false}}" bindload="onBannerLoad" binderror="onBannerError" class="banner-image {{item.imageLoaded ? 'is-loaded' : ''}}"></image>
     </swiper-item>
   </swiper>
   <view wx:else class="banner-placeholder">    <view class="empty-banner"></view>  </view>
@@ -16,34 +20,45 @@
 <!-- 快捷入口 -->
 <view class="quick-actions">
   <!-- 预约参观按钮 -->
-  <view class="quick-action-item" bindtap="navigateToAppointment">
+  <view class="quick-action-item" bindtap="navigateToAppointment" hover-class="quick-action-pressed" aria-role="button" aria-label="预约参观">
     <view class="quick-action-icon">
-      <image src="../../images/icons/calendar.png" mode="aspectFit" class="icon-image"></image>
+      <image src="../../images/icons/calendar.png" mode="aspectFit" class="icon-image" aria-hidden="true"></image>
     </view>
     <text class="quick-action-text">预约参观</text>
   </view>
   
   <!-- 大陶展专区按钮 -->
-  <view class="quick-action-item" bindtap="navigateToPotteryExhibition">
+  <view class="quick-action-item" bindtap="navigateToPotteryExhibition" hover-class="quick-action-pressed" aria-role="button" aria-label="大陶展专区">
     <view class="quick-action-icon">
-      <image src="../../images/icons/jar-active.png" mode="aspectFit" class="icon-image"></image>
+      <image src="../../images/icons/jar-active.png" mode="aspectFit" class="icon-image" aria-hidden="true"></image>
     </view>
     <text class="quick-action-text">大陶展专区</text>
   </view>
 
-  <!-- 馆藏作品与艺术家档案尚未发布正式内容，运营入口暂不展示。 -->
+  <view class="quick-action-item" bindtap="navigateToMuseumResources" hover-class="quick-action-pressed" aria-role="button" aria-label="馆藏与艺术家">
+    <view class="quick-action-icon">
+      <image src="../../images/icons/museum-collection.png" mode="aspectFit" class="icon-image" aria-hidden="true"></image>
+    </view>
+    <text class="quick-action-text">馆藏与艺术家</text>
+  </view>
 </view>
 
 <!-- 公告栏 -->
 <view class="notice-board">
   <view class="notice-title">最新公告</view>
   <view class="notice-list">
-    <view wx:if="{{notices.length === 0}}" class="notice-empty">暂无公告</view>
-    <view wx:for="{{notices}}" wx:key="_id" class="notice-item" bindtap="showNoticeDetail" data-id="{{index}}">
-      <text class="notice-dot"></text>
+    <view wx:if="{{noticesEmpty}}" class="notice-empty">暂无公告</view>
+    <view wx:for="{{visibleNotices}}" wx:key="_id" class="notice-item" bindtap="showNoticeDetail" data-id="{{index}}" hover-class="notice-item-pressed" aria-role="button" aria-label="{{item.title}}">
+      <view class="notice-dot" aria-hidden="true"></view>
       <text class="notice-text">{{item.title}}</text>
+      <view class="notice-arrow" aria-hidden="true"></view>
     </view>
   </view>
+  <view wx:if="{{hasMoreNotices}}" class="notice-more" bindtap="toggleNotices" hover-class="notice-more-pressed" aria-role="button" aria-label="{{noticesExpanded ? '收起更多公告' : '展开更多公告'}}">
+    <text>{{noticesExpanded ? '收起' : '展开更多'}}</text>
+    <view class="notice-more-arrow {{noticesExpanded ? 'is-expanded' : ''}}" aria-hidden="true"></view>
+  </view>
+</view>
 </view>
 
 <!-- 公告详情弹窗 -->

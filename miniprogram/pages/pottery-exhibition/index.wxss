@@ -3,32 +3,28 @@ page {
   padding-bottom: 100rpx;
 }
 
-.loading {  
-  position: fixed;  
-  top: 0;  
-  left: 0;  
-  right: 0;  
-  bottom: 0;  
-  background: rgba(255,255,255,0.8);  
-  display: flex;  
-  justify-content: center;  
-  align-items: center;  
-  z-index: 999;
+.page-loading {
+  position: relative;
 }
 
-.loading-spinner {  
-  width: 80rpx;  
-  height: 80rpx;  
-  border: 8rpx solid #f3f3f3;  
-  border-top: 8rpx solid #4b6bfb;  
-  border-radius: 50%;  
-  animation: spin 1s linear infinite;
+.skeleton, .skeleton-line, .skeleton-icon {
+  background: #e8ebef;
 }
 
-@keyframes spin {  
-  0% { transform: rotate(0deg); }  
-  100% { transform: rotate(360deg); }
+.skeleton-line {
+  height: 28rpx;
+  border-radius: 8rpx;
+  margin-bottom: 24rpx;
 }
+.skeleton-title { height: 40rpx; width: 85%; }
+.skeleton-short { width: 65%; margin-bottom: 0; }
+.skeleton-icon { height: 80rpx; width: 80rpx; border-radius: 16rpx; margin-bottom: 24rpx; }
+.skeleton-label { height: 26rpx; width: 104rpx; margin-bottom: 0; }
+.skeleton-action { box-shadow: none; }
+.loading-message { padding: 0 48rpx 32rpx; color: #666; font-size: 28rpx; text-align: center; }
+.page-state { padding: 160rpx 48rpx 64rpx; color: #666; font-size: 30rpx; line-height: 1.6; text-align: center; }
+.retry-button { margin-top: 40rpx; background: #fff; color: #333; font-size: 30rpx; min-height: 88rpx; }
+.retry-pressed { opacity: .65; }
 
 .banner-placeholder {  
   width: 100%;  
@@ -48,9 +44,14 @@ page {
 }
 
 .exhibition-banner image {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
 }
+.banner-image { opacity: 0; }
+.banner-image.is-loaded { opacity: 1; }
 
 .exhibition-info {
   margin: 0 48rpx;

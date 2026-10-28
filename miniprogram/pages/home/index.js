@@ -1,9 +1,17 @@
 const app = getApp()
+const { buildBannerImage } = require('../../utils/banner-image');
 
 Page({
   data: {
     banners: [],
+    hasBanners: false,
+    bannerCurrent: 0,
+    bannerAutoplay: false,
     notices: [],
+    visibleNotices: [],
+    noticesExpanded: false,
+    hasMoreNotices: false,
+    noticesEmpty: true,
     loading: true,
     showModal: false,
     currentNotice: null,
@@ -42,10 +50,60 @@ Page({
 
   navigateToMuseumResources: function() {
     wx.navigateTo({
-      url: '/pages/museum-resources/index'
+      url: '/pages/museum-collections/index'
     });
   },
+
+  onBannerChange: function(e) {
+    const current = e.detail.current;
+    if (!Number.isInteger(current) || !this.data.banners[current]) return;
+    const patch = { bannerCurrent: current };
+    patch[`banners[${current}].shouldLoad`] = true;
+    if (this.data.banners[current].imageLoaded || this.data.banners[current].imageFailed) {
+      patch[`banners[${(current + 1) % this.data.banners.length}].shouldLoad`] = true;
+    }
+    this.setData(patch);
+  },
+
+  onBannerLoad: function(e) {
+    const index = Number(e.currentTarget.dataset.index);
+    const banner = this.data.banners[index];
+    if (!banner || e.currentTarget.dataset.src !== banner.imageUrl) return;
+    const patch = {};
+    patch[`banners[${index}].imageLoaded`] = true;
+    patch[`banners[${index}].imageFailed`] = false;
+    // 第一张显示后才轮播，并预加载紧邻的一张，避免同时下载全部横幅。
+    if (index === 0) patch.bannerAutoplay = this.data.banners.length > 1;
+    const next = (index + 1) % this.data.banners.length;
+    if (index === this.data.bannerCurrent) patch[`banners[${next}].shouldLoad`] = true;
+    this.setData(patch);
+  },
+
+  onBannerError: function(e) {
+    const index = Number(e.currentTarget.dataset.index);
+    const banner = this.data.banners[index];
+    if (!banner || e.currentTarget.dataset.src !== banner.imageUrl) return;
+    const patch = {};
+    if (banner.imageUrl !== banner.originalImageUrl) {
+      patch[`banners[${index}].imageUrl`] = banner.originalImageUrl;
+    } else {
+      patch[`banners[${index}].imageFailed`] = true;
+      if (index === 0) patch.bannerAutoplay = this.data.banners.length > 1;
+      const next = (index + 1) % this.data.banners.length;
+      if (index === this.data.bannerCurrent) patch[`banners[${next}].shouldLoad`] = true;
+    }
+    this.setData(patch);
+  },
   
+  // 展开或收起已加载的公告
+  toggleNotices: function() {
+    const noticesExpanded = !this.data.noticesExpanded;
+    this.setData({
+      noticesExpanded,
+      visibleNotices: noticesExpanded ? this.data.notices : this.data.notices.slice(0, 3)
+    });
+  },
+
   // 显示公告详情弹窗
   showNoticeDetail: function(e) {
     const index = e.currentTarget.dataset.id;
@@ -299,10 +357,23 @@ Page({
 
         if (res.result && res.result.success) {
           const { banners, announcements, appointmentEnabled } = res.result.data;
+          const notices = announcements || [];
+          const displayBanners = (banners || []).filter(banner => banner && banner.imageUrl).map((banner, index) => ({
+            ...banner,
+            ...buildBannerImage(banner.imageUrl),
+            shouldLoad: index === 0
+          }));
           
           this.setData({
-            banners: banners || [],
-            notices: announcements || [],
+            banners: displayBanners,
+            hasBanners: displayBanners.length > 0,
+            bannerCurrent: 0,
+            bannerAutoplay: false,
+            notices,
+            visibleNotices: notices.slice(0, 3),
+            noticesExpanded: false,
+            hasMoreNotices: notices.length > 3,
+            noticesEmpty: notices.length === 0,
             appointmentEnabled: appointmentEnabled !== false, // 默认为 true
             loading: false
           });

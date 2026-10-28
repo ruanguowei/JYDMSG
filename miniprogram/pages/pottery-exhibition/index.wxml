@@ -1,18 +1,33 @@
-<!-- 加载状态 -->
-<view wx:if="{{loading}}" class="loading">
-  <view class="loading-spinner"></view>
+<!-- 首次加载只展示原位占位，不绘制旧展览和默认入口。 -->
+<view wx:if="{{loading}}" class="page-loading" role="status">
+  <view aria-hidden="true">
+    <view class="exhibition-banner skeleton"></view>
+    <view class="exhibition-info">
+      <view class="skeleton-line skeleton-title"></view>
+      <view class="skeleton-line"></view>
+      <view class="skeleton-line skeleton-short"></view>
+    </view>
+    <view class="action-buttons">
+      <view wx:for="{{[0,1,2,3,4,5,6,7]}}" wx:key="*this" class="action-btn skeleton-action">
+        <view class="skeleton-icon"></view>
+        <view class="skeleton-line skeleton-label"></view>
+      </view>
+    </view>
+  </view>
+  <view class="loading-message">正在加载展览信息…</view>
 </view>
 
+<view wx:elif="{{loadError}}" class="page-state" role="alert">
+  <view>{{loadError}}</view>
+  <button class="retry-button" bindtap="retryLoad" hover-class="retry-pressed">重新加载</button>
+</view>
+
+<block wx:elif="{{contentReady}}">
 <!-- 展览横幅 -->
 <view class="exhibition-banner">
-  <block wx:if="{{exhibition.bannerImageUrl}}">
-    <image src="{{exhibition.bannerImageUrl}}" mode="aspectFill"></image>
-  </block>
-  <block wx:else>
-    <view class="banner-placeholder">加载中...</view>
-  </block>
+  <view wx:if="{{!banner.imageLoaded || banner.imageFailed}}" class="banner-placeholder">{{banner.imageUrl && !banner.imageFailed ? '图片加载中…' : '大陶展专区'}}</view>
+  <image wx:if="{{banner.imageUrl && !banner.imageFailed}}" class="banner-image {{banner.imageLoaded ? 'is-loaded' : ''}}" src="{{banner.imageUrl}}" data-url="{{banner.imageUrl}}" mode="aspectFill" bindload="onBannerLoad" binderror="onBannerError"></image>
 </view>
-
 <!-- 大陶展介绍 -->
 <view class="exhibition-info">
   <view class="exhibition-title">{{exhibition.title}}</view>
@@ -54,3 +69,4 @@
     <text class="action-text">历届作品</text>
   </view>
 </view>
+</block>

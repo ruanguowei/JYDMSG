@@ -1,20 +1,44 @@
 <view class="page">
-  <view class="search-bar">
-    <input value="{{keyword}}" placeholder="搜索艺术家姓名或简介" bindinput="onKeywordInput" confirm-type="search" bindconfirm="onSearch" />
-    <button bindtap="onSearch">搜索</button>
+  <view class="module-nav">
+    <view class="module-button" hover-class="pressed" aria-role="button" aria-label="查看馆藏" data-module="collections" bindtap="switchModule">馆藏</view>
+    <view class="module-button artists-tab active" hover-class="pressed" aria-role="button" aria-label="艺术家，当前模块" data-module="artists" bindtap="switchModule">艺术家</view>
   </view>
-
-  <view wx:if="{{loading}}" class="state">正在加载艺术家档案...</view>
-  <view wx:elif="{{artists.length === 0}}" class="state">暂无已发布艺术家档案</view>
-
-  <view class="artist-list">
-    <view wx:for="{{artists}}" wx:key="_id" class="artist-item" bindtap="openDetail" data-id="{{item._id}}" data-artist-id="{{item.artistId}}">
-      <image wx:if="{{item.avatar}}" class="avatar" src="{{item.avatar}}" mode="aspectFill"></image>
-      <image wx:else class="avatar" src="/images/icons/default-avatar.png" mode="aspectFill"></image>
-      <view class="info">
-        <view class="name">{{item.name || '未命名艺术家'}}</view>
-        <view class="intro">{{item.intro || '暂无简介'}}</view>
+  <view class="search">
+    <view class="search-symbol" aria-hidden="true"></view>
+    <input aria-label="搜索艺术家姓名" maxlength="80" value="{{keyword}}" placeholder="艺术家姓名" placeholder-class="search-placeholder" bindinput="onKeywordInput" confirm-type="search" bindconfirm="onSearch"/>
+    <button class="search-button" hover-class="pressed" bindtap="onSearch">搜索</button>
+  </view>
+  <block wx:if="{{loading}}">
+    <view aria-hidden="true">
+      <view wx:for="{{[0,1,2]}}" wx:key="*this" class="artist-row">
+        <view class="artist-info">
+          <view class="skeleton-line"></view>
+          <view class="skeleton-line"></view>
+          <view class="skeleton-line short"></view>
+        </view>
+        <view class="avatar skeleton"></view>
       </view>
     </view>
+    <view class="loading-label" role="status">正在加载艺术家…</view>
+  </block>
+  <view wx:elif="{{artists.length === 0 && !error}}" class="state">
+    <view>{{appliedKeyword ? '没有找到相关艺术家' : '暂无公开艺术家档案，敬请期待'}}</view>
+    <button wx:if="{{appliedKeyword}}" class="more" hover-class="pressed" bindtap="clearSearch">清空搜索</button>
   </view>
+  <view wx:else>
+    <view wx:for="{{artists}}" wx:key="_id" class="artist-row" data-id="{{item._id}}" bindtap="openDetail" hover-class="pressed" aria-role="button" aria-label="{{'查看艺术家：' + (item.name || '未命名艺术家')}}">
+      <view class="artist-info">
+        <view class="artist-name">{{item.name || '未命名艺术家'}}</view>
+        <view class="intro excerpt">{{item.intro || '暂无简介'}}</view>
+      </view>
+      <image wx:if="{{item.avatar && !item.imageFailed}}" class="avatar" src="{{item.avatar}}" mode="aspectFit" lazy-load="{{true}}" data-index="{{index}}" data-url="{{item.avatar}}" binderror="onListImageError" aria-label="{{item.name || '艺术家照片'}}"/>
+      <view wx:else class="avatar placeholder">暂无照片</view>
+    </view>
+  </view>
+  <view wx:if="{{error}}" class="state {{artists.length ? 'compact' : ''}}" role="alert">
+    <view>{{error}}</view>
+    <button class="more" hover-class="pressed" bindtap="retry">重新加载</button>
+  </view>
+  <button wx:if="{{!loading && hasMore && !error}}" class="more" hover-class="pressed" bindtap="loadMore" loading="{{loadingMore}}" disabled="{{loadingMore}}">{{loadingMore ? '正在加载' : '加载更多'}}</button>
+  <view wx:if="{{!loading && !hasMore && !error && artists.length}}" class="end-note">已显示全部艺术家</view>
 </view>

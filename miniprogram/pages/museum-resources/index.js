@@ -1,7 +1,11 @@
 Page({
+  data: {error:''},
+  // Preserve existing bookmarks while the new museum module opens directly.
+  onLoad() { this.navigateToMuseumCollections(); },
   navigateToMuseumCollections() {
-    wx.navigateTo({
-      url: '/pages/museum-collections/index'
+    wx.redirectTo({
+      url: '/pages/museum-collections/index',
+      fail: () => this.setData({error:'馆藏页面暂时无法打开，请重试'})
     });
   },
 

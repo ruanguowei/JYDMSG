@@ -1,69 +1,89 @@
 // pages/pottery-exhibition/index.js
 const app = getApp();
+const { buildBannerImage } = require('../../utils/banner-image');
 
 Page({
   data: {
     exhibition: {
-      title: '2024景德镇国际大陶展',
-      description: '景德镇国际大陶展是展示陶瓷艺术的国际性平台，汇集世界各地的优秀陶瓷艺术作品。欢迎艺术家和爱好者参与此次盛会，共同探索陶瓷艺术的无限可能。',
-      timeRange: '2024年5月1日 - 6月30日',
-      bannerImageUrl: '' // 默认为空，将从云函数获取
+      title: '',
+      description: '',
+      bannerImageUrl: ''
     },
-    schedules: [
-      {
-        date: '5月1日',
-        event: '开幕式',
-        desc: '国际陶瓷艺术大师见面会及作品展示'
-      },
-      {
-        date: '5月15日',
-        event: '陶艺工作坊',
-        desc: '专业陶艺家现场教学，零基础可参与'
-      },
-      {
-        date: '6月10日',
-        event: '评选活动',
-        desc: '最佳陶瓷作品评选及颁奖仪式'
-      }
-    ],
+    schedules: [],
+    banner: { imageUrl: '', originalImageUrl: '', imageLoaded: false, imageFailed: false },
     loading: true,
-    currentEdition: {
-      editionId: 'pottery-2026',
-      editionNumber: 3,
-      title: '第三届全国大学生陶艺作品展',
-      status: 'preparing',
-      featureFlags: {}
-    }
+    contentReady: false,
+    loadError: '',
+    currentEdition: null
   },
   
   onLoad: function() {
-    // 页面加载时调用云函数获取展览信息
-    this.fetchExhibitionInfo();
-    this.loadEditionInfo();
+    this._unloaded = false;
+    return this.loadPageData();
+  },
+
+  onUnload: function() {
+    this._unloaded = true;
+  },
+
+  loadPageData: function() {
+    // 展览内容和入口配置必须一起就绪；同一轮加载只发起一组请求。
+    if (this._loadRequest) return this._loadRequest;
+    this.setData({ loading: true, loadError: '', contentReady: false });
+    const request = Promise.all([this.fetchExhibitionInfo(), this.loadEditionInfo()])
+      .then(([content, edition]) => {
+        if (this._unloaded) return;
+        this.setData({
+          exhibition: content.exhibition,
+          schedules: Array.isArray(content.schedules) ? content.schedules : [],
+          banner: buildBannerImage(content.exhibition.bannerImageUrl),
+          currentEdition: edition,
+          contentReady: true,
+          loading: false
+        });
+      }).catch(error => {
+        if (this._unloaded) return;
+        console.warn('加载大陶展信息失败:', error);
+        this.setData({ loading: false, contentReady: false, loadError: '展览信息暂时无法加载，请重试。' });
+      }).then(() => {
+        if (this._loadRequest === request) this._loadRequest = null;
+      });
+    this._loadRequest = request;
+    return request;
+  },
+
+  retryLoad: function() {
+    return this.loadPageData();
   },
 
   loadEditionInfo: function() {
-    const fallback = app.globalData && app.globalData.currentEdition;
-    if (fallback) {
-      this.applyEditionInfo(fallback);
-    }
-
-    if (app.loadCurrentEdition) {
-      app.loadCurrentEdition().then(edition => {
-        this.applyEditionInfo(edition);
-      }).catch(error => {
-        console.warn('获取当前届次配置失败，使用本地兜底:', error);
-      });
-    }
-  },
-
-  applyEditionInfo: function(edition) {
-    this.setData({
-      currentEdition: edition
+    return Promise.resolve().then(() => {
+      if (typeof app.loadCurrentEdition !== 'function') throw new Error('当前届次配置服务不可用');
+      return app.loadCurrentEdition();
+    }).then(edition => {
+      if (!edition || !edition.editionId) throw new Error('未返回有效届次配置');
+      return edition;
     });
   },
 
+  onBannerLoad: function(e) {
+    if (this._unloaded || e.currentTarget.dataset.url !== this.data.banner.imageUrl) return;
+    this.setData({ 'banner.imageLoaded': true, 'banner.imageFailed': false });
+  },
+
+  onBannerError: function(e) {
+    const banner = this.data.banner;
+    if (this._unloaded || e.currentTarget.dataset.url !== banner.imageUrl) return;
+    if (banner.originalImageUrl && banner.imageUrl !== banner.originalImageUrl) {
+      // 展示图失败只回退原图一次，原图失败后显示稳定占位。
+      this.setData({ 'banner.imageUrl': banner.originalImageUrl, 'banner.imageLoaded': false, 'banner.imageFailed': false });
+    } else {
+      this.setData({ 'banner.imageFailed': true, 'banner.imageLoaded': false });
+    }
+  },
+
   isFeatureOpen: function(feature) {
+    if (!this.data.contentReady || !this.data.currentEdition) return false;
     const flags = (this.data.currentEdition && this.data.currentEdition.featureFlags) || {};
     return flags[feature] !== false;
   },
@@ -71,7 +91,7 @@ Page({
   showFeatureUnavailable: function(title, reason) {
     wx.showModal({
       title: title || '入口暂未开放',
-      content: reason || `${this.data.currentEdition.title || '当前届次'}该功能暂未开放，请以后台配置时间为准。`,
+      content: reason || `${(this.data.currentEdition && this.data.currentEdition.title) || '当前届次'}该功能暂未开放，请以后台配置时间为准。`,
       showCancel: false
     });
   },
@@ -534,40 +554,22 @@ Page({
   
   // 获取展览信息
   fetchExhibitionInfo: function() {
-    this.setData({ loading: true });
-    
-    wx.cloud.callFunction({
-      name: 'quickstartFunctions',
-      data: { 
-        type: 'fetchPotteryExhibition'
-      },
-      success: res => {
-        console.log('获取展览信息成功', res);
-        if (res.result && res.result.success) {
-          const { exhibition, schedules } = res.result.data;
-          
-          this.setData({
-            exhibition: exhibition || this.data.exhibition,
-            schedules: schedules || this.data.schedules,
-            loading: false
-          });
-        } else {
-          console.error('获取展览信息失败', res);
-          this.setData({ loading: false });
-          wx.showToast({
-            title: '获取数据失败',
-            icon: 'none'
-          });
-        }
-      },
-      fail: err => {
-        console.error('调用云函数失败', err);
-        this.setData({ loading: false });
-        wx.showToast({
-          title: '网络异常',
-          icon: 'none'
-        });
-      }
+    return new Promise((resolve, reject) => {
+      wx.cloud.callFunction({
+        name: 'quickstartFunctions',
+        data: { type: 'fetchPotteryExhibition' },
+        success: res => {
+          const result = res && res.result;
+          const content = result && result.data;
+          if (!result || !result.success || !content || !content.exhibition
+            || typeof content.exhibition.title !== 'string' || !content.exhibition.title.trim()) {
+            reject(new Error('未返回有效展览信息'));
+            return;
+          }
+          resolve(content);
+        },
+        fail: reject
+      });
     });
   },
 

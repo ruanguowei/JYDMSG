@@ -1,21 +1,45 @@
 <view class="page">
-  <view class="search-bar">
-    <input value="{{keyword}}" placeholder="搜索作品、艺术家或介绍" bindinput="onKeywordInput" confirm-type="search" bindconfirm="onSearch" />
-    <button bindtap="onSearch">搜索</button>
+  <view class="module-nav">
+    <view class="module-button active" hover-class="pressed" aria-role="button" aria-label="馆藏，当前模块" data-module="collections" bindtap="switchModule">馆藏</view>
+    <view class="module-button artists-tab" hover-class="pressed" aria-role="button" aria-label="查看艺术家" data-module="artists" bindtap="switchModule">艺术家</view>
   </view>
-
-  <view wx:if="{{loading}}" class="state">正在加载馆藏作品...</view>
-  <view wx:elif="{{collections.length === 0}}" class="state">暂无已发布馆藏作品</view>
-
-  <view class="collection-list">
-    <view wx:for="{{collections}}" wx:key="_id" class="collection-item" bindtap="openDetail" data-id="{{item._id}}">
-      <image wx:if="{{item.coverImage}}" class="cover" src="{{item.coverImage}}" mode="aspectFill"></image>
-      <view wx:else class="cover placeholder">暂无图片</view>
-      <view class="info">
-        <view class="title">{{item.title || '未命名作品'}}</view>
-        <view class="meta">{{item.artistName || '佚名'}} · {{item.period || '年代未详'}}</view>
-        <view class="desc">{{item.category || '未分类'}} {{item.material ? '｜' + item.material : ''}}</view>
+  <view wx:if="{{relatedArtistName}}" class="context-row">
+    <view class="context-title">{{relatedArtistName}}的关联馆藏</view>
+    <button class="context-action" hover-class="pressed" bindtap="showAllCollections">全部馆藏</button>
+  </view>
+  <view class="search">
+    <view class="search-symbol" aria-hidden="true"></view>
+    <input aria-label="搜索作品名称或作者" maxlength="80" value="{{keyword}}" placeholder="作品名称或作者" placeholder-class="search-placeholder" bindinput="onKeywordInput" confirm-type="search" bindconfirm="onSearch"/>
+    <button class="search-button" hover-class="pressed" bindtap="onSearch">搜索</button>
+  </view>
+  <block wx:if="{{loading}}">
+    <view class="grid" aria-hidden="true">
+      <view wx:for="{{[0,1,2,3]}}" wx:key="*this" class="work">
+        <view class="cover-frame skeleton"></view>
+        <view class="skeleton-line"></view>
+        <view class="skeleton-line short"></view>
       </view>
     </view>
+    <view class="loading-label" role="status">正在加载馆藏…</view>
+  </block>
+  <view wx:elif="{{collections.length === 0 && !error}}" class="state">
+    <view>{{appliedKeyword ? '没有找到相关作品' : '暂无公开馆藏，敬请期待'}}</view>
+    <button wx:if="{{appliedKeyword}}" class="more" hover-class="pressed" bindtap="clearSearch">清空搜索</button>
   </view>
+  <view wx:else class="grid">
+    <view wx:for="{{collections}}" wx:key="_id" class="work" data-id="{{item._id}}" bindtap="openDetail" hover-class="pressed" aria-role="button" aria-label="{{'查看作品：' + (item.title || '未命名作品')}}">
+      <view class="cover-frame">
+        <image wx:if="{{item.coverImage && !item.imageFailed}}" src="{{item.coverImage}}" class="cover" mode="aspectFit" lazy-load="{{true}}" data-index="{{index}}" data-url="{{item.coverImage}}" binderror="onListImageError" aria-label="{{item.title || '馆藏作品'}}"/>
+        <view wx:else class="cover placeholder">暂无图片</view>
+      </view>
+      <view class="work-title">{{item.title || '未命名作品'}}</view>
+      <view class="meta">{{item.artistName || '佚名'}}</view>
+    </view>
+  </view>
+  <view wx:if="{{error}}" class="state {{collections.length ? 'compact' : ''}}" role="alert">
+    <view>{{error}}</view>
+    <button class="more" hover-class="pressed" bindtap="retry">重新加载</button>
+  </view>
+  <button wx:if="{{!loading && hasMore && !error}}" class="more" hover-class="pressed" bindtap="loadMore" loading="{{loadingMore}}" disabled="{{loadingMore}}">{{loadingMore ? '正在加载' : '加载更多'}}</button>
+  <view wx:if="{{!loading && !hasMore && !error && collections.length}}" class="end-note">已显示全部馆藏</view>
 </view>

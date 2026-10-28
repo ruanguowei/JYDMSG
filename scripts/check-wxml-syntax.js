@@ -1,16 +1,12 @@
 const fs = require('node:fs');
 const path = require('node:path');
 
-const pagesRoot = path.join(__dirname, '..', 'miniprogram', 'pages');
-const errors = [];
-
-for (const entry of fs.readdirSync(pagesRoot, { withFileTypes: true })) {
-  if (!entry.isDirectory()) continue;
-  const file = path.join(pagesRoot, entry.name, 'index.wxml');
-  if (!fs.existsSync(file)) continue;
-  const source = fs.readFileSync(file, 'utf8');
+function findTagErrors(source) {
+  const errors = [];
   const stack = [];
-  const tokens = source.match(/<!--[\s\S]*?-->|<\/?[A-Za-z][^>]*>/g) || [];
+  // A quoted attribute can contain comparison operators such as >= or >.
+  // Only an unquoted > terminates the tag, including a self-closing image.
+  const tokens = source.match(/<!--[\s\S]*?-->|<\/?[A-Za-z](?:[^"'<>]|"[^"]*"|'[^']*')*>/g) || [];
   for (const token of tokens) {
     if (token.startsWith('<!--') || token.startsWith('<!')) continue;
     const closing = /^<\//.test(token);
@@ -20,13 +16,31 @@ for (const entry of fs.readdirSync(pagesRoot, { withFileTypes: true })) {
     const selfClosing = /\/\s*>$/.test(token);
     if (closing) {
       const expected = stack.pop();
-      if (expected !== tag) errors.push(`${entry.name}: 关闭标签 </${tag}> 与 <${expected || '无'}> 不匹配`);
+      if (expected !== tag) errors.push(`关闭标签 </${tag}> 与 <${expected || '无'}> 不匹配`);
     } else if (!selfClosing) {
       stack.push(tag);
     }
   }
-  if (stack.length) errors.push(`${entry.name}: 未关闭标签 <${stack[stack.length - 1]}>`);
+  if (stack.length) errors.push(`未关闭标签 <${stack[stack.length - 1]}>`);
+  return errors;
 }
 
-if (errors.length) throw new Error(`WXML 标签检查失败:\n${errors.join('\n')}`);
-console.log('WXML 标签结构检查通过。');
+function checkPages(pagesRoot = path.join(__dirname, '..', 'miniprogram', 'pages')) {
+  const errors = [];
+  for (const entry of fs.readdirSync(pagesRoot, { withFileTypes: true })) {
+    if (!entry.isDirectory()) continue;
+    const file = path.join(pagesRoot, entry.name, 'index.wxml');
+    if (!fs.existsSync(file)) continue;
+    const source = fs.readFileSync(file, 'utf8');
+    errors.push(...findTagErrors(source).map(error => `${entry.name}: ${error}`));
+  }
+  return errors;
+}
+
+if (require.main === module) {
+  const errors = checkPages();
+  if (errors.length) throw new Error(`WXML 标签检查失败:\n${errors.join('\n')}`);
+  console.log('WXML 标签结构检查通过。');
+}
+
+module.exports = { findTagErrors, checkPages };

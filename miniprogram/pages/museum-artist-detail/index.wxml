@@ -1,29 +1,34 @@
-<view class="page">
-  <view wx:if="{{loading}}" class="state">正在加载艺术家详情...</view>
+<view class="page artist-page">
+  <view wx:if="{{loading}}" class="state" role="status">正在加载艺术家档案…</view>
+  <view wx:elif="{{error}}" class="state" role="alert">
+    <view>{{error}}</view>
+    <button class="more" hover-class="pressed" bindtap="retry">重新加载</button>
+  </view>
   <block wx:elif="{{artist}}">
     <view class="profile">
-      <image wx:if="{{artist.avatar}}" class="avatar" src="{{artist.avatar}}" mode="aspectFill"></image>
-      <image wx:else class="avatar" src="/images/icons/default-avatar.png" mode="aspectFill"></image>
-      <view class="name">{{artist.name || '未命名艺术家'}}</view>
+      <view class="profile-name">{{artist.name || '未命名艺术家'}}</view>
+      <image wx:if="{{artist.avatar && !avatarFailed}}" class="avatar" src="{{artist.avatar}}" mode="aspectFit" binderror="onAvatarError" aria-label="{{artist.name || '艺术家照片'}}"/>
+      <view wx:else class="avatar placeholder">暂无照片</view>
+    </view>
+    <view class="section profile-section">
+      <view class="section-label">艺术家简介</view>
       <view class="intro">{{artist.intro || '暂无简介'}}</view>
     </view>
-
-    <view class="section" wx:if="{{artist.biography}}">
-      <view class="section-title">履历</view>
-      <view class="text">{{artist.biography}}</view>
-    </view>
-
-    <view class="section">
-      <view class="section-title">关联馆藏</view>
-      <view wx:if="{{!artist.relatedCollections || artist.relatedCollections.length === 0}}" class="empty">暂无关联作品</view>
-      <view wx:for="{{artist.relatedCollections}}" wx:key="_id" class="work" bindtap="openCollection" data-id="{{item._id}}">
-        <image wx:if="{{item.coverImage}}" src="{{item.coverImage}}" mode="aspectFill"></image>
-        <view wx:else class="work-placeholder">暂无图片</view>
-        <view class="work-info">
-          <view class="work-title">{{item.title || '未命名作品'}}</view>
-          <view class="work-meta">{{item.period || '年代未详'}} · {{item.category || '未分类'}}</view>
+    <view class="section-title">代表作品</view>
+    <view wx:if="{{artist.representativeWorks.length === 0}}" class="meta">暂无公开作品</view>
+    <view wx:else class="grid">
+      <view wx:for="{{artist.representativeWorks}}" wx:key="viewKey" class="work" data-id="{{item._id}}" data-url="{{item.coverImage}}" bindtap="openCollection" hover-class="{{item._id || item.coverImage ? 'pressed' : 'none'}}" aria-role="{{item._id || item.coverImage ? 'button' : ''}}" aria-label="{{(item._id ? '查看作品：' : '查看作品大图：') + (item.title || '未命名作品')}}">
+        <view class="cover-frame">
+          <image wx:if="{{item.coverImage && !item.imageFailed}}" class="cover" src="{{item.coverImage}}" mode="aspectFit" lazy-load="{{true}}" data-index="{{index}}" data-url="{{item.coverImage}}" binderror="onWorkImageError" aria-label="{{item.title || '代表作品'}}"/>
+          <view wx:else class="cover placeholder">暂无图片</view>
         </view>
+        <view class="work-title">{{item.title || '未命名作品'}}</view>
+        <view class="meta">{{item.artistName || artist.name || '佚名'}}</view>
       </view>
     </view>
+    <button class="text-action related-link" hover-class="pressed" bindtap="showCollections">
+      <text>查看关联馆藏</text>
+      <view class="arrow-symbol" aria-hidden="true"></view>
+    </button>
   </block>
 </view>
